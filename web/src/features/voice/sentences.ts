@@ -1,5 +1,8 @@
-/** A sentence is done once its end mark is followed by whitespace, so "3.5" or "201T" never split. */
-const SENTENCE = /[^.!?\n]*?(?:[.!?]+["”')\]]*\s+|\n+)/gy
+/**
+ * A sentence is done once its end mark is followed by whitespace. A mark followed by anything else
+ * ("124.7", "e.g.x") stays inside the sentence, so decimals neither split nor stall the stream.
+ */
+const SENTENCE = /(?:[^.!?\n]|[.!?](?![.!?]*["”')\]]*(?:\s|$)))*?(?:[.!?]+["”')\]]*\s+|\n+)/gy
 
 /**
  * The complete sentences of a streaming reply from character `from` on, grouped to at least ~40
