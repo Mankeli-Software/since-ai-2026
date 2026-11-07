@@ -1,4 +1,4 @@
-import { Button, ClubImage, EnterKbd, Eyebrow, LogoMark, UnitsToggle, Wordmark, useEnterKey } from '@/components/studio'
+import { Button, ClubImage, EnterKbd, Eyebrow, LogoMark, Wordmark, useEnterKey } from '@/components/studio'
 import { ClubModel } from '@/features/stage3d/ClubModel'
 import { convertProseUnits } from '@/lib/units'
 import { cn } from '@/lib/utils'
@@ -46,7 +46,6 @@ export function Welcome() {
         </a>
         <Eyebrow className="flex-none text-on-page">Fitter Studio</Eyebrow>
         <div className="h-px flex-1 bg-page-line-2 max-md:hidden" />
-        <UnitsToggle className="max-md:hidden" />
         <Eyebrow className="flex-none text-on-page-2 max-md:hidden">Honestly better golf</Eyebrow>
       </header>
       {/* Phone hero: the club as a banner above the copy (M-01) instead of floating behind it. */}

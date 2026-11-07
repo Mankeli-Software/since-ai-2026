@@ -95,11 +95,12 @@ function Footer({ block, busy, respond, onNext, canNext }: PartProps & { onNext:
 }
 
 function useUnits(block: Block) {
+  // The global units store is the source of truth; picking a unit here writes it for all later steps.
   const storeUnits = useUnitsStore((s) => s.units)
-  const defaultUnit: Unit = storeUnits === 'metric' ? 'cm' : 'in'
   const units: Unit[] = block.unit_options?.length ? block.unit_options : ['cm', 'in']
-  const initial = units.includes(defaultUnit) ? defaultUnit : units[0]
-  const [unit, setUnit] = useState<Unit>(initial)
+  const defaultUnit: Unit = storeUnits === 'metric' ? 'cm' : 'in'
+  const unit = units.includes(defaultUnit) ? defaultUnit : units[0]
+  const setUnit = (u: Unit) => useUnitsStore.getState().setUnits(u === 'cm' ? 'metric' : 'imperial')
   return { units, unit, setUnit }
 }
 
