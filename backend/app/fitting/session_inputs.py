@@ -26,11 +26,13 @@ def intake_of(session: FitSession) -> IntakeAnswers:
 
 
 def evidence_of(session: FitSession) -> FitEvidence:
-    """Evidence known to the session. TODO(EVIDENCE #30-#32): add shots and ball-line readings
-    from confirmed imports once the import routes land; today only phone values and flags."""
+    """Evidence known to the session: phone values, flags, and the shots of confirmed imports
+    (`state.shots`, already free of S1/S3/S7 rejects; S8 mishits kept). TODO(EVIDENCE #32):
+    ball-line readings once the ball-line import lands."""
     phone = _values(session, PHONE_FIELDS)
     return FitEvidence(
         phone=PhoneMeasurements.model_validate(phone) if phone else None,
+        shots=list(session.state.shots),
         flags=list(session.flags),
     )
 
