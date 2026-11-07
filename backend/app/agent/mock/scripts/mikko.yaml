@@ -1,0 +1,14 @@
+# MINIMAL script that only proves the turn protocol (issue #15). Issue #17 replaces it with the
+# full Mikko spine (plan 5.3). Steps: text | tool_call {name, args} | ui {<UIBlock fields>}.
+# A `ui` step with an input component ends the turn; the next turn resumes at the next step.
+persona: mikko
+steps:
+  - text: "Hi, I'm your Takomo fitter. Let's find your irons. "
+  - ui:
+      type: choice_chips
+      prompt: "Which hand do you swing with?"
+      field: handedness
+      options:
+        - {id: right, label: Right-handed}
+        - {id: left, label: Left-handed}
+  - text: "Got it, noted. That is all for this short demo script."

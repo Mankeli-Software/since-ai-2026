@@ -46,6 +46,8 @@ class FitSession(BaseModel):
     recommendation_json: str | None = None  # FitResult as a JSON string
     budget: Budget = Field(default_factory=Budget)
     ui_block_seq: int = 0  # generated ui_* blocks are numbered `<type>-<n>`, unique per session
+    pending_ui_id: str | None = None  # input component the last turn is waiting on (AGENT)
+    script_cursor: int = 0  # next step of the scripted engine's persona script (AGENT)
 
 
 class StoredMessage(BaseModel):
