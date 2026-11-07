@@ -1,8 +1,12 @@
 import { useEffect } from 'react'
-import { hasFlag } from '@/lib/flags'
+import { hasFlag, isV3 } from '@/lib/flags'
 import { useSession } from '@/store/session'
 import { StudioStart } from '../personas/StudioStart'
+import { Welcome } from '../personas/Welcome'
+import { isResultPhase } from '../result/phase'
+import ResultsShell from '../result/ResultsShell'
 import { ChatColumn } from './ChatColumn'
+import { ChatShell } from './ChatShell'
 import { StageBoundary } from './StageBoundary'
 import { StagePanel } from './StagePanel'
 import { TopBar } from './TopBar'
@@ -11,9 +15,12 @@ import { TopBar } from './TopBar'
  * Desktop layout (L3): stage left, chat right. At the reveal (a best spec exists) the chat
  * narrows to a side panel and the stage grows (CSS transition only). `?ff=reveal` forces it.
  * Without `demo` or `start` in the URL, the #37 start screen shows instead of a session.
+ * Default is Flow v3 (C1 welcome, chat phase, results phase); `?ff=legacy` shows the old two-column layout.
  */
 export function Studio() {
+  const v3 = isV3()
   const revealed = useSession((s) => s.state?.best != null) || hasFlag('reveal')
+  const resultPhase = useSession((s) => isResultPhase(s.state, s.ui))
   const start = useSession((s) => s.start)
   const resume = useSession((s) => s.resume)
 
@@ -32,6 +39,11 @@ export function Studio() {
     const engine = q.get('engine')
     void start({ engine: engine === 'live' || engine === 'scripted' ? engine : undefined, demo: q.get('demo') })
   }, [start, resume, picking])
+
+  if (v3) {
+    if (picking) return <Welcome />
+    return resultPhase ? <ResultsShell /> : <ChatShell />
+  }
 
   if (picking) return <StudioStart />
 

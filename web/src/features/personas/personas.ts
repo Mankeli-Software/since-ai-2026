@@ -17,3 +17,20 @@ export const PERSONAS: Persona[] = [
 // Live engine; the server falls back to scripted when live is off (plan 4.7).
 export const personaHref = (p: Persona) => `/studio.html?demo=${p.demoGolferId}&engine=live`
 export const ownFittingHref = '/studio.html?engine=live&start=own'
+
+/** v3 links keep the page's `?ff=` flags (always with v3) so the new flow stays on. */
+function studioHrefV3(params: Record<string, string>) {
+  const here = new URLSearchParams(location.search)
+  const ff = new Set((here.get('ff') ?? '').split(',').filter(Boolean)).add('v3')
+  const q = Object.entries(params).map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+  return `/studio.html?${[...q, `ff=${[...ff].map(encodeURIComponent).join(',')}`].join('&')}`
+}
+
+/** C1 "I'm ready. Let's start": your own fitting on the scripted engine (no keys needed). */
+export const ownFittingHrefV3 = () => studioHrefV3({ engine: 'scripted', start: 'own' })
+
+/** "Try as" from the v3 welcome: live engine like personaHref (falls back to scripted), unless the page says otherwise. */
+export const personaHrefV3 = (p: Persona) => {
+  const engine = new URLSearchParams(location.search).get('engine')
+  return studioHrefV3({ demo: p.demoGolferId, engine: engine === 'scripted' ? 'scripted' : 'live' })
+}

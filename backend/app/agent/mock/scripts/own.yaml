@@ -1,0 +1,321 @@
+# Own fitting (no demo golfer, scripted engine): the Flow v3 walkthrough (docs/ui-v3/design-spec.md §3).
+# The design's example golfer (31, 165 m guessed, 142 m measured). Mikko's own spine is mikko.yaml. Fitter lines are the
+# design's copy. Steps: text | tool_call {name, args} | ui {<UIBlock fields>}. A `ui` step with an
+# input component ends the turn; the next turn resumes at the next step. The script never
+# branches: any answer (or free text) moves it on.
+#
+# Turn  Screen  Blocks
+#  1    C2      text x2 -> sentence_builder (years / often / hand / sex / age)
+#  2    C3a     update_profile -> text -> source_picker (round trackers, fallback "I'll just tell you")
+#  3    C3b     text -> slider (7-iron carry in m, guess toggle)
+#  4    C4a     update_profile -> text -> yes_no_fork (sim_data / by_hand)
+#  5    C4b     text -> source_picker (simulators)
+#  6    C4c     text -> data_import (csv + skip, own 7-iron)
+#  7    C5      text -> confidence_update (display) -> outlier_review (shot 7, 191 m)
+#  8    C6a     update_profile -> text -> body_measure height
+#  9    C6b     update_profile -> text -> body_measure wrist_to_floor
+# 10    C6      update_profile -> text -> body_measure glove (size tiles)
+# 11    R1      update_profile -> run_fit (real) -> recommendation_card, why_panel, club_compare,
+#               flex_band, close_call (display) -> closing text
+#
+# Inputs: the profile is fed with `update_profile` (the real tool), so run_fit gives the same fit
+# whatever the golfer taps. The values are the ones the cards show (design persona: 31, 181 cm,
+# 86 cm, glove L, wants it higher); fields the v3 path never asks (score bucket, tempo,
+# characteristics) come from DEMO-01's questionnaire.csv row. Result: 201T MKII on KBS Tour Lite
+# Regular, runner-up 201 MKII, standard length and lie, midsize grip, stock.
+#
+# `$state.<path>` and `$run_fit.<path>` strings are filled from the live state / run_fit output
+# when the step runs (scripted_engine.resolve_refs). Every spec number in the result blocks comes
+# from there. Numbers no tool computes yet are design values, each marked with a TODO.
+persona: own
+steps:
+  # ---- C2: background
+  - text: "Hey, welcome to the studio. Pull up a chair, this takes about as long as a slow par 3."
+  - text: "Let's start with you. How long have you been at this game?"
+  - ui:
+      type: sentence_builder
+      prompt: "Tap the words to change them"
+      template: "I've played golf for {years}, about {often}, and I'm a {hand} handed {sex} aged {age}"
+      tokens:
+        - id: years
+          placeholder: "how long"
+          options:
+            - {id: new, label: "Just started"}
+            - {id: "1_3", label: "1–3 years"}
+            - {id: "3_10", label: "3–10 years"}
+            - {id: "10_plus", label: "10+ years"}
+        - id: often
+          placeholder: "how often"
+          options:
+            - {id: weekly, label: "every week"}
+            - {id: "2_3_month", label: "2–3 rounds a month"}
+            - {id: season, label: "a few a season"}
+            - {id: starting, label: "just starting"}
+        - id: hand
+          placeholder: "right"
+          value: right
+          options:
+            - {id: right, label: "right"}
+            - {id: left, label: "left"}
+        - id: sex
+          placeholder: "man or woman"
+          options:
+            - {id: male, label: "man"}
+            - {id: female, label: "woman"}
+        - id: age
+          placeholder: "age"
+          options:
+            - {id: u25, label: "under 25"}
+            - {id: "25_34", label: "25–34"}
+            - {id: "35_44", label: "35–44"}
+            - {id: "45_54", label: "45–54"}
+            - {id: "55_64", label: "55–64"}
+            - {id: "65_plus", label: "65+"}
+
+  # ---- C3a: import your rounds
+  - tool_call:
+      name: update_profile
+      args: {age: 31, sex: male, handedness: right, rounds_per_year: "31-50"}
+  - text: "Eight years, nice. Do you track your rounds? An app like GameBook knows your game better than any question I could ask."
+  - ui:
+      type: source_picker
+      prompt: "Do you track your rounds?"
+      preview_lead: "From your app I get your real scoring, not last week's best round:"
+      preview_stats:
+        - {value: "86", label: "avg score, last 20"}
+        - {value: "31%", label: "greens hit"}
+        - {value: "Short", label: "most misses"}
+      options:
+        - {id: gamebook, name: "GameBook", hint: "Connect or share a stats screenshot"}
+        - {id: "18birdies", name: "18Birdies", hint: "Stats screenshot"}
+        - {id: arccos, name: "Arccos", hint: "Connect your account"}
+        - {id: garmin_golf, name: "Garmin Golf", hint: "Connect your account"}
+        - {id: handicap_id, name: "Handicap ID", hint: "GHIN or your federation number"}
+      fallback: {id: by_hand, title: "I'll just tell you", body: "A few quick questions instead"}
+
+  # ---- C3b: your game by hand
+  - text: "Used cavity backs, respect. How far does your 7-iron **carry**? A normal one, not your best."
+  - ui:
+      type: slider
+      prompt: "7-iron carry"
+      field: reported_7i_carry_m
+      unit: m
+      min: 100
+      max: 200
+      step: 1
+      value: 165
+      allow_unknown: true
+      measured_or_guessed_toggle: true
+
+  # ---- C4a: sim data or answer yourself?
+  # The 165 m guess (180.4 yd). Score bucket, flight, tempo and characteristics: DEMO-01's
+  # questionnaire row, except flight "high" (the design persona wants it higher).
+  - tool_call:
+      name: update_profile
+      args:
+        reported_7i_carry_yd: 180.4
+        score_bucket: 3
+        flight: high
+        tempo: moderate
+        characteristics: ["distance control", "more offset"]
+  - text: "Noted, as a guess. Have you hit in a simulator lately? You can keep answering by hand, or we can sharpen your fit with real shots."
+  - ui:
+      type: yes_no_fork
+      prompt: "Have you hit in a simulator lately?"
+      options:
+        - id: sim_data
+          title: "Yes, I have sim data"
+          body: "Bring real shots in. It's the biggest upgrade to your fit, and you'll see confidence jump."
+          illustration: sim_data
+        - id: by_hand
+          title: "I'll answer myself"
+          body: "No problem. A few more questions instead. Guesses are marked as guesses, and you can add shots later."
+          illustration: by_hand
+      footnote: "Never hit in one? There are 3 simulators near Turku"
+
+  # ---- C4b: which simulator?
+  - text: "Nice. Which simulator was it? I'll show you exactly how to get the shots out."
+  - ui:
+      type: source_picker
+      prompt: "Which simulator was it?"
+      options:
+        - {id: trackman, name: "TrackMan", hint: "Share link from the app"}
+        - {id: foresight, name: "Foresight", hint: "GCQuad, GC3: CSV export"}
+        - {id: garmin, name: "Garmin", hint: "Approach R10: Garmin Golf app"}
+        - {id: uneekor, name: "Uneekor", hint: "EYE XO, QED: CSV export"}
+        - {id: other_csv, name: "Something else", hint: "Any launch monitor CSV"}
+      fallback: {id: photo, title: "Just a photo of the screen", body: "We read the numbers from your picture"}
+
+  # ---- C4c: TrackMan import (L6: CSV upload + persona sample imports; no share-link importer)
+  - text: "TrackMan, perfect. Three taps and your shots are in."
+  - ui:
+      type: data_import
+      prompt: "Bring in your TrackMan 7-iron shots"
+      sources: [csv, skip]
+      club_hint: own_7i
+
+  # ---- C5: shots in
+  - text: "Got 24 shots. You carry it **142 m**, not 165. That's the ego tax, and everyone pays it. It also means **regular flex**, not stiff."
+  # TODO(FIT confidence): before/after are design values until confidence is computed.
+  - ui:
+      type: confidence_update
+      before: 34
+      after: 68
+      changes: ["Shaft: now measured", "Head: now measured"]
+      left_count: 3
+  # TODO(EVIDENCE #30-#32): design values until the import routes return a real ImportReport.
+  - ui:
+      type: outlier_review
+      import_id: imp_demo01_own7i
+      flags:
+        - code: S9
+          severity: confirm
+          field: carry_m
+          value: 191
+          expected: "about 142 m like your other shots"
+          shot_index: 6
+          import_id: imp_demo01_own7i
+      shots_summary: {n: 24, club_speed_mph: 76, carry_avg_m: 142, claimed_carry_m: 165}
+      actions: [keep, exclude]
+
+  # ---- C6a: height
+  # shortcut: run_fit reads no imported shots yet (TODO(EVIDENCE #30-#32)), so the measured
+  # 142 m (155.3 yd) carry replaces the guess as the carry answer. It maps to swing bucket 3
+  # (regular flex), as the shots would.
+  - tool_call:
+      name: update_profile
+      args: {reported_7i_carry_yd: 155.3, reported_7i_speed_mph: 76.0}  # measured: speed decides flex
+  - text: "Last three, and they're quick. Your body sets the length and lie. How tall are you?"
+  - ui:
+      type: body_measure
+      field: height
+      prompt: "Your height"
+      unit_options: [cm, in]
+      diagram_id: height
+      value: 181
+
+  # ---- C6b: wrist to floor
+  - tool_call:
+      name: update_profile
+      args: {height_cm: 181}
+  - text: "Now wrist-to-floor. Grab someone, or a wall and a tape measure."
+  - ui:
+      type: body_measure
+      field: wrist_to_floor
+      prompt: "Wrist to floor"
+      unit_options: [cm, in]
+      diagram_id: wrist_to_floor
+      value: 86
+
+  # ---- C6: glove size
+  - tool_call:
+      name: update_profile
+      args: {wrist_to_floor_cm: 86}
+  - text: "Last one. What glove size do you wear? It sets your grip."
+  - ui:
+      type: body_measure
+      field: glove
+      prompt: "Glove size"
+      unit_options: [cm]
+      diagram_id: hand_length
+      options:
+        - {id: S, label: S, sub: "17 cm"}
+        - {id: M, label: M, sub: "18 cm"}
+        - {id: M/L, label: ML, sub: "18.5 cm"}
+        - {id: L, label: L, sub: "19 cm"}
+        - {id: XL, label: XL, sub: "20 cm"}
+
+  # ---- R1: the fit
+  - tool_call:
+      name: update_profile
+      args: {glove: L, glove_was_guessed: false}
+  - tool_call: {name: run_fit, args: {depth: standard}}
+  - ui:
+      type: recommendation_card
+      spec: $state.best
+      purchase: $state.best.purchase
+      runner_up: $state.runner_up
+      gate: $state.gate
+      strength: $state.strength
+      confidence: $state.confidence  # live Monte Carlo confidence from run_fit
+      social_proof_id: regular_flex
+  # Values and score numbers from run_fit. Reasons are the R2 copy (spec §6), reworded where the
+  # design states something the rules do not (length band, grip size).
+  # TODO(#28): build these from explain_part once it returns WhyItems.
+  - ui:
+      type: why_panel
+      depth: standard
+      items:
+        - part: head
+          plain: "You asked for higher, softer shots with some shape. The 201T gives you that and still forgives a miss."
+          numbers:
+            head_score: $run_fit.best.head_score
+            runner_up_score: $run_fit.runner_up.head_score
+          sources:
+            - {source: trackman, n: 24, note: "your shots"}
+            - {source: questionnaire, note: "what you want"}
+          close_call:
+            part: head
+            ours: $run_fit.best.head
+            alt: $run_fit.runner_up.head
+            share: 0.53  # TODO(FIT confidence): Monte Carlo share; design value
+            next_step: "Hit both in a bay"
+        - part: flex
+          plain: "Your swing speed sits in the regular band. Stiff would launch the ball lower, and you already fly it low."
+          # TODO(EVIDENCE #30-#32): design shot numbers until imports reach the fit.
+          numbers: {speed_mph: 76, carry_m: 142, claimed_carry_m: 165}
+          sources:
+            - {source: trackman, n: 24, note: "24 TrackMan shots"}
+        - part: length
+          plain: "You're 181 cm with an 86 cm wrist to floor. That sits inside the standard band on Takomo's chart, so there's nothing to add or take off."
+          numbers:
+            length_in: $run_fit.best.length_in
+            height_cm: 181
+            wrist_to_floor_cm: 86
+          sources:
+            - {source: questionnaire, note: "measured height and wrist to floor"}
+        - part: lie
+          plain: "Your height and wrist to floor point to a standard lie. This is the least measured part of your fit: it comes from the chart, not your shots."
+          numbers:
+            lie_deg: $run_fit.best.lie_deg
+          sources:
+            - {source: derived, note: "fitting chart, no strike data yet"}
+        - part: grip
+          plain: "Your glove is a large, and Takomo's chart puts a large glove on a midsize grip."
+          sources:
+            - {source: questionnaire, note: "measured glove size"}
+  # TODO(#26): carry, apex, landing and spread are design values until simulate_flight /
+  # compare_specs return numbers. Heads and score totals come from run_fit.
+  - ui:
+      type: club_compare
+      highlight: $run_fit.best.head
+      heads:
+        - head: $run_fit.best.head
+          carry: 144
+          apex: 27
+          land_angle: 47
+          side_sd: 9
+          score_total: $run_fit.best.head_score
+        - head: $run_fit.runner_up.head
+          carry: 147
+          apex: 24
+          land_angle: 44
+          side_sd: 11
+          score_total: $run_fit.runner_up.head_score
+  # TODO(EVIDENCE #30-#32): the measured speed is a design value until imports reach the fit.
+  # The band matches run_fit's flex (regular).
+  - ui:
+      type: flex_band
+      measured_mph: 76
+      band: R
+      ghost_mph: 86
+      ghost_label: "What 165 m would have meant"
+  # TODO(FIT confidence): shares are design values until the Monte Carlo close calls land.
+  - ui:
+      type: close_call
+      part: head
+      a: {label: "201T", share: 53}
+      b: {label: "201", share: 47}
+      tradeoff: "The 201 gives you **+3 m** but lands flatter and runs out. For holding greens, the 201T wins."
+      next_step: "Hit both in a bay"
+  - text: "That's your fit. The short version is above. Every detail is one tap away when you want it."

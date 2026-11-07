@@ -1,7 +1,5 @@
+import { Button } from '@/components/studio'
 import { ownFittingHref, PERSONAS, personaHref } from './personas'
-
-const link =
-  'inline-block px-5 py-2.5 font-display text-base font-semibold uppercase tracking-wider transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
 
 /** Sits on a dark surface (landing hero, studio start). */
 export function PersonaRow() {
@@ -19,15 +17,15 @@ export function PersonaRow() {
             </span>
             <h3 className="mt-4 font-display text-3xl font-bold uppercase">{p.name}, {p.age}</h3>
             <p className="mt-2 flex-1 text-ink-300">{p.teaser}</p>
-            <a className={`${link} mt-5 bg-washed-white text-midnight-black hover:bg-orange-300`} href={personaHref(p)}>
+            <Button href={personaHref(p)} variant="lightOnDark" size="sm" className="mt-5">
               Try as {p.name}
-            </a>
+            </Button>
           </li>
         ))}
       </ul>
-      <a className={`${link} mt-8 bg-accent text-accent-foreground hover:bg-orange-300`} href={ownFittingHref}>
+      <Button href={ownFittingHref} variant="primary" size="md" className="mt-8">
         Start my own fitting
-      </a>
+      </Button>
     </section>
   )
 }

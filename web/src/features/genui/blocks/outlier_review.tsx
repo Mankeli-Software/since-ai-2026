@@ -1,60 +1,104 @@
-import { Button } from '@/components/ui/button'
-import { answeredCls, btnCls, calloutCls, eyebrowCls } from '../ui'
+import { Button, StatTile } from '@/components/studio'
 import type { BlockProps } from '../types'
+import { Answered } from './_parts/Answered'
 
 export const type = 'outlier_review'
 
-const LABELS: Record<string, string> = {
-  club_speed_mph: 'Club speed (mph)', carry_avg_yd: 'Carry average (yd)', claimed_carry_yd: 'Your number (yd)', n: 'Shots',
+type Block = BlockProps<'outlier_review'>['block']
+type Flag = Block['flags'][number]
+type Action = Block['actions'][number]
+
+const LABELS: Record<string, [string, string?]> = {
+  n: ['Shots'],
+  club_speed_mph: ['Club speed', 'mph'],
+  carry_avg_yd: ['Carry average', 'yd'],
+  carry_avg_m: ['Carry average', 'm'],
+  claimed_carry_yd: ['Your number', 'yd'],
+  claimed_carry_m: ['Your number', 'm'],
 }
+// Unit from the field suffix (carry_yd, club_speed_mph, launch_deg...).
+const UNITS: [string, string][] = [['_yd', ' yd'], ['_m', ' m'], ['_mph', ' mph'], ['_deg', '°'], ['_rpm', ' rpm']]
 
-type Flag = BlockProps<'outlier_review'>['block']['flags'][number]
+const unitOf = (field?: string | null) => UNITS.find(([s]) => field?.endsWith(s))?.[1] ?? ''
+const nameOf = (field?: string | null) =>
+  (field ?? '').replace(/_(yd|m|mph|deg|rpm)$/, '').replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+const num = (v: Flag['value']) => (typeof v === 'number' ? String(Math.round(v * 10) / 10) : String(v))
 
-// Plain words from numbers only. The chat message carries the explanation.
-function describe(f: Flag) {
-  const parts = [f.shot_index != null ? `Shot ${f.shot_index + 1}` : 'Import', f.field ?? f.code]
-  let s = parts.join(': ')
-  if (f.value != null) s += ` is ${f.value}`
-  if (f.expected) s += `, expected ${f.expected}`
-  return s
+// Plain words from the numbers only (the fitter's chat line carries the joke and the explanation).
+function headline(f: Flag) {
+  const val = f.value != null ? `${num(f.value)}${unitOf(f.field)}` : null
+  if (f.shot_index != null) {
+    const shot = `Shot ${f.shot_index + 1}`
+    if (!val) return `${shot} looks odd.`
+    return /carry|total|distance/.test(f.field ?? '') ? `${shot} went ${val}.` : `${shot}: ${nameOf(f.field).toLowerCase()} ${val}.`
+  }
+  if (!val) return 'Something in this import looks odd.'
+  if (/carry/.test(f.field ?? '')) return `Your shots carry ${val}.`
+  return `${nameOf(f.field) || 'Your shots'}: ${val}.`
 }
+const detail = (f: Flag) => (f.expected ? `Expected ${f.expected}.` : 'That is far outside the rest of your shots.')
 
+/**
+ * C5 / K4 odd-shot check: orange-tint callout, Keep it / Drop it, "N other shots stay in".
+ * Payload unchanged: `{action, codes}` with action keep | exclude | confirm_value.
+ */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'outlier_review'>) {
-  const off = !interactive || busy
-  const codes = block.flags.map((f) => f.code)
-  const suggested = block.flags.find((f) => f.suggested_value != null)?.suggested_value
-  const label = (a: string) =>
-    a === 'confirm_value' ? (suggested != null ? `Use measured ${suggested}` : 'Use measured value')
-    : a === 'keep' ? 'Keep my number'
-    : block.flags.every((f) => f.code.startsWith('S')) ? 'Exclude these shots' : "Don't use my number"
+  const flags = block.flags
+  const shotLevel = flags.some((f) => f.shot_index != null)
+  const prompt = flags[0] ? headline(flags[0]) : 'Odd shot check'
+  if (!interactive || answer) return <Answered prompt={prompt} answer={answer} />
+
+  const codes = flags.map((f) => f.code)
+  const suggested = flags.find((f) => f.suggested_value != null)?.suggested_value
+  const unit = unitOf(flags.find((f) => f.suggested_value != null)?.field)
+  const label = (a: Action) =>
+    a === 'confirm_value'
+      ? suggested != null ? `Use ${num(suggested)}${unit}` : 'Use the measured value'
+      : a === 'keep' ? (shotLevel ? 'Keep it' : 'Keep my number')
+      : shotLevel ? 'Drop it'
+      : flags.every((f) => f.code.startsWith('S')) ? 'Drop these shots' : "Don't use my number"
+  // Keep = outline; the "do it" action = dark (confirm_value when offered, else exclude). No orange in a callout.
+  const dark: Action = block.actions.includes('confirm_value') ? 'confirm_value' : 'exclude'
+  const order: Action[] = ['keep', 'exclude', 'confirm_value']
+  const actions = order.filter((a) => block.actions.includes(a))
+
+  const n = block.shots_summary?.n
+  const dropped = new Set(flags.filter((f) => f.shot_index != null).map((f) => f.shot_index)).size
+  const stats = Object.entries(block.shots_summary ?? {}).filter(([k]) => k !== 'n')
+
   return (
-    <div className="flex flex-col gap-3">
-      <ul className="flex flex-col gap-2">
-        {block.flags.map((f, i) => (
-          <li key={i} className={`${calloutCls} flex items-baseline gap-3`}>
-            <span className="font-display text-sm font-semibold tracking-[0.1em] text-orange-ink">{f.code}</span>
-            <span>{describe(f)}</span>
-          </li>
-        ))}
-      </ul>
-      <dl className="grid grid-cols-4 gap-2">
-        {Object.entries(block.shots_summary ?? {}).map(([k, v]) => (
-          <div key={k} className="flex flex-col-reverse rounded-md border border-border bg-background px-3 py-2">
-            <dt className={eyebrowCls}>{LABELS[k] ?? k}</dt>
-            <dd className="font-display text-2xl font-semibold leading-none">{v}</dd>
-          </div>
-        ))}
-      </dl>
-      {interactive ? (
-        <div className="flex flex-wrap gap-2">
-          {block.actions.map((a) => (
-            <Button key={a} variant={a === 'confirm_value' ? 'default' : 'outline'} className={btnCls} disabled={off} onClick={() => respond({ action: a, codes }, label(a))}>
-              {label(a)}
-            </Button>
+    <div className="flex flex-col gap-3.5">
+      {stats.length > 0 && (
+        <div className="grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(stats.length, 4)}, minmax(0, 1fr))` }}>
+          {stats.map(([k, v]) => (
+            <StatTile key={k} label={LABELS[k]?.[0] ?? nameOf(k)} value={Math.round(v * 10) / 10} unit={LABELS[k]?.[1] ?? unitOf(k).trim()} />
           ))}
         </div>
-      ) : (
-        answer && <p className={answeredCls}>Answered: <strong>{answer.displayText}</strong></p>
+      )}
+      <div className="flex items-center gap-3.5 rounded-10 bg-orange-tint px-4 py-3">
+        <div className="flex flex-1 flex-col gap-1 text-[16px] leading-snug">
+          {flags.map((f, i) => (
+            <p key={`${f.code}-${i}`} className="m-0">
+              <b className="font-bold">{headline(f)}</b> {detail(f)}
+            </p>
+          ))}
+        </div>
+        {actions.map((a) => (
+          <Button
+            key={a}
+            size="sm"
+            variant={a === dark ? 'dark' : 'outline'}
+            disabled={busy}
+            onClick={() => respond({ action: a, codes }, label(a))}
+          >
+            {label(a)}
+          </Button>
+        ))}
+      </div>
+      {shotLevel && n != null && n > dropped && (
+        <span className="text-[14px] text-grey-55">
+          {n - dropped} other shot{n - dropped === 1 ? '' : 's'} stay in.
+        </span>
       )}
     </div>
   )

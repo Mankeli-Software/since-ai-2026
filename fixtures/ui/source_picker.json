@@ -1,0 +1,14 @@
+{
+  "type": "source_picker",
+  "prompt": "Which simulator was it?",
+  "options": [
+    {"id": "trackman", "name": "TrackMan", "hint": "Share link from the app"},
+    {"id": "foresight", "name": "Foresight", "hint": "GCQuad, GC3: CSV export"},
+    {"id": "garmin", "name": "Garmin", "hint": "Approach R10: Garmin Golf app"},
+    {"id": "uneekor", "name": "Uneekor", "hint": "EYE XO, QED: CSV export"},
+    {"id": "other_csv", "name": "Something else", "hint": "Any launch monitor CSV"}
+  ],
+  "fallback": {"id": "photo", "title": "Just a photo of the screen", "body": "We read the numbers from your picture"},
+  "preview_lead": null,
+  "preview_stats": null
+}

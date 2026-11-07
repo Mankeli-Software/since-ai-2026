@@ -1,12 +1,19 @@
 """Scripted engine (`LLM_MODE=mock`): replays `agent/mock/scripts/<persona>.yaml` step by step
 against the REAL tools. No LLM, no API key. The cursor lives in `FitSession.script_cursor`, so it
-is committed atomically with the turn. A `ui` step with an input component ends the turn."""
+is committed atomically with the turn. A `ui` step with an input component ends the turn.
+
+Any string value of the exact form `$<root>.<key>.<index>...` in a step is a reference, resolved
+when the step runs: `$state...` reads the session's FittingState, `$<tool>...` reads the output
+of that tool from an earlier `tool_call` step in the same turn. Display blocks then show the
+real tools' numbers instead of copies in the YAML."""
 
 import asyncio
+import re
 from pathlib import Path
 from typing import Any
 
 import yaml  # shortcut: transitive via uvicorn[standard], not a declared dependency
+from pydantic import BaseModel
 
 from app.agent.engines.base import answer_of, load_tools, stored, user_text
 from app.agent.guard import REPLAY_TEXT
@@ -21,14 +28,31 @@ SCRIPTS = Path(__file__).resolve().parent.parent / "mock" / "scripts"
 PERSONAS = {"DEMO-01": "mikko", "DEMO-09": "hannu", "DEMO-04": "lars", "DEMO-13": "anders"}
 CHUNK_WORDS = 3
 CHUNK_DELAY_S = 0.02
+REF = re.compile(r"^\$[a-z_]+(\.\w+)*$")
 
 
 def load_script(demo_golfer_id: str | None) -> list[dict[str, Any]]:
-    persona = PERSONAS.get(demo_golfer_id or "", "mikko")
+    # No demo golfer (an own fitting): the Flow v3 walkthrough in own.yaml.
+    persona = PERSONAS.get(demo_golfer_id or "", "own")
     path = SCRIPTS / f"{persona}.yaml"
     if not path.exists():  # personas without a script yet use Mikko's
         path = SCRIPTS / "mikko.yaml"
     return yaml.safe_load(path.read_text())["steps"]
+
+
+def resolve_refs(value: Any, roots: dict[str, Any]) -> Any:
+    """Replace `$root.path` strings (see module docstring) in a step, recursively."""
+    if isinstance(value, dict):
+        return {k: resolve_refs(v, roots) for k, v in value.items()}
+    if isinstance(value, list):
+        return [resolve_refs(v, roots) for v in value]
+    if isinstance(value, str) and REF.match(value):
+        root, *path = value[1:].split(".")
+        cur = roots[root]
+        for key in path:
+            cur = cur[int(key)] if isinstance(cur, list) else cur[key]
+        return cur
+    return value
 
 
 class ScriptedEngine:
@@ -52,6 +76,10 @@ class ScriptedEngine:
         steps = load_script(s.demo_golfer_id)
         texts: list[str] = []
         n = 0
+        outputs: dict[str, Any] = {}  # tool name -> JSON output, for `$<tool>` refs this turn
+
+        def refs(value: Any) -> Any:
+            return resolve_refs(value, {**outputs, "state": s.state.model_dump(mode="json")})
 
         async def say(text: str) -> None:
             nonlocal n
@@ -80,7 +108,10 @@ class ScriptedEngine:
             elif "tool_call" in step:
                 call = step["tool_call"]
                 spec = get_tool(call["name"])
-                await spec.fn(ctx, spec.input_model.model_validate(call.get("args") or {}))
+                args = spec.input_model.model_validate(refs(call.get("args") or {}))
+                out = await spec.fn(ctx, args)
+                if isinstance(out, BaseModel):
+                    outputs[call["name"]] = out.model_dump(mode="json")
             elif "ui" in step:
                 spec = get_tool(f"ui_{step['ui']['type']}")
                 ui_id: list[str] = []
@@ -91,7 +122,7 @@ class ScriptedEngine:
                     await ctx.emit(ev)
 
                 sub = ToolContext(session=s, emit=capture, store=ctx.store, budget=ctx.budget)
-                await spec.fn(sub, spec.input_model.model_validate(step["ui"]))
+                await spec.fn(sub, spec.input_model.model_validate(refs(step["ui"])))
                 if spec.kind == "ui_input":
                     s.pending_ui_id = ui_id[0]
                     break

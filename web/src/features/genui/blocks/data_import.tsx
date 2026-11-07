@@ -1,47 +1,95 @@
-import { useEffect, useState } from 'react'
-import diagrams from '../../../../../fixtures/diagrams.json'
-import { Button } from '@/components/ui/button'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Button, Eyebrow } from '@/components/studio'
+import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
-import { answeredCls, btnCls, chipCls, eyebrowCls, inputCls, labelCls, panelCls, promptCls } from '../ui'
 import type { BlockProps } from '../types'
+import { Answered, cardLabelCls } from './_parts/Answered'
+import diagrams from '../../../../../fixtures/diagrams.json'
 
 export const type = 'data_import'
 
-const SOON = ['trackman_link', 'screenshot', 'round_stats_screenshot']
-const NAMES: Record<string, string> = {
-  csv: 'TrackMan CSV', ball_line: 'Ball-line test', skip: 'Skip for now',
-  trackman_link: 'TrackMan link', screenshot: 'Screenshot', round_stats_screenshot: 'Round stats screenshot',
-}
 // The pack's test clubs (club ids in demo/shots.csv).
 const CLUBS: [string, string][] = [
   ['own_7i', 'My own 7-iron'],
   ['takomo_201-mkii_kbs-tour-regular_std', 'Takomo 201 MKII test club'],
   ['takomo_101-mkii_kbs-tour-lite-regular_std', 'Takomo 101 MKII test club'],
 ]
+const LINE_STEPS = diagrams.ball_line_test.steps
 const UNAVAILABLE = 'Import is not available yet. You can skip for now.'
 
 // Local minimal types: these demo routes are not in the generated client yet.
 interface Sample { sample_id: string; kind?: string; label?: string }
 interface DemoGolfer { golfer_id: string; sample_imports?: Sample[] }
 
+// C4c phone-mock illustrations (dark 120px panels), copied from V3-C4c-TrackMan.
+function StepArt({ n }: { n: 1 | 2 | 3 }) {
+  if (n === 3) {
+    return (
+      <svg viewBox="0 0 180 110" className="h-[100px]" aria-hidden="true">
+        <rect x="10" y="38" width="160" height="34" rx="17" fill="#F8F8F8" />
+        <text x="26" y="60" fill="#555555" fontFamily="Barlow" fontSize="13">trackman.com/report/…</text>
+        <path d="M120 86 l8 -14 l3 9 l9 1 z" fill="#FF6E01" />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 120 110" className="h-[104px]" aria-hidden="true">
+      <rect x="34" y="4" width="52" height="102" rx="9" fill="#1A1A1A" stroke="#3D3D3D" />
+      {n === 1 ? (
+        <>
+          <rect x="42" y="18" width="36" height="8" rx="2" fill="#3D3D3D" />
+          <rect x="42" y="32" width="36" height="14" rx="3" fill="#262626" />
+          <rect x="42" y="50" width="36" height="14" rx="3" fill="#FF6E01" />
+          <rect x="42" y="68" width="36" height="14" rx="3" fill="#262626" />
+        </>
+      ) : (
+        <>
+          <rect x="42" y="18" width="36" height="40" rx="3" fill="#262626" />
+          <path d="M50 52 L58 40 L64 46 L72 34" fill="none" stroke="#5F5F5F" strokeWidth="1.5" />
+          <rect x="44" y="70" width="32" height="14" rx="7" fill="#FF6E01" />
+          <path d="M56 77 L60 73 L64 77 M60 73 V82" stroke="#0B0B0B" strokeWidth="1.5" fill="none" />
+        </>
+      )}
+    </svg>
+  )
+}
+
+const TM_STEPS: [1 | 2 | 3, string][] = [
+  [1, 'Open the TrackMan Golf app and pick your session'],
+  [2, 'Tap Share and export the session (CSV)'],
+  [3, 'Bring it in here. We pull every 7-iron shot'],
+]
+
+const boxCls =
+  'h-12 rounded-10 border border-grey-c8 bg-white px-3 font-sans text-[16px] text-midnight outline-none focus-visible:border-midnight disabled:opacity-60'
+
+/**
+ * C4c guided import. Working actions: TrackMan CSV upload, persona sample imports ("Simulated"),
+ * ball-line readings, skip. The share-link field is shown disabled (link importer cut, plan L6).
+ * Payloads unchanged: `{import_id}` or `{skipped: true}`.
+ */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'data_import'>) {
   const { sessionId, demo } = useSession()
-  const [tab, setTab] = useState<string | null>(null)
+  const [lineOpen, setLineOpen] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
   const [club, setClub] = useState<string>(block.club_hint ?? 'own_7i')
-  const [file, setFile] = useState<File | null>(null)
   const [readings, setReadings] = useState(['', '', '', '', ''])
   const [samples, setSamples] = useState<Sample[]>([])
-  const off = !interactive || busy || working
+  const fileRef = useRef<HTMLInputElement>(null)
+  const clubId = useId()
+  const live = interactive && !answer
+  const off = !live || busy || working
 
   useEffect(() => {
-    if (!demo || !interactive) return
+    if (!demo || !live) return
     fetch('/api/demo')
       .then((r) => (r.ok ? (r.json() as Promise<DemoGolfer[]>) : []))
       .then((list) => setSamples(list.find((g) => g.golfer_id === demo)?.sample_imports ?? []))
       .catch(() => {}) // route may not exist yet
-  }, [demo, interactive])
+  }, [demo, live])
+
+  if (!live) return <Answered prompt={block.prompt} answer={answer} />
 
   const done = (r: Response, n?: string) =>
     r.json().then(async (j: { import_id?: string; status?: string; report?: { n_shots?: number } }) => {
@@ -92,72 +140,137 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       return csvPost(await g.blob(), s.sample_id, block.club_hint ?? 'own_7i')
     })
 
-  if (!interactive) {
-    return (
-      <div className="flex flex-col gap-1">
-        <p className={promptCls}>{block.prompt}</p>
-        {answer && <p className={answeredCls}>Answered: <strong>{answer.displayText}</strong></p>}
-      </div>
-    )
-  }
+  const has = (s: string) => block.sources.includes(s as (typeof block.sources)[number])
+  const guided = has('trackman_link') || has('csv')
+  const lineOnly = has('ball_line') && !guided
+  const showLine = has('ball_line') && (lineOnly || lineOpen)
+  const shots = has('screenshot') || has('round_stats_screenshot')
+  const clubs = CLUBS.some(([v]) => v === club) ? CLUBS : [...CLUBS, [club, club] as [string, string]]
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className={promptCls}>{block.prompt}</p>
-      <div className="flex flex-wrap gap-2">
-        {block.sources.map((s) =>
-          s === 'skip' ? (
-            <button key={s} type="button" className={`${chipCls(false)} border-dashed`} disabled={off} onClick={() => respond({ skipped: true }, 'Skip for now')}>{NAMES[s]}</button>
-          ) : SOON.includes(s) ? (
-            <button key={s} type="button" className={chipCls(false)} disabled title="Coming soon">{NAMES[s]} (coming soon)</button>
-          ) : (
-            <button key={s} type="button" className={chipCls(tab === s)} disabled={off} onClick={() => { setTab(s); setMsg(null) }}>{NAMES[s]}</button>
-          ),
-        )}
-      </div>
+    <div className="flex flex-col gap-[18px]">
+      <p className={cn('m-0', cardLabelCls)}>{block.prompt}</p>
 
-      {tab === 'csv' && (
-        <div className={panelCls}>
-          <label className={labelCls}>Club
-            <select className={inputCls} value={club} disabled={off} onChange={(e) => setClub(e.target.value)}>
-              {(CLUBS.some(([v]) => v === club) ? CLUBS : [...CLUBS, [club, club]]).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </label>
-          <input type="file" accept=".csv,text/csv" disabled={off} onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />
-          <Button className={`self-start ${btnCls}`} disabled={off || !file} onClick={() => file && void run(() => csvPost(file, file.name, club))}>Import shots</Button>
-        </div>
-      )}
-
-      {tab === 'ball_line' && (
-        <div className={panelCls}>
-          <ol className="list-decimal pl-5 text-sm text-ink-700">
-            {diagrams.ball_line_test.steps.map((s) => (
-              <li key={s}>{s}</li>
+      {guided && (
+        <>
+          <ol className="m-0 grid list-none grid-cols-3 gap-4 p-0">
+            {TM_STEPS.map(([n, text]) => (
+              <li key={n} className="flex flex-col gap-2.5">
+                <div className="flex h-[120px] items-center justify-center overflow-hidden rounded-12 bg-midnight">
+                  <StepArt n={n} />
+                </div>
+                <span className="flex items-baseline gap-2.5">
+                  <span className="font-display text-[22px] font-extrabold text-orange-text tabular-nums">{n}</span>
+                  <span className="text-[15px] leading-[1.4]">{text}</span>
+                </span>
+              </li>
             ))}
           </ol>
-          <p className="text-xs text-muted-foreground">{diagrams.ball_line_test.caption}. Enter degrees; at least 3 readings.</p>
-          <div className="flex gap-2">
-            {readings.map((v, i) => (
-              <input key={i} type="number" step="0.5" aria-label={`Reading ${i + 1}`} placeholder={i < 3 ? 'deg' : 'optional'}
-                className={`${inputCls} w-20 text-center`} value={v} disabled={off}
-                onChange={(e) => setReadings((r) => r.map((x, j) => (j === i ? e.target.value : x)))} />
-            ))}
+
+          {has('trackman_link') && (
+            <div className="flex flex-col gap-1.5">
+              <div className="flex gap-2.5">
+                <label htmlFor={`${clubId}-link`} className="sr-only">TrackMan report link (coming soon)</label>
+                <input
+                  id={`${clubId}-link`}
+                  type="url"
+                  disabled
+                  placeholder="Paste your TrackMan share link"
+                  className="h-[58px] min-w-0 flex-1 cursor-not-allowed rounded-10 border-2 border-grey-c8 bg-grey-ed px-[18px] font-sans text-[18px] text-grey-6b placeholder:text-grey-8f"
+                />
+                <Button variant="outline" disabled className="min-h-[58px]">Coming soon</Button>
+              </div>
+              <span className="text-[14px] text-grey-55">Share links are coming soon. For now, upload the CSV export.</span>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-end gap-2.5">
+            <label htmlFor={clubId} className="flex flex-col gap-1.5 text-[14px] font-semibold">
+              Hit with
+              <select id={clubId} className={boxCls} value={club} disabled={off} onChange={(e) => setClub(e.target.value)}>
+                {clubs.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                e.target.value = ''
+                if (f) void run(() => csvPost(f, f.name, club))
+              }}
+            />
+            <Button variant="primary" className="min-h-12" disabled={off} onClick={() => fileRef.current?.click()}>
+              {working ? 'Bringing them in…' : 'Upload TrackMan CSV'}
+            </Button>
           </div>
-          <Button className={`self-start ${btnCls}`} disabled={off || readings.filter((x) => x !== '').length < 3} onClick={() => void sendLine()}>Send readings</Button>
-        </div>
+        </>
       )}
 
       {samples.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-          <span className={eyebrowCls}>Sample data</span>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Eyebrow className="text-grey-55">Try a sample</Eyebrow>
           {samples.map((s) => (
-            <Button key={s.sample_id} size="sm" variant="outline" className="font-medium" disabled={off} onClick={() => void sendSample(s)}>
-              {s.label ?? s.sample_id} (simulated)
+            <Button key={s.sample_id} size="sm" variant="outline" disabled={off} onClick={() => void sendSample(s)}>
+              {s.label ?? s.sample_id}
+              <span className="rounded-4 bg-grey-ed px-1.5 py-0.5 font-sans text-[11px] font-semibold tracking-normal text-grey-44 normal-case">Simulated</span>
             </Button>
           ))}
         </div>
       )}
-      {msg && <p role="status" className="text-sm text-muted-foreground">{msg}</p>}
+
+      {showLine && (
+        <div className="flex flex-col gap-3 rounded-14 border border-grey-e4 bg-white p-4">
+          <span className="text-[16px] font-semibold">Ball-line test</span>
+          <ol className="m-0 flex list-none flex-col gap-2 p-0">
+            {LINE_STEPS.map((s, i) => (
+              <li key={s} className="flex items-center gap-3 text-[15px]">
+                <span className="inline-flex size-6 flex-none items-center justify-center rounded-full bg-midnight font-display text-[13px] font-bold text-washed-white">{i + 1}</span>
+                {s}
+              </li>
+            ))}
+          </ol>
+          <span className="text-[14px] text-grey-55">{diagrams.ball_line_test.caption}. Enter degrees; at least 3 readings.</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {readings.map((v, i) => (
+              <input
+                key={i} type="number" step="0.5" aria-label={`Reading ${i + 1}`} placeholder={i < 3 ? 'deg' : 'optional'}
+                className={cn(boxCls, 'w-24 text-center font-display text-[20px] font-bold tabular-nums')} value={v} disabled={off}
+                onChange={(e) => setReadings((r) => r.map((x, j) => (j === i ? e.target.value : x)))}
+              />
+            ))}
+            <Button variant="dark" className="ml-auto" disabled={off || readings.filter((x) => x !== '').length < 3} onClick={() => void sendLine()}>
+              Send readings
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {msg && <p role="status" className="m-0 text-[15px] text-grey-44">{msg}</p>}
+
+      {((has('ball_line') && !lineOnly) || shots || has('skip')) && (
+      <div className="flex flex-wrap items-center gap-3 border-t border-grey-e4 pt-3.5">
+        {has('ball_line') && !lineOnly && (
+          <Button variant="outline" size="sm" disabled={off} aria-expanded={lineOpen} onClick={() => setLineOpen((o) => !o)}>
+            {lineOpen ? 'Hide ball-line test' : 'Ball-line test instead'}
+          </Button>
+        )}
+        {shots && (
+          <span className="text-[14px] text-grey-55">
+            Photo of the screen: <span className="font-semibold text-grey-6b">coming soon</span>
+          </span>
+        )}
+        {has('skip') && (
+          <Button variant="outline" className="ml-auto" disabled={off} onClick={() => respond({ skipped: true }, 'Skip for now')}>
+            Skip for now
+          </Button>
+        )}
+      </div>
+      )}
     </div>
   )
 }

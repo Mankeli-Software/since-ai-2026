@@ -2,6 +2,9 @@ import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@/styles/theme.css'
 import type { UIBlock } from '@/api/client'
+import { Gallery } from '@/components/studio/Gallery'
+import { hasFlag } from '@/lib/flags'
+import ResultsShell from '../result/ResultsShell'
 import { GenUiBlock } from './GenUiBlock'
 import { registry } from './registry'
 
@@ -53,4 +56,6 @@ function App() {
   )
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>{hasFlag('primitives') ? <Gallery /> : hasFlag('results') ? <ResultsShell fixture /> : <App />}</StrictMode>,
+)

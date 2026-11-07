@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fitter Studio welcome</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0B0B}
+a{color:inherit}a:hover{color:#FF8A33}
+.tk{font-family:'Barlow',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.c{font-family:'Barlow Condensed','Barlow',sans-serif}
+.eb{font-family:'Barlow Condensed','Barlow',sans-serif;font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase}
+.num{font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;border:0;cursor:pointer}
+.bp{background:#FF6E01;color:#0B0B0B}.bp:hover{background:#FF8A33;color:#0B0B0B}
+.bd{background:#0B0B0B;color:#F8F8F8}.bd:hover{color:#FFFFFF}
+.bo{background:transparent;color:#0B0B0B;box-shadow:inset 0 0 0 1px #C8C8C8}
+.seg{width:10px;height:5px;border-radius:1px;background:#3D3D3D}
+.seg.on{background:#FF6E01}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border-radius:6px;background:#EDEDED;font:600 14px 'Barlow',sans-serif;color:#333333}
+.opt{display:flex;align-items:center;gap:16px;min-height:60px;padding:0 18px;border-radius:12px;border:1px solid #D9D9D9;background:#FFFFFF;color:#0B0B0B;font:500 19px 'Barlow',sans-serif;cursor:pointer;text-align:left}
+.opt.on{border:2px solid #0B0B0B}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF6E01}
+.ring{display:inline-block;width:8px;height:8px;border-radius:50%;box-sizing:border-box;border:1.5px solid currentColor}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+input[type=range]{accent-color:#FF6E01;width:100%;margin:0}
+</style>
+</helmet>
+<div class="tk" style="width:100%;min-height:900px;position:relative;overflow:hidden;display:flex;flex-direction:column;background-color:#0B0B0B;background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);background-size:56px 56px;color:#F8F8F8">
+<div aria-hidden="true" style="position:absolute;right:-80px;top:60px;width:760px;height:760px;background:radial-gradient(ellipse at 50% 55%,rgba(255,110,1,.2),transparent 62%)"></div>
+<img src="/_blob/a662f59b74c03bb070ca6f49f1829f14" alt="Takomo 201T MkII iron" style="position:absolute;right:110px;top:150px;height:470px;filter:drop-shadow(0 40px 50px rgba(0,0,0,.75))">
+  <header style="display:flex;align-items:center;gap:20px;padding:28px 56px 0;box-sizing:border-box">
+    <a href="V3-C1-Welcome.dc.html" aria-label="Takomo Fitter Studio, start" style="display:flex;align-items:center;gap:14px;text-decoration:none;flex:none"><svg width="34" height="31" viewBox="0 0 40 36" fill="none" stroke="#F8F8F8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15 C 14 13 26 8 38 3"></path><path d="M27 2 L 14.5 33"></path><path d="M3 15 C 10 16 14 22 14.5 33"></path></svg><span style="font-weight:600;font-size:19px;letter-spacing:.3em">TAKOMO</span></a>
+    <span class="eb" style="color:#F8F8F8;flex:none">Fitter Studio</span>
+    <div style="flex:1;height:1px;background:#3D3D3D"></div>
+    <span class="eb" style="color:#A3A3A3;flex:none">Honestly better golf</span>
+  </header>
+  <main style="position:relative;flex:1;padding:64px 56px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:30px">
+    <span class="eb" style="color:#FF8A33">Welcome to the studio</span>
+    <h1 class="c" style="margin:0;font-weight:800;font-size:150px;line-height:.84;text-transform:uppercase;max-width:820px">Let's find your fit.</h1>
+    <p style="margin:0;font-size:21px;line-height:1.5;color:#C8C8C8;max-width:640px">This is a fitter's first ten minutes, online. You talk, we measure what we can, and you see the reason for every part of your club before you decide anything.</p>
+    <div style="display:flex;align-items:center;gap:22px">
+      <a class="btn bp" href="V3-C2-Start.dc.html" style="min-height:64px;padding:0 32px;font-size:24px">I'm ready. Let's start <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+      <span style="font-size:16px;color:#A3A3A3">About 4 minutes. Save any time.</span>
+    </div>
+    <ol style="margin:auto 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:28px"><li style="padding:20px 0 0;border-top:2px solid #FF6E01;display:flex;flex-direction:column;gap:8px"><span class="c num" style="font-weight:700;font-size:18px;color:#FF8A33">01</span><span class="c" style="font-weight:700;font-size:28px;text-transform:uppercase">Talk</span><span style="font-size:15px;line-height:1.45;color:#C8C8C8">How's your game? Type, tap or just say it.</span></li><li style="padding:20px 0 0;border-top:2px solid #3D3D3D;display:flex;flex-direction:column;gap:8px"><span class="c num" style="font-weight:700;font-size:18px;color:#8F8F8F">02</span><span class="c" style="font-weight:700;font-size:28px;text-transform:uppercase">Bring proof</span><span style="font-size:15px;line-height:1.45;color:#C8C8C8">TrackMan shots, a screenshot, or your honest guess.</span></li><li style="padding:20px 0 0;border-top:2px solid #3D3D3D;display:flex;flex-direction:column;gap:8px"><span class="c num" style="font-weight:700;font-size:18px;color:#8F8F8F">03</span><span class="c" style="font-weight:700;font-size:28px;text-transform:uppercase">See it fly</span><span style="font-size:15px;line-height:1.45;color:#C8C8C8">Your club in 3D, your carry, your dispersion.</span></li><li style="padding:20px 0 0;border-top:2px solid #3D3D3D;display:flex;flex-direction:column;gap:8px"><span class="c num" style="font-weight:700;font-size:18px;color:#8F8F8F">04</span><span class="c" style="font-weight:700;font-size:28px;text-transform:uppercase">Decide</span><span style="font-size:15px;line-height:1.45;color:#C8C8C8">Every reason shown, close calls included.</span></li></ol>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
