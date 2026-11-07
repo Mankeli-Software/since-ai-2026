@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useSession } from '@/store/session'
-import { inputCls, labelCls } from '../ui'
+import { answeredCls, btnCls, chipCls, eyebrowCls, inputCls, labelCls, panelCls, promptCls } from '../ui'
 import type { BlockProps } from '../types'
 
 export const type = 'data_import'
@@ -95,59 +95,59 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   if (!interactive) {
     return (
       <div className="flex flex-col gap-1">
-        <p className="font-semibold">{block.prompt}</p>
-        {answer && <p className="text-sm">Answered: <strong>{answer.displayText}</strong></p>}
+        <p className={promptCls}>{block.prompt}</p>
+        {answer && <p className={answeredCls}>Answered: <strong>{answer.displayText}</strong></p>}
       </div>
     )
   }
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="font-semibold">{block.prompt}</p>
+      <p className={promptCls}>{block.prompt}</p>
       <div className="flex flex-wrap gap-2">
         {block.sources.map((s) =>
           s === 'skip' ? (
-            <Button key={s} variant="secondary" disabled={off} onClick={() => respond({ skipped: true }, 'Skip for now')}>{NAMES[s]}</Button>
+            <button key={s} type="button" className={`${chipCls(false)} border-dashed`} disabled={off} onClick={() => respond({ skipped: true }, 'Skip for now')}>{NAMES[s]}</button>
           ) : SOON.includes(s) ? (
-            <Button key={s} variant="secondary" disabled title="Coming soon">{NAMES[s]} (coming soon)</Button>
+            <button key={s} type="button" className={chipCls(false)} disabled title="Coming soon">{NAMES[s]} (coming soon)</button>
           ) : (
-            <Button key={s} variant={tab === s ? 'default' : 'secondary'} disabled={off} onClick={() => { setTab(s); setMsg(null) }}>{NAMES[s]}</Button>
+            <button key={s} type="button" className={chipCls(tab === s)} disabled={off} onClick={() => { setTab(s); setMsg(null) }}>{NAMES[s]}</button>
           ),
         )}
       </div>
 
       {tab === 'csv' && (
-        <div className="flex flex-col gap-2 rounded-md border border-border p-3">
+        <div className={panelCls}>
           <label className={labelCls}>Club
             <select className={inputCls} value={club} disabled={off} onChange={(e) => setClub(e.target.value)}>
               {(CLUBS.some(([v]) => v === club) ? CLUBS : [...CLUBS, [club, club]]).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </label>
           <input type="file" accept=".csv,text/csv" disabled={off} onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />
-          <Button className="self-start" disabled={off || !file} onClick={() => file && void run(() => csvPost(file, file.name, club))}>Import shots</Button>
+          <Button className={`self-start ${btnCls}`} disabled={off || !file} onClick={() => file && void run(() => csvPost(file, file.name, club))}>Import shots</Button>
         </div>
       )}
 
       {tab === 'ball_line' && (
-        <div className="flex flex-col gap-2 rounded-md border border-border p-3">
-          <ol className="list-decimal pl-5 text-sm">{STEPS.map((s) => <li key={s}>{s}</li>)}</ol>
+        <div className={panelCls}>
+          <ol className="list-decimal pl-5 text-sm text-ink-700">{STEPS.map((s) => <li key={s}>{s}</li>)}</ol>
           <p className="text-xs text-muted-foreground">+ = the line leans toward the toe. Enter degrees; at least 3 readings.</p>
           <div className="flex gap-2">
             {readings.map((v, i) => (
               <input key={i} type="number" step="0.5" aria-label={`Reading ${i + 1}`} placeholder={i < 3 ? 'deg' : 'optional'}
-                className={`${inputCls} w-20`} value={v} disabled={off}
+                className={`${inputCls} w-20 text-center`} value={v} disabled={off}
                 onChange={(e) => setReadings((r) => r.map((x, j) => (j === i ? e.target.value : x)))} />
             ))}
           </div>
-          <Button className="self-start" disabled={off || readings.filter((x) => x !== '').length < 3} onClick={() => void sendLine()}>Send readings</Button>
+          <Button className={`self-start ${btnCls}`} disabled={off || readings.filter((x) => x !== '').length < 3} onClick={() => void sendLine()}>Send readings</Button>
         </div>
       )}
 
       {samples.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Sample data:</span>
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          <span className={eyebrowCls}>Sample data</span>
           {samples.map((s) => (
-            <Button key={s.sample_id} size="sm" variant="outline" disabled={off} onClick={() => void sendSample(s)}>
+            <Button key={s.sample_id} size="sm" variant="outline" className="font-medium" disabled={off} onClick={() => void sendSample(s)}>
               {s.label ?? s.sample_id} (simulated)
             </Button>
           ))}

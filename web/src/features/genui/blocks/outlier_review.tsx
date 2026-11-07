@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { answeredCls, btnCls, calloutCls, eyebrowCls } from '../ui'
 import type { BlockProps } from '../types'
 
 export const type = 'outlier_review'
@@ -27,31 +28,32 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     : a === 'keep' ? 'Keep my number' : 'Exclude these shots'
   return (
     <div className="flex flex-col gap-3">
-      <ul className="flex flex-col gap-1 text-sm">
+      <ul className="flex flex-col gap-2">
         {block.flags.map((f, i) => (
-          <li key={i} className="rounded-md border border-border bg-background px-3 py-2">
-            <strong>{f.code}</strong> {describe(f)}
+          <li key={i} className={`${calloutCls} flex items-baseline gap-3`}>
+            <span className="font-display text-sm font-semibold tracking-[0.1em] text-orange-ink">{f.code}</span>
+            <span>{describe(f)}</span>
           </li>
         ))}
       </ul>
-      <dl className="grid grid-cols-4 gap-2 text-center">
+      <dl className="grid grid-cols-4 gap-2">
         {Object.entries(block.shots_summary ?? {}).map(([k, v]) => (
-          <div key={k} className="rounded-md bg-muted px-2 py-1">
-            <dd className="text-lg font-bold">{v}</dd>
-            <dt className="text-xs text-muted-foreground">{LABELS[k] ?? k}</dt>
+          <div key={k} className="flex flex-col-reverse rounded-md border border-border bg-background px-3 py-2">
+            <dt className={eyebrowCls}>{LABELS[k] ?? k}</dt>
+            <dd className="font-display text-2xl font-semibold leading-none">{v}</dd>
           </div>
         ))}
       </dl>
       {interactive ? (
         <div className="flex flex-wrap gap-2">
           {block.actions.map((a) => (
-            <Button key={a} variant={a === 'confirm_value' ? 'default' : 'secondary'} disabled={off} onClick={() => respond({ action: a, codes }, label(a))}>
+            <Button key={a} variant={a === 'confirm_value' ? 'default' : 'outline'} className={btnCls} disabled={off} onClick={() => respond({ action: a, codes }, label(a))}>
               {label(a)}
             </Button>
           ))}
         </div>
       ) : (
-        answer && <p className="text-sm">Answered: <strong>{answer.displayText}</strong></p>
+        answer && <p className={answeredCls}>Answered: <strong>{answer.displayText}</strong></p>
       )}
     </div>
   )

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { btnCls, eyebrowCls, promptCls } from '../genui/ui'
 
 export function StockVsCustomView(p: {
   question: string
@@ -22,10 +23,10 @@ export function StockVsCustomView(p: {
     },
   ]
   return (
-    <section className="flex flex-col gap-3">
-      <p className="font-semibold">{p.question}</p>
+    <section className="flex flex-col gap-4">
+      <p className={promptCls}>{p.question}</p>
       {p.reasons.length > 0 && (
-        <ul className="list-disc pl-5 text-sm">
+        <ul className="list-disc pl-5 text-sm text-ink-700 marker:text-ink-300">
           {p.reasons.map((r, i) => (
             <li key={i}>{r}</li>
           ))}
@@ -35,12 +36,14 @@ export function StockVsCustomView(p: {
         {opts.map((o) => (
           <div
             key={o.id}
-            className={`flex flex-col gap-2 rounded-lg border p-3 ${p.picked === o.id ? 'border-accent bg-muted' : 'border-border'}`}
+            className={`flex flex-col gap-2 rounded-lg border bg-card p-4 ${p.picked === o.id ? 'border-ink-900 ring-1 ring-ink-900' : 'border-border'}`}
           >
-            <span className="font-display text-xl uppercase">{o.title}</span>
-            <span className="text-sm">{o.line}</span>
+            <span className={eyebrowCls}>Option</span>
+            <span className="font-display text-4xl font-semibold uppercase leading-none">{o.title}</span>
+            <span className="mb-2 text-sm text-ink-700">{o.line}</span>
             <Button
-              variant={p.picked === o.id ? 'default' : 'secondary'}
+              variant={p.picked === o.id ? 'default' : 'outline'}
+              className={`mt-auto ${btnCls}`}
               disabled={p.locked}
               onClick={() => p.onPick(o.id)}
             >
