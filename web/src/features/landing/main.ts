@@ -29,42 +29,6 @@ if (header && banner) {
   sync()
 }
 
-// Imperial / metric toggle in header
-const topBarContainer = document.querySelector('.l-headerTopBar__container')
-if (topBarContainer) {
-  const toggleWrap = document.createElement('div')
-  toggleWrap.className = 'fs-units-toggle l-flex l-items-center l-mr-4'
-  toggleWrap.innerHTML = `
-    <div style="display:inline-flex;align-items:center;border:1px solid #3d3d3d;border-radius:6px;background:#1a1a1a;padding:2px;font-size:11px;font-family:inherit;">
-      <button type="button" id="fs-unit-imp" style="padding:2px 8px;border-radius:4px;border:none;cursor:pointer;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;background:transparent;color:#a3a3a3;">Imperial</button>
-      <button type="button" id="fs-unit-met" style="padding:2px 8px;border-radius:4px;border:none;cursor:pointer;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;background:transparent;color:#a3a3a3;">Metric</button>
-    </div>
-  `
-  const updateUI = () => {
-    const cur = localStorage.getItem('takomo_units') === 'metric' ? 'metric' : 'imperial'
-    const btnImp = toggleWrap.querySelector<HTMLButtonElement>('#fs-unit-imp')
-    const btnMet = toggleWrap.querySelector<HTMLButtonElement>('#fs-unit-met')
-    if (btnImp && btnMet) {
-      btnImp.style.background = cur === 'imperial' ? '#ff6e01' : 'transparent'
-      btnImp.style.color = cur === 'imperial' ? '#121212' : '#a3a3a3'
-      btnMet.style.background = cur === 'metric' ? '#ff6e01' : 'transparent'
-      btnMet.style.color = cur === 'metric' ? '#121212' : '#a3a3a3'
-    }
-  }
-  toggleWrap.querySelector('#fs-unit-imp')?.addEventListener('click', (e) => {
-    e.stopPropagation()
-    localStorage.setItem('takomo_units', 'imperial')
-    updateUI()
-  })
-  toggleWrap.querySelector('#fs-unit-met')?.addEventListener('click', (e) => {
-    e.stopPropagation()
-    localStorage.setItem('takomo_units', 'metric')
-    updateUI()
-  })
-  updateUI()
-  topBarContainer.prepend(toggleWrap)
-}
-
 document.addEventListener(
   'click',
   (e) => {
