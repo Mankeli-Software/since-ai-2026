@@ -23,14 +23,17 @@ export function Welcome() {
 
   return (
     <div className="bg-bay relative flex min-h-screen md:h-screen w-full flex-col overflow-hidden font-sans antialiased">
+      {/* Desktop hero: glow and club fill the empty area right of the copy; the club is centred in it. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-[60px] -right-20 size-[760px] bg-[radial-gradient(ellipse_at_50%_55%,rgba(255,110,1,.2),transparent_62%)] max-md:hidden"
+        className="pointer-events-none absolute top-14 right-0 bottom-24 left-[max(760px,48%)] bg-[radial-gradient(ellipse_at_50%_56%,rgba(255,110,1,.2),transparent_62%)] max-md:hidden"
       />
       <ClubModel
         slug="201t-mkii"
         alt="Takomo 201T MkII iron"
-        className="absolute top-[70px] right-[20px] h-[680px] drop-shadow-club-hero [@media(max-height:960px)]:top-[44px] [@media(max-height:960px)]:right-[30px] [@media(max-height:960px)]:h-[610px] max-md:hidden"
+        follow
+        zoom={0.85}
+        className="absolute top-14 right-0 bottom-24 left-[max(760px,48%)] aspect-auto drop-shadow-club-hero max-md:hidden"
       />
       <header className="flex items-center gap-5 px-14 pt-7 max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0">
         <a

@@ -9,6 +9,10 @@ export interface ClubShowcaseProps {
   slug: HeadSlug
   /** Slow sway and float. The host turns it off for prefers-reduced-motion and while scrolled out of view. */
   moving: boolean
+  /** Rest on the face instead of the turntable, turn toward the pointer, and drift a little once it rests. */
+  follow?: boolean
+  /** Below 1 pulls the camera back, so the head draws smaller and more of the club shows. Default 1. */
+  zoom?: number
   /** Called once the head has been drawn, so the host can fade the canvas in over the photo. */
   onReady?: () => void
   onError?: (e: Error) => void
@@ -26,19 +30,19 @@ const MIN_VIEW_H = 0.135
 const PAN_Y = 0.06
 
 /** Pins the camera behind the head and fits the composition to the canvas aspect. */
-function Frame() {
+function Frame({ zoom }: { zoom: number }) {
   const camera = useThree((s) => s.camera) as PerspectiveCamera
   const aspect = useThree((s) => s.size.width / s.size.height)
   const invalidate = useThree((s) => s.invalidate)
   useLayoutEffect(() => {
-    const h = Math.max(VIEW_W / aspect, MIN_VIEW_H)
+    const h = Math.max(VIEW_W / aspect, MIN_VIEW_H) / zoom
     camera.fov = MathUtils.radToDeg(2 * Math.atan(h / 2 / DIST))
     const [x, y, z] = HEAD_CENTRE
     camera.position.set(x, y + PAN_Y * h, z - DIST)
     camera.lookAt(x, y + PAN_Y * h, z)
     camera.updateProjectionMatrix()
     invalidate()
-  }, [camera, aspect, invalidate])
+  }, [camera, aspect, zoom, invalidate])
   return null
 }
 
@@ -92,6 +96,68 @@ function Sway({ moving, children }: { moving: boolean; children: ReactNode }) {
   )
 }
 
+// Pointer follow: rest on a three-quarter face view and turn to look at the pointer, as if it hovered
+// LOOK_DEPTH canvas heights in front of the screen (atan, so small moves near the club still turn it).
+// The turn stops short of edge-on, so the face always shows.
+const FOLLOW_YAW = -2.5
+const YAW_LEFT = -0.95 // pointer left: a little past face-on
+const YAW_RIGHT = 0.55 // pointer right: towards the toe, face still in view
+const PITCH_GAIN = 0.6
+const PITCH_MAX = 0.35
+const ROLL_PER_YAW = 0.15 // lean the shaft towards the pointer
+const LOOK_DEPTH = 0.7
+
+/**
+ * Face view that turns toward the pointer (window-wide). Eases in from the back view like Sway, so the photo
+ * poster still matches the first frame, and stops drawing once it has caught up with the pointer.
+ * Euler order ZXY: yaw in the club frame, then pitch and roll in the screen frame.
+ */
+function Follow({ moving, children }: { moving: boolean; children: ReactNode }) {
+  const pivot = useRef<Group>(null)
+  const amp = useRef(0)
+  const look = useRef({ yaw: 0, pitch: 0 })
+  const pointer = useRef<{ x: number; y: number } | null>(null)
+  const invalidate = useThree((s) => s.invalidate)
+  const canvas = useThree((s) => s.gl.domElement)
+  useEffect(() => {
+    if (!moving) return
+    invalidate() // demand loop: restart the frame chain
+    const onMove = (e: PointerEvent) => {
+      pointer.current = { x: e.clientX, y: e.clientY }
+      invalidate()
+    }
+    addEventListener('pointermove', onMove, { passive: true })
+    return () => removeEventListener('pointermove', onMove)
+  }, [moving, invalidate])
+  useFrame((_, dt) => {
+    const g = pivot.current
+    if (!g) return
+    const step = Math.min(dt, 0.1)
+    amp.current = moving ? Math.min(1, amp.current + step / 3) : Math.max(0, amp.current - step / 1.2)
+    const a = amp.current * amp.current * (3 - 2 * amp.current)
+    let yaw = 0
+    let pitch = 0
+    const p = pointer.current
+    if (p) {
+      const r = canvas.getBoundingClientRect()
+      const depth = LOOK_DEPTH * r.height
+      yaw = MathUtils.clamp(Math.atan2(p.x - r.left - r.width / 2, depth), YAW_LEFT, YAW_RIGHT)
+      pitch = MathUtils.clamp(-PITCH_GAIN * Math.atan2(p.y - r.top - r.height * 0.56, depth), -PITCH_MAX, PITCH_MAX)
+    }
+    const l = look.current
+    l.yaw = MathUtils.damp(l.yaw, yaw, 6, step)
+    l.pitch = MathUtils.damp(l.pitch, pitch, 6, step)
+    g.rotation.set(a * l.pitch, a * (FOLLOW_YAW + l.yaw), a * ROLL_PER_YAW * l.yaw, 'ZXY')
+    const settled = Math.abs(l.yaw - yaw) + Math.abs(l.pitch - pitch) < 1e-4
+    if (moving ? amp.current < 1 || !settled : amp.current > 0) invalidate()
+  })
+  return (
+    <group ref={pivot} position={HEAD_CENTRE}>
+      <group position={[-HEAD_CENTRE[0], -HEAD_CENTRE[1], -HEAD_CENTRE[2]]}>{children}</group>
+    </group>
+  )
+}
+
 /** Suspends until the head GLB is cached, so ClubRig never shows its placeholder box. */
 function Club({ slug, base }: { slug: HeadSlug; base: string }) {
   useGLTF(headUrl(base, slug))
@@ -122,13 +188,22 @@ class LoadBoundary extends Component<{ onError?: (e: Error) => void; children: R
 
 /**
  * Hero product shot of one head on a transparent canvas: back view, studio reflections with a warm rim,
- * slow sway. No controls. Fills its parent; the host owns layout, the edge fade and the photo fallback.
+ * slow sway (or, with `follow`, a face view that turns toward the pointer). No controls. Fills its parent; the host owns layout, the edge fade and the photo fallback.
  * Lazy-load it: `lazy(() => import('@/features/stage3d/ClubShowcase'))`.
  */
-export default function ClubShowcase({ slug, moving, onReady, onError, assetBase = DEFAULT_ASSET_BASE }: ClubShowcaseProps) {
+export default function ClubShowcase({
+  slug,
+  moving,
+  follow = false,
+  zoom = 1,
+  onReady,
+  onError,
+  assetBase = DEFAULT_ASSET_BASE,
+}: ClubShowcaseProps) {
+  const Motion = follow ? Follow : Sway
   return (
     <Canvas frameloop="demand" dpr={[1, 2]} camera={{ fov: 20, near: 0.01, far: 10 }} style={{ pointerEvents: 'none' }}>
-      <Frame />
+      <Frame zoom={zoom} />
       <ambientLight intensity={0.25} />
       <directionalLight position={[-0.6, 1, -1]} intensity={1.6} />
       <Environment resolution={256} frames={1}>
@@ -143,9 +218,9 @@ export default function ClubShowcase({ slug, moving, onReady, onError, assetBase
       </Environment>
       <LoadBoundary key={slug} onError={onError}>
         <Suspense fallback={null}>
-          <Sway moving={moving}>
+          <Motion moving={moving}>
             <Club slug={slug} base={assetBase} />
-          </Sway>
+          </Motion>
           <Ready onReady={onReady} />
         </Suspense>
       </LoadBoundary>
