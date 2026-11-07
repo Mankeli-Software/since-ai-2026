@@ -97,6 +97,19 @@ gcloud run services update fitter --update-secrets=ANTHROPIC_API_KEY=anthropic-a
 
 The second command makes the running service pick up the new key; the next deploy also picks it up.
 
+### Gemini key (optional provider)
+
+Secret `gemini-api-key` exists. `fitter-runtime@` has `secretAccessor` on it.
+Add or rotate the key:
+
+```sh
+printf %s "$GEMINI_KEY" | gcloud secrets versions add gemini-api-key --data-file=- --project=takomo-fitter
+```
+
+CI mounts it as `GEMINI_API_KEY`. The GitHub Variable `PROD_AGENT_LLM_PROVIDER` (`anthropic` default, or `google`) picks the provider. `PROD_LLM_MODE=live` turns the live engine on.
+
+Deploys drop tags of revisions with 0% traffic first: tagged revisions keep min-instances=1 and use up the regional CPU quota.
+
 ### Rules
 
 - **Deploy only by merging to `main`.** CI health-checks every new version before it gets traffic. Avoid

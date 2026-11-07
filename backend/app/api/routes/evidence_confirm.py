@@ -11,15 +11,20 @@ discarded import cannot be confirmed.
 """
 
 from fastapi import APIRouter
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
+from starlette.concurrency import run_in_threadpool
 
 from app.api.deps import SessionDep, StoreDep
+from app.confidence.analysis import analyze, refresh_state
+from app.confidence.next_question import next_question
 from app.core.errors import ConflictError
 from app.evidence import session_flags
 from app.evidence.fuse import usable_shots
 from app.evidence.plausibility.shots import check_shots
+from app.fitting.session_inputs import answered, evidence_of, intake_of
 from app.schemas.evidence import ImportReport, Shot
-from app.schemas.session import StoredImport
+from app.schemas.session import FitSession, StoredImport
+from app.schemas.state import FittingState
 
 router = APIRouter(tags=["evidence"])
 
@@ -32,6 +37,19 @@ def _report(imp: StoredImport) -> ImportReport:
     except ValueError:  # screenshot imports store an ExtractionReview here, not an ImportReport
         base = ImportReport(import_id=imp.import_id, kind="screenshot", club=imp.club)
     return base.model_copy(update={"status": imp.status})
+
+
+def _rescore(session: FitSession) -> FittingState:
+    """Re-run the meter, close calls, best spec and next question on the new evidence, as the
+    profile patch does, so the returned state shows confidence rise (plan §3.4 step 8)."""
+    try:
+        intake, evidence = intake_of(session), evidence_of(session)
+    except ValidationError:
+        return session.state
+    a = analyze(intake, evidence, session_id=session.id, evidence_version=session.evidence_version)
+    offered = session.state.precision_offered
+    nq = next_question(intake, evidence, a, answered=answered(session), offered=offered)
+    return refresh_state(session.state, a, nq)
 
 
 @router.post("/api/sessions/{session_id}/imports/{import_id}/confirm")
@@ -55,6 +73,7 @@ async def confirm_import(import_id: str, session: SessionDep, store: StoreDep) -
     )
     session.flags, pending = session_flags.refresh(session, extra_pending=shot_flags)
     session.state = session.state.model_copy(update={"pending_flags": pending})
+    session.state = await run_in_threadpool(_rescore, session)
     state = await store.save(session, expected_version=expected)
     imp = imp.model_copy(update={"status": "confirmed"})
     await store.put_import(session.id, imp)
