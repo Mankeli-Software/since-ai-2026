@@ -23,7 +23,9 @@ from app.fitting.mapping import missing_inputs
 from app.schemas.common import Part
 from app.schemas.confidence import NextQuestionResponse
 from app.schemas.fit import FitEvidence, IntakeAnswers
+from app.schemas.ui.body_measure import BodyMeasure
 from app.schemas.ui.choice_chips import ChoiceChips, ChoiceOption
+from app.schemas.ui.data_import import DataImport
 from app.schemas.ui.slider import Slider
 
 BALL_LINE_OFFER = "ball_line_offer"
@@ -35,8 +37,10 @@ def _chips(field: str, prompt: str, options: Iterable[tuple[str, str]], multi: b
     return ChoiceChips(prompt=prompt, field=field, options=opts, multi=multi)
 
 
-# (key in missing_inputs or the answered set, profile field, component). Fixed order.
-INTAKE: tuple[tuple[str, str, ChoiceChips | Slider], ...] = (
+# (key in missing_inputs or the answered set, profile field, component). Fixed order. Body
+# measurements use `body_measure` (unit switch + how-to diagram); its `field` is the block's own
+# name ("height"), the profile field is `height_cm`.
+INTAKE: tuple[tuple[str, str, ChoiceChips | Slider | BodyMeasure], ...] = (
     ("handedness", "handedness", _chips("handedness", "Which hand do you swing with?",
         [("right", "Right-handed"), ("left", "Left-handed")])),
     ("age", "age", Slider(prompt="How old are you?", field="age", unit="years", min=8, max=100)),
@@ -60,11 +64,12 @@ INTAKE: tuple[tuple[str, str, ChoiceChips | Slider], ...] = (
          ("shoulders", "Shoulders")], multi=True)),
     ("glove", "glove", _chips("glove", "Which glove size do you wear?",
         [(g, g) for g in ("XS", "S", "M", "M/L", "L", "XL")])),
-    ("height_cm", "height_cm", Slider(prompt="How tall are you, in golf shoes?",
-        field="height_cm", unit="cm", min=140, max=210, measured_or_guessed_toggle=True)),
-    ("wrist_to_floor_cm", "wrist_to_floor_cm", Slider(
-        prompt="Stand straight in golf shoes. How far is your wrist crease from the floor?",
-        field="wrist_to_floor_cm", unit="cm", min=60, max=110, measured_or_guessed_toggle=True)),
+    ("height_cm", "height_cm", BodyMeasure(field="height", diagram_id="height",
+        prompt="How tall are you, in golf shoes?")),
+    ("wrist_to_floor_cm", "wrist_to_floor_cm", BodyMeasure(field="wrist_to_floor",
+        diagram_id="wrist_to_floor",
+        prompt="Stand straight in golf shoes, arms relaxed. Measure from your wrist crease to "
+        "the floor.")),
 )  # fmt: skip
 
 # Asked but optional: answering (or skipping) them is what counts, not having a value.
@@ -103,11 +108,12 @@ def next_question(
             field=BALL_LINE_OFFER,
             part="lie",
             reason_code="lie_ball_line",
-            component=_chips(
-                BALL_LINE_OFFER,
-                "Your lie comes from a size chart. A 5-shot ball-line test on a mat shows which "
-                "way to lean. Want to try it?",
-                [("ball_line", "Do the ball-line test"), ("skip", "Skip for now")],
+            component=DataImport(
+                prompt="Your lie comes from a size chart. A 5-shot ball-line test on a mat shows "
+                "which way to lean. Want to try it?",
+                sources=["ball_line", "skip"],
+                club_hint="own_7i",
+                reason_code="lie_ball_line",
             ),
         )
 
