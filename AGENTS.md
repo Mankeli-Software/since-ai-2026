@@ -193,7 +193,6 @@ just lint               # ruff check + ruff format --check + lint-imports + pnpm
 just gen-data           # Generate demo fixtures (never from labels), priors.json, thresholds.json
 just score              # Evaluate mapping + recommend_fit on data/dev via takomo_fit.score
 just preds              # Generate mankeli_takomo_test_predictions.csv (5,000 rows on data/test)
-just record <persona>   # Record scripted SSE run to web/public/mock/<persona>.jsonl
 ```
 *(Remember §1.2: Do **not** run or add `just test` / `pytest` / `pnpm test`.)*
 

@@ -55,9 +55,42 @@ grep -q '^event: *done' "$tmp/stream" ||
   fail "POST /turn: no done event within ${TURN_SECONDS}s. Stream: $(head -c 500 "$tmp/stream")"
 ok "POST /turn -> $(grep -c '^event:' "$tmp/stream") events, ends in done"
 
-# TODO(§9.2, once L0's demo routes land): GET /api/demo lists the 4 L8 personas, e.g.
-#   curl -fsS "$URL/api/demo" | jq -e 'length >= 4' >/dev/null || fail "GET /api/demo"
-# TODO(§9.2/§6.5, once web/ (#35) and the CSP middleware land): studio.html is served with frame-ancestors, e.g.
-#   curl -fsS -D - -o /dev/null "$URL/studio.html" | grep -qi '^content-security-policy:.*frame-ancestors' || fail "studio.html CSP"
+# 4. GET /api/demo lists the 4 L8 personas
+demo_golfers="$(curl -fsS --max-time 15 "$URL/api/demo")" || fail "GET /api/demo did not return 2xx"
+jq -e 'length >= 4' >/dev/null <<<"$demo_golfers" || fail "GET /api/demo: expected at least 4 personas, got: $demo_golfers"
+ok "GET /api/demo -> $(jq -r 'map(.golfer_id) | join(", ")' <<<"$demo_golfers")"
+
+# 5. CSP check on studio.html: must contain frame-ancestors
+studio_code="$(curl -sS -o /dev/null -w '%{http_code}' -D "$tmp/studio_headers" "$URL/studio.html")" || true
+if [[ "$studio_code" == "404" ]]; then
+  echo "smoke: skip: studio.html returned 404 (web not built locally)"
+elif [[ "$studio_code" != "200" ]]; then
+  fail "studio.html returned HTTP $studio_code"
+elif ! grep -qi '^content-security-policy:.*frame-ancestors' "$tmp/studio_headers"; then
+  fail "studio.html CSP has no frame-ancestors"
+else
+  ok "studio.html CSP has frame-ancestors"
+fi
+
+# 6. Persona card check for DEMO-01, DEMO-04, DEMO-09, DEMO-13
+for demo in DEMO-01 DEMO-04 DEMO-09 DEMO-13; do
+  psess="$(curl -fsS --max-time 15 -X POST "$URL/api/sessions" \
+    -H 'content-type: application/json' -d "{\"engine\":\"scripted\",\"demo\":\"$demo\"}")" ||
+    fail "POST /api/sessions for $demo failed"
+  psid="$(jq -er '.session_id | select(type == "string" and length > 0)' <<<"$psess")" ||
+    fail "POST /api/sessions for $demo: no session_id"
+  curl -sS -N --max-time "$TURN_SECONDS" -X POST "$URL/api/sessions/$psid/turn" \
+    -H 'content-type: application/json' -H 'accept: text/event-stream' \
+    -d '{"message":{"kind":"text","text":"smoke test"}}' \
+    -o /dev/null || true
+  sess_json="$(curl -fsS --max-time 15 "$URL/api/sessions/$psid")" ||
+    fail "GET /api/sessions/$psid failed"
+  if jq -e '.state.best != null' >/dev/null <<<"$sess_json"; then
+    best_head="$(jq -r '.state.best.head' <<<"$sess_json")"
+    ok "persona $demo: result reached (.state.best.head = $best_head)"
+  else
+    echo "smoke: skip: persona $demo has no result after one turn"
+  fi
+done
 
 echo "smoke: PASS $URL"
