@@ -18,6 +18,8 @@ from app.core.errors import ConflictError
 from app.evidence import session_flags
 from app.evidence.fuse import usable_shots
 from app.evidence.plausibility.shots import check_shots
+from app.evidence.plausibility.shots_w2 import ShotContext, wave2_shot_rules
+from app.evidence.settings import settings
 from app.schemas.evidence import ImportReport, Shot
 from app.schemas.session import StoredImport
 
@@ -43,7 +45,9 @@ async def confirm_import(import_id: str, session: SessionDep, store: StoreDep) -
     if imp.status == "confirmed" or import_id in session.state.import_ids:
         return _report(imp).model_copy(update={"shots": shots, "state": session.state})
 
-    shot_flags = check_shots(shots, import_id=import_id)  # same rules as the pending report
+    # Same rules as the pending report (W2 too when EVIDENCE_WAVE2=1).
+    extra = wave2_shot_rules(ShotContext(monitor=_report(imp).vendor)) if settings.wave2 else ()
+    shot_flags = check_shots(shots, import_id=import_id, extra_rules=extra)
     expected = session.state.version
     session.evidence_version += 1
     session.state = session.state.model_copy(

@@ -22,14 +22,13 @@ import math
 import statistics
 from collections.abc import Callable, Sequence
 
-from app.evidence.plausibility.extraction import S1_CELL_BOUNDS, S3_SMASH_TOL
+from app.evidence.plausibility.thresholds import FIELD_ONLY_REJECTS, S1_BOUNDS, S3_SMASH_TOL
 from app.pack import swing_bucket_from_speed
 from app.schemas.evidence import Flag, Shot
 
 ShotRule = Callable[[list[Shot]], list[Flag]]
 
-# Plan §5.2. Rule definitions, so constants here; thresholds.json (#33) can replace them later.
-S1_BOUNDS = S1_CELL_BOUNDS  # one copy of the hard bounds, shared with V4
+# Plan §5.2. S1 bounds and the S3 tolerance live in `thresholds.py` (one copy, shared with V4).
 S7_DOWNWEIGHT_Z = 3.5
 S7_REJECT_Z = 5.0
 S7_MIN_SPREAD_MPH = 1.0  # robust z = (x - med) / max(1.4826 MAD, 1.0 mph)
@@ -258,8 +257,14 @@ V1_SHOT_RULES: tuple[ShotRule, ...] = (
 )
 
 
-def check_shots(shots: Sequence[Shot], *, import_id: str | None = None) -> list[Flag]:
-    """Every v1 shot rule, per club group. `shot_index` is the position in `shots`."""
+def check_shots(
+    shots: Sequence[Shot],
+    *,
+    import_id: str | None = None,
+    extra_rules: Sequence[ShotRule] = (),
+) -> list[Flag]:
+    """Every v1 shot rule (plus `extra_rules`, e.g. `shots_w2.wave2_shot_rules()` when W2 is
+    on), per club group. `shot_index` is the position in `shots`."""
     groups: dict[str, list[int]] = {}
     for i, s in enumerate(shots):
         groups.setdefault(s.club, []).append(i)
@@ -267,9 +272,13 @@ def check_shots(shots: Sequence[Shot], *, import_id: str | None = None) -> list[
     for idx in groups.values():
         group = [shots[i] for i in idx]
         found: list[Flag] = []
-        for rule in V1_SHOT_RULES:
+        for rule in (*V1_SHOT_RULES, *extra_rules):
             found += rule(group)
-        rejected = {f.shot_index for f in found if f.severity == "reject"}
+        rejected = {
+            f.shot_index
+            for f in found
+            if f.severity == "reject" and f.code not in FIELD_ONLY_REJECTS
+        }
         usable = [s for j, s in enumerate(group) if j not in rejected]
         found += s14_shot_count(usable)
         for f in found:
@@ -281,7 +290,11 @@ def check_shots(shots: Sequence[Shot], *, import_id: str | None = None) -> list[
 
 
 def rejected_indices(flags: Sequence[Flag]) -> set[int]:
-    return {f.shot_index for f in flags if f.severity == "reject" and f.shot_index is not None}
+    return {
+        f.shot_index
+        for f in flags
+        if f.severity == "reject" and f.shot_index is not None and f.code not in FIELD_ONLY_REJECTS
+    }
 
 
 def mishit_indices(flags: Sequence[Flag]) -> set[int]:

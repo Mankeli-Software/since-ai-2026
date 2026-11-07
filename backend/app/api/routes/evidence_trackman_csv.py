@@ -23,6 +23,12 @@ from app.core.errors import InvalidInputError
 from app.evidence.fuse import shot_quality, usable_shots
 from app.evidence.parsers.trackman_csv import parse_trackman_csv
 from app.evidence.plausibility.shots import check_shots
+from app.evidence.plausibility.shots_w2 import (
+    ShotContext,
+    wave2_session_flags,
+    wave2_shot_rules,
+)
+from app.evidence.settings import settings
 from app.schemas.evidence import ImportReport, Shot, ShotQualityReport
 from app.schemas.session import StoredImport
 
@@ -41,10 +47,16 @@ def _means(shots: list[Shot], prefix: str = "") -> dict[str, float]:
     return out
 
 
-def _report(shots: list[Shot], clubs: dict[str, int], import_id: str) -> ShotQualityReport:
-    """v1 S rules (S1, S3, S7, S8, S10, S14) + quality; means over the usable shots, per club
-    when the file carries several. Codes and numbers only (plan §5.3)."""
-    flags = check_shots(shots, import_id=import_id)
+def _report(
+    shots: list[Shot], clubs: dict[str, int], import_id: str, vendor: str | None
+) -> ShotQualityReport:
+    """v1 S rules (S1, S3, S7, S8, S10, S14; plus W2 with EVIDENCE_WAVE2=1) + quality; means
+    over the usable shots, per club when the file carries several. Codes and numbers only."""
+    ctx = ShotContext(monitor=vendor)
+    extra = wave2_shot_rules(ctx) if settings.wave2 else ()
+    flags = check_shots(shots, import_id=import_id, extra_rules=extra)
+    if settings.wave2:
+        flags += wave2_session_flags(shots, ctx, import_id=import_id)
     usable = usable_shots(shots, flags)
     if len(clubs) == 1:
         summary = _means(usable)
@@ -82,7 +94,7 @@ async def import_trackman_csv(
         kind="trackman_csv",
         club=only_club,
         shots=parsed.shots,
-        report=_report(parsed.shots, parsed.clubs, import_id),
+        report=_report(parsed.shots, parsed.clubs, import_id, parsed.vendor),
         status="pending",
         clubs=parsed.clubs,
         dropped_clubs=parsed.dropped_clubs,
