@@ -25,6 +25,7 @@ schemas      Pydantic only; imports nothing from app
 ```
 
 - `core/` imports only `schemas`. `persistence/` imports only `schemas` and `core`.
+  `app/export.py` (contract export) sits beside `main.py` because it needs `create_app()`.
 - `evidence/`, `fitting/`, `confidence/`: no I/O, no LLM, no `genkit`/`anthropic`/`httpx`/`takomo_fit.score`.
 - `httpx` only in `api/`. `pandas` never in `app/` (dev group only, for offline scripts).
 
@@ -41,7 +42,7 @@ schemas      Pydantic only; imports nothing from app
 - Gen-UI component: `app/schemas/ui/<name>.py` (auto-registers `ui_<name>` and joins the `UIBlock` union),
   plus `web/src/features/genui/blocks/<name>.tsx` and `fixtures/ui/<name>.json`.
 - Session state: `app/schemas/state/{fit,evidence,confidence}.py`, composed into frozen `FittingState`.
-- Schemas are hand-written and additive-only. `python -m app.core.export` (via `just gen`) emits `generated/`.
+- Schemas are hand-written and additive-only. `python -m app.export` (via `just gen`) emits `generated/`.
 
 ## The `ToolContext` convention (`app/core/tooling.py`)
 

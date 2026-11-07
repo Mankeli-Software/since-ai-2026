@@ -1,11 +1,13 @@
-"""Contract export: `python -m app.core.export --out DIR` (plan §10.3).
+"""Contract export: `python -m app.export --out DIR` (plan §10.3).
 
 Writes `DIR/openapi.json` and `DIR/schemas/<Name>.json` with no server running. Output is
 deterministic (sorted keys, sorted routes/modules, stable operation ids) and gitignored.
+
+A top-level module, not `core/`: it needs the app wiring (`create_app`), which `core` may not
+import (layer rule §2.2). It builds the app exactly once.
 """
 
 import argparse
-import importlib
 import json
 import shutil
 from pathlib import Path
@@ -13,13 +15,16 @@ from typing import Any
 
 from pydantic import TypeAdapter
 
+from app.main import create_app
 from app.schemas.chat import StreamEvent, TurnRequest
+from app.schemas.common import ErrorResponse
 from app.schemas.session import PublicSession
 from app.schemas.state import FittingState
 from app.schemas.ui import UIBlock
 
 # Types the web app needs beyond what OpenAPI already references.
 SCHEMA_EXPORTS: dict[str, Any] = {
+    "ErrorResponse": ErrorResponse,
     "FittingState": FittingState,
     "PublicSession": PublicSession,
     "StreamEvent": StreamEvent,
@@ -33,8 +38,6 @@ def _dump(obj: Any) -> str:
 
 
 def build_openapi() -> dict[str, Any]:
-    # Imported by name so `core` keeps no static dependency on the app wiring (layer rule §2.2).
-    create_app = importlib.import_module("app.main").create_app
     return create_app().openapi()
 
 

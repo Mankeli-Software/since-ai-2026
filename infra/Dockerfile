@@ -25,7 +25,7 @@ COPY fixture[s] /app/fixtures/
 # contracts: openapi.json + schemas/*.json for the web codegen (plan §10.3). Nothing is committed.
 # ---------------------------------------------------------------------------------------------
 FROM py AS contracts
-RUN /app/.venv/bin/python -m app.core.export --out /out
+RUN /app/.venv/bin/python -m app.export --out /out
 
 # ---------------------------------------------------------------------------------------------
 # web: Vite multi-page build -> /repo/web/dist

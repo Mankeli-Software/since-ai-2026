@@ -9,6 +9,7 @@ from typing import Literal, Protocol
 
 from app.schemas.evidence import ExtractedSession
 from app.schemas.session import FitSession, StoredImport, StoredMessage
+from app.schemas.state import FittingState
 
 
 class Extractor(Protocol):
@@ -28,8 +29,11 @@ class SessionStore(Protocol):
         """Raise `app.core.errors.NotFoundError` if the session does not exist."""
         ...
 
-    async def save(self, s: FitSession, expected_version: int | None = None) -> None:
-        """Write outside a turn (REST imports, profile patch). Optimistic on state.version."""
+    async def save(self, s: FitSession, expected_version: int | None = None) -> FittingState:
+        """Write outside a turn (REST imports, profile patch). Optimistic on state.version:
+        raise `ConflictError` (409, `version_conflict`) if the stored version is not
+        `expected_version`. The store bumps the version (to at least stored + 1) and returns the
+        stored state, so callers can send it to the client."""
         ...
 
     async def acquire_turn(self, sid: str, turn_id: str, ttl_s: int = 120) -> bool:
@@ -43,8 +47,9 @@ class SessionStore(Protocol):
         messages: list[StoredMessage],
         session: FitSession,
         expected_version: int,
-    ) -> None:
-        """Atomically append messages + write the session, then release the lock."""
+    ) -> FittingState:
+        """Atomically append messages + write the session, then release the lock. Same version
+        rules as `save()` (409 on mismatch, bumped on success); returns the stored state."""
         ...
 
     async def release_turn(self, sid: str, turn_id: str) -> None: ...

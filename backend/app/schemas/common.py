@@ -76,10 +76,19 @@ class ProvenancedValue(Provenance):
     flags: list[FlagCode] = Field(default_factory=list)
 
 
+class ErrorDetail(BaseModel):
+    """One request-validation problem: where (`loc`), what (`msg`) and the pydantic error `type`."""
+
+    loc: list[str | int]
+    msg: str
+    type: str
+
+
 class ErrorResponse(BaseModel):
     code: str
     message: str
     retryable: bool = False
+    details: list[ErrorDetail] | None = None  # only on 422 invalid_input from request validation
 
 
 def require_type_field(schema: dict[str, Any]) -> None:

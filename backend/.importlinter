@@ -31,14 +31,15 @@ layers =
     (schemas)
 
 # core imports only schemas; persistence imports only schemas and core. The top line is one
-# non-independent layer (":"), so it adds no rules between those packages.
+# non-independent layer (":"), so it adds no rules between those packages. `export` (the
+# contract export entry point) sits there because it imports `main`.
 [importlinter:contract:core-persistence]
 name = core imports only schemas; persistence imports only schemas and core
 type = layers
 containers =
     app
 layers =
-    (main) : (config) : (api) : (agent) : (confidence) : (fitting) : (evidence) : (pack)
+    (main) : (export) : (config) : (api) : (agent) : (confidence) : (fitting) : (evidence) : (pack)
     (persistence)
     (core)
     (schemas)

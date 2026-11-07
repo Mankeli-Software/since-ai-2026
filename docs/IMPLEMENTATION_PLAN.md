@@ -120,7 +120,7 @@ schemas        Pydantic only; imports nothing from app
 ```
 
 Other rules:
-- `core/` (registry, tooling, errors, logging, export) imports only `schemas`.
+- `core/` (registry, tooling, errors, logging, security) imports only `schemas`. The contract export `app/export.py` is a top-level module beside `main.py`, because it needs `create_app()`.
 - `persistence/` imports only `schemas` and `core`.
 - `evidence/`, `fitting/` and `confidence/` do no I/O and make no LLM calls. They never import `genkit`, `anthropic`, `httpx` or `takomo_fit.score`.
 - Only `agent/` imports `genkit` or `anthropic`.
@@ -173,10 +173,11 @@ Rules for a turn:
 ```
 backend/app/
   main.py            create_app(): sorted autodiscovery of api/routes/*, CSP middleware, static SPA fallback
+  export.py          contract export (`python -m app.export --out DIR`); top-level because it needs create_app()
   config.py          GLOBAL settings only (LLM_MODE, STORE, ALLOWED_FRAME_ANCESTORS, PORT). Packages own their
                      settings: evidence/settings.py (env_prefix EVIDENCE_), agent/settings.py (AGENT_) ...
   core/              registry.py (sorted autodiscover) · tooling.py (ToolContext, @fitter_tool) · errors.py
-                     logging.py (JSON lines) · export.py (`python -m app.core.export --out DIR`) · security.py
+                     logging.py (JSON lines) · security.py
   schemas/           hand-written Pydantic, the single source of truth (NOT generated)
     common.py        HeadSlug, GripSize, Flex ... Literals; Spec; Provenance; ProvenancedValue
     evidence.py      Flag, FlagCode, Shot, ShotQualityReport, ImportReport, ExtractedSession, Cell
@@ -408,7 +409,7 @@ All shapes live in `backend/app/schemas/`. Types are generated to `web/src/api/s
 | Method and path | Request | Response | Owner | Feature |
 |---|---|---|---|---|
 | `GET /api/health` | — | `{ok, version, llm_mode, store}` | L0 | smoke |
-| `POST /api/sessions` | `{host?: {platform, locale}, demo_golfer_id?, engine?: "scripted"\|"live"}` | `{session_id, resume_token, state}`. `session_id` is `secrets.token_urlsafe(24)`. | L0 | #1, #12 |
+| `POST /api/sessions` | `{host?: {platform, locale}, demo_golfer_id?, engine?: "scripted"\|"live"}` | `{session_id, resume_token, state}`. `session_id` is `secrets.token_urlsafe(24)`. The engine is `live` only when `LLM_MODE=live` and the client did not ask for `scripted`. | L0 | #1, #12 |
 | `GET /api/sessions/{id}` | — | `PublicSession {state, transcript, blocks}`. **Never includes the email.** | L0 | #12 |
 | `POST /api/sessions/{id}/turn` | `{message: {kind:"text", text} \| {kind:"ui_response", component_id, value, display_text}}` | **SSE** (§4.5). **409** if a turn is active. | AGENT | #2, #3 |
 | `PATCH /api/sessions/{id}/profile` | `{fields: {name: {value, unit?, source}}}` | `{state, flags: Flag[]}` | FIT | #3 form fallback |
@@ -1098,7 +1099,7 @@ class SessionStore(Protocol):
     async def load(self, sid: str) -> FitSession: ...
     async def acquire_turn(self, sid: str, turn_id: str, ttl_s: int = 120) -> bool: ...   # compare-and-set
     async def commit_turn(self, sid: str, turn_id: str, messages: list[StoredMessage],
-                          session: FitSession, expected_version: int) -> None: ...     # atomic; releases lock
+                          session: FitSession, expected_version: int) -> FittingState: ...  # atomic; releases lock
     async def release_turn(self, sid: str, turn_id: str) -> None: ...
     async def put_import(self, sid: str, imp: StoredImport) -> None: ...
 ```
@@ -1107,6 +1108,7 @@ class SessionStore(Protocol):
 - It raises on nested arrays and on documents over 900 KB.
 - **`InMemorySessionStore` round-trips every write through the same encoder**, so CI catches encoding bugs before Firestore ever runs.
 - The memory store's lock is an `asyncio.Lock` plus a TTL map. Firestore uses a transaction.
+- **The store owns `state.version`.** `commit_turn` and `save(s, expected_version)` raise 409 `version_conflict` if the stored version is not `expected_version`; on success they store the state with its version bumped (to at least stored + 1) and return it.
 
 ### 8.2 Schema sketch
 
@@ -1180,7 +1182,7 @@ COPY backend/ /app
 COPY fixtures /app/fixtures
 
 FROM py AS contracts
-RUN /app/.venv/bin/python -m app.core.export --out /out          # openapi.json + schemas/*.json
+RUN /app/.venv/bin/python -m app.export --out /out          # openapi.json + schemas/*.json
 
 FROM node:22-slim AS web
 WORKDIR /repo/web
@@ -1231,7 +1233,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10
         with: { version: "0.13.x", enable-cache: true, python-version: "3.12" }
-      - run: uv sync --locked --project backend && cd backend && PYTHONPATH=../vendor uv run python -m app.core.export --out ../generated
+      - run: uv sync --locked --project backend && cd backend && PYTHONPATH=../vendor uv run python -m app.export --out ../generated
       - uses: pnpm/action-setup@v6
         with: { package_json_file: web/package.json }
       - uses: actions/setup-node@v7
@@ -1351,7 +1353,7 @@ since-ai-2026/
 │   ├── demo/samples/DEMO-XX_*.csv|json  persona sample imports (§6.6), generated, labelled simulated
 │   ├── trackman/*.csv                synthetic fixtures generated from the pack's shots.csv (L6)
 │   ├── screenshots/*  ui/<type>.json  product_videos.json  forge_topics.json  simulators.json
-├── generated/                GITIGNORED: openapi.json, schemas/*.json (python -m app.core.export)
+├── generated/                GITIGNORED: openapi.json, schemas/*.json (python -m app.export)
 ├── backend/                  pyproject.toml, uv.lock, CLAUDE.md, app/ (§3.1). No tests/ folder (L17)
 ├── web/                      §6.2 (src/api/schema.gen.ts gitignored)
 ├── shopify/                  optional, deployed by hand (CLAUDE.md: embed-only, size limits)
@@ -1389,13 +1391,13 @@ Subdirectory files load on demand, so they cost nothing until relevant ([memory 
 
 ```
 backend/app/schemas (hand-written Pydantic)
-   └─ cd backend && PYTHONPATH=../vendor uv run python -m app.core.export --out ../generated ─► generated/openapi.json + generated/schemas/*.json   (gitignored)
+   └─ cd backend && PYTHONPATH=../vendor uv run python -m app.export --out ../generated ─► generated/openapi.json + generated/schemas/*.json   (gitignored)
         └─ pnpm -C web gen (openapi-typescript) ─► web/src/api/schema.gen.ts                          (gitignored)
 ```
 
 - `just setup`, `just dev` and `pnpm typecheck` (through `pretypecheck`) run `just gen` first. CI and the Dockerfile generate too.
 - **No `git diff --exit-code` checks and no PostToolUse `just gen` hook**, so there is nothing to merge or go stale.
-- `core/export.py` calls `create_app().openapi()` with no server running. It uses `generate_unique_id_function = lambda r: f"{r.tags[0]}-{r.name}"` and `sort_keys`. **The registry sorts module names**, and the union members and tool definitions are sorted by name.
+- `app/export.py` calls `create_app().openapi()` with no server running. It uses `generate_unique_id_function = lambda r: f"{r.tags[0]}-{r.name}"` and `sort_keys`. **The registry sorts module names**, and the union members and tool definitions are sorted by name.
 - **Add a gen-UI component by touching only new files:**
   1. `backend/app/schemas/ui/<name>.py`
   2. `web/src/features/genui/blocks/<name>.tsx`
@@ -1412,13 +1414,14 @@ set dotenv-load
 export LLM_MODE := env("LLM_MODE", "mock")
 export PYTHONPATH := justfile_directory() + "/vendor"
 lab := justfile_directory() + "/data/TakomoGolf_SinceAI2026_FINAL/TAKOMO_FITTING_LAB_2026"
-api_port := env("API_PORT", `scripts/port.sh`)        # finds a free port once per worktree, caches it in .port
+# The port is resolved only inside dev/genkit/smoke, so lint/gen/check never probe ports or write .port:
+resolve_port := 'port="${API_PORT:-$(scripts/port.sh)}"'   # port.sh finds a free port once per worktree, caches it in .port
 
 setup:     uv sync --project backend && pnpm -C web install && just gen
-gen:       cd backend && PYTHONPATH=../vendor uv run python -m app.core.export --out ../generated && cd .. && pnpm -C web gen
-dev:       just gen && (trap 'kill 0' EXIT; uv run --project backend uvicorn app.main:app --reload --port {{api_port}} --app-dir backend & \
-           API_PORT={{api_port}} pnpm -C web dev --port $(({{api_port}}+1)) & wait)
-genkit:    genkit start -- uv run --project backend uvicorn app.main:app --reload --port {{api_port}} --app-dir backend
+gen:       cd backend && PYTHONPATH=../vendor uv run python -m app.export --out ../generated && cd .. && pnpm -C web gen
+dev:       just gen && {{resolve_port}} && (trap 'kill 0' EXIT; uv run --project backend uvicorn app.main:app --reload --port $port --app-dir backend & \
+           API_PORT=$port pnpm -C web dev --port $((port+1)) & wait)
+genkit:    {{resolve_port}} && genkit start -- uv run --project backend uvicorn app.main:app --reload --port $port --app-dir backend
 lint:      cd backend && uv run ruff check . && uv run ruff format --check . && uv run lint-imports
            pnpm -C web typecheck && pnpm -C web lint
 check:     gen lint
@@ -1428,7 +1431,7 @@ gen-data:  uv run --project backend python scripts/gen_fixtures.py && \
 score *args:  PYTHONPATH=vendor:{{lab}} uv run --project backend python scripts/score_dev.py {{args}}
 preds *args:  PYTHONPATH=vendor:{{lab}} uv run --project backend python scripts/make_test_predictions.py {{args}}
 record persona: uv run --project backend python scripts/record_mocks.py {{persona}}
-smoke url="http://localhost:{{api_port}}":  scripts/smoke.sh {{url}}
+smoke url="":  (default: this worktree's api) url={{quote(url)}}; [ -n "$url" ] || { {{resolve_port}}; url=http://localhost:$port; }; scripts/smoke.sh "$url"
 ```
 
 ### 10.5 Guard rails that are enforced, not just described

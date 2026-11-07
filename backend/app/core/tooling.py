@@ -21,6 +21,7 @@ list is byte-stable for prompt caching). `ui_<name>` tools are generated from `s
 import inspect
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from functools import cache
 from typing import Any, Literal, get_type_hints
 
 from pydantic import BaseModel
@@ -96,7 +97,10 @@ def _ui_tool_fn(model: type[UIBlockBase]) -> ToolFn:
 
     async def run(ctx: ToolContext, args: Any) -> str:
         block = args if isinstance(args, model) else model.model_validate(args)
-        tool_id = f"{ui_type}-{ctx.budget.turns}"  # engines pass their own tool_use id
+        # Per-session counter: deterministic for the scripted engine, never repeats in a session
+        # (it is committed with the turn). Engines may pass their own tool_use id instead.
+        tool_id = f"{ui_type}-{ctx.session.ui_block_seq}"
+        ctx.session.ui_block_seq += 1
         await ctx.emit(
             UiEvent(seq=0, id=tool_id, block=block, interactive=model.kind == "ui_input")
         )
@@ -105,31 +109,35 @@ def _ui_tool_fn(model: type[UIBlockBase]) -> ToolFn:
     return run
 
 
-def ui_tool_specs() -> list[ToolSpec]:
-    """One `ui_<type>` tool per `schemas/ui/<type>.py`, sorted. Input kinds interrupt the turn."""
-    specs = []
+@cache
+def _ui_tools() -> dict[str, ToolSpec]:
+    """One `ui_<type>` spec per `schemas/ui/<type>.py`, built once (UI_BLOCK_MODELS is fixed at
+    import time), keyed and sorted by name."""
+    specs: dict[str, ToolSpec] = {}
     for model in UI_BLOCK_MODELS:
         ui_type = model.model_fields["type"].default
-        specs.append(
-            ToolSpec(
-                name=f"ui_{ui_type}",
-                kind=model.kind,
-                description=inspect.cleandoc(model.__doc__ or ui_type),
-                input_model=model,
-                output_model=str,
-                fn=_ui_tool_fn(model),
-            )
+        name = f"ui_{ui_type}"
+        specs[name] = ToolSpec(
+            name=name,
+            kind=model.kind,
+            description=inspect.cleandoc(model.__doc__ or ui_type),
+            input_model=model,
+            output_model=str,
+            fn=_ui_tool_fn(model),
         )
-    return sorted(specs, key=lambda s: s.name)
+    return dict(sorted(specs.items()))
+
+
+def ui_tool_specs() -> list[ToolSpec]:
+    """One `ui_<type>` tool per `schemas/ui/<type>.py`, sorted. Input kinds interrupt the turn."""
+    return list(_ui_tools().values())
 
 
 def get_tool(name: str) -> ToolSpec:
-    if name in _TOOLS:
-        return _TOOLS[name]
-    for spec in ui_tool_specs():
-        if spec.name == name:
-            return spec
-    raise KeyError(f"unknown tool {name!r}")
+    spec = _TOOLS.get(name) or _ui_tools().get(name)
+    if spec is None:
+        raise KeyError(f"unknown tool {name!r}")
+    return spec
 
 
 async def run_tool(
