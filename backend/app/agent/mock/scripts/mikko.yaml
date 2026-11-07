@@ -2,7 +2,7 @@ persona: mikko
 steps:
   # Turn 1: Onboarding greeting, questionnaire review, initial fit and request for TrackMan CSV
   - text: "Hi Mikko, welcome to Takomo Fitter Studio. Let's find your perfect irons."
-  - text: "From the questionnaire, you reported carrying your 7-iron 160 yards, playing to an 18.9 handicap, and standard body measurements. With self-reported data alone, our fit is provisional."
+  - text: "From your answers alone, this fit is provisional. Measured shots will firm it up."
   - tool_call:
       name: run_fit
       args: {}
@@ -19,60 +19,38 @@ steps:
   # Turn 2: Review TrackMan CSV, surface G11 flag and loft difference
   - tool_call:
       name: get_import_report
-      args: {import_id: own_7i}
-  # The script never branches, so a skipped import must not leave the fit on the stated 160 yd
-  # (that maps to stiff). Mikko's measured speed from his own-7i session goes in either way; with
-  # the import done it agrees with the confirmed shots.
-  - tool_call:
-      name: update_profile
-      args: {reported_7i_speed_mph: 72.1}
-  - text: "Thanks for importing your TrackMan session! The measured data gives us an honest baseline."
-  - text: "Your 10 shots averaged 124.7 yards carry at 72.1 mph club speed. That places you in swing bucket 3 (Regular flex) rather than Stiff."
-  - text: "Your stated 160 yd carry likely reflects your current 28° strong-lofted 7-iron, which is 4° stronger than Takomo's 32° 7-iron. That loft difference adds roughly 12 yards on loft alone."
+      args: {}
+  - text: "Thanks, your shots are in. Your measured carry and the carry you told me do not match. Please check it below."
   - ui:
       type: outlier_review
-      import_id: own_7i
-      flags:
-        - code: G11
-          severity: confirm
-          field: reported_7i_carry_yd
-          value: 160.0
-          expected: "124.7 yd"
-      shots_summary:
-        carry_yd: 124.7
-        club_speed_mph: 72.1
-        dynamic_lie_deg: 57.1
+      import_id: $get_import_report.import_id
+      flags: $state.pending_flags
+      shots_summary: $get_import_report.shots_summary
       actions:
         - confirm_value
         - keep
 
   # Turn 3: Precision follow-up offer for test club shots
   - tool_call:
-      name: resolve_flags
-      args: {action: confirm_value, codes: [G11]}
-  - tool_call:
       name: run_fit
       args: {}
   - text: "With your measured speed in, watch the confidence meter rise."
-  - text: "Your lie angle is currently based on static height and wrist-to-floor measurements (+2° upright). A test club session with a Takomo 201 MKII on a launch monitor will show your exact dynamic lie at impact."
+  - text: "Your lie still comes from a static chart. Shots with a Takomo test club on a launch monitor show your lie at impact."
   - ui:
-      type: choice_chips
-      prompt: "Your lie comes from a static chart (+2°). Would you like to import test-club shots to sharpen it?"
-      field: precision_offer
-      options:
-        - id: takomo_201
-          label: "Import Takomo 201 MKII test shots"
-        - id: happy
-          label: "I'm happy with +2°"
+      type: data_import
+      prompt: "Import your Takomo 201 MKII test-club shots to firm up your lie."
+      sources: ["csv", "skip"]
+      club_hint: takomo_201-mkii_kbs-tour-regular_std
+      reason_code: lie
 
   # Turn 4: Final fit recommendation after test-club import
   - tool_call:
       name: update_profile
-      args: {lie_override_deg: 3.0}
+      args: {own_7i_loft_deg: 28} # Mikko's answer (input), not a claim
   - tool_call:
       name: run_fit
       args: {}
-  - text: "Your test-club shots show an impact dynamic lie of 64.8° (+2.8° toe-up). That overrides the chart to +3° upright!"
+  - text: "Your test-club shots now set your lie."
   - text: "Here is your recommended build. Every spec on the card comes straight from the fit."
   - ui:
       type: recommendation_card
@@ -85,76 +63,56 @@ steps:
       runner_up: $state.runner_up
   - tool_call:
       name: explain_part
+      as: why_head
       args: {part: head}
   - tool_call:
       name: explain_part
-      args: {part: shaft_model}
+      as: why_flex
+      args: {part: flex}
   - tool_call:
       name: explain_part
+      as: why_length
+      args: {part: length}
+  - tool_call:
+      name: explain_part
+      as: why_lie
       args: {part: lie}
+  - tool_call:
+      name: explain_part
+      as: why_grip
+      args: {part: grip}
   - ui:
       type: why_panel
       depth: standard
-      items:
-        - part: head
-          plain: "201T MKII delivers forged feel with distance control for your 18.9 handicap. Your 28° 7-iron is 4° stronger than Takomo's 32°, adding about 12 yd on loft alone."
-          numbers:
-            head_score: 16.0
-            runner_up_score: 14.0
-            own_7i_loft_deg: 28.0
-            takomo_7i_loft_deg: 32.0
-            loft_carry_diff_yd: 12.0
-          sources:
-            - source: questionnaire
-            - source: trackman
-        - part: shaft_model
-          plain: "KBS Tour Lite Regular steel matches your 72.1 mph club speed for mid launch and stability."
-          numbers:
-            weight_g: 105.0
-            club_speed_mph: 72.1
-          sources:
-            - source: trackman
-        - part: lie
-          plain: "lie: chart +2° -> evidence +3° from test-club shots showing consistent toe-up impact."
-          numbers:
-            dynamic_lie_deg: 64.8
-            lie_deg: 3.0
-          sources:
-            - source: trackman
-  - tool_call:
-      name: compare_specs
-      args: {heads: [201t-mkii, 201-mkii]}
-  - ui:
-      type: club_compare
-      highlight: 201t-mkii
-      heads:
-        - head: 201t-mkii
-          carry: 128.5
-          apex: 19.2
-          land_angle: 39.5
-          side_sd: 8.4
-          score_total: 16.0
-        - head: 201-mkii
-          carry: 126.8
-          apex: 18.5
-          land_angle: 38.2
-          side_sd: 9.1
-          score_total: 14.0
+      items: [$why_head.why, $why_flex.why, $why_length.why, $why_lie.why, $why_grip.why]
   - tool_call:
       name: simulate_flight
-      args: {heads: [201t-mkii, 201-mkii]}
+      args: {heads: [$state.best.head, $state.runner_up.head]}
+  - ui:
+      type: club_compare
+      highlight: $state.best.head
+      heads:
+        - head: $simulate_flight.result.per_head.0.head
+          carry: $simulate_flight.result.per_head.0.summary.carry.mean
+          apex: $simulate_flight.result.per_head.0.summary.apex
+          land_angle: $simulate_flight.result.per_head.0.summary.land_angle
+          side_sd: $simulate_flight.result.per_head.0.summary.side.sd
+          score_total: $run_fit.ranking.0.total
+        - head: $simulate_flight.result.per_head.1.head
+          carry: $simulate_flight.result.per_head.1.summary.carry.mean
+          apex: $simulate_flight.result.per_head.1.summary.apex
+          land_angle: $simulate_flight.result.per_head.1.summary.land_angle
+          side_sd: $simulate_flight.result.per_head.1.summary.side.sd
+          score_total: $run_fit.ranking.1.total
   - ui:
       type: stock_vs_custom
-      question: "Because of your +3° upright lie, this requires a custom build. Custom clubs are non-returnable. Stock sets include a 30-day return policy. Which do you prefer?"
-      reasons:
-        - "Lie is +3° upright (standard is 0°)"
-        - "Length is +0.5 inch"
+      question: "Your fitted build is a custom order. Custom clubs cannot be returned. A stock set has a 30-day return. Which do you prefer?"
+      reasons: []
       stock_return_days: 30
       custom_returnable: false
 
   # Turn 5: Confirmation and save
-  - text: "Excellent choice! Your custom 201T MKII specs are locked in."
-  - text: "You can tinker with any spec using the 3D Stage on the left, or save your session below to access your fit anytime."
+  - text: "Thanks, your choice is noted."
+  - text: "Use Save at the top to keep a link to your fit."
   - ui:
       type: driver_teaser
-  - text: "Tap Save Session in the top bar to finish your fitting."

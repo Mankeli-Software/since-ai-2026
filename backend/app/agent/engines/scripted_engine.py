@@ -4,8 +4,9 @@ is committed atomically with the turn. A `ui` step with an input component ends 
 
 Any string value of the exact form `$<root>.<key>.<index>...` in a step is a reference, resolved
 when the step runs: `$state...` reads the session's FittingState, `$<tool>...` reads the output
-of that tool from an earlier `tool_call` step in the same turn. Display blocks then show the
-real tools' numbers instead of copies in the YAML."""
+of that tool from an earlier `tool_call` step in the same turn (`as: <name>` on a tool_call
+stores its output under `$<name>`). Display blocks then show the real tools' numbers instead of
+copies in the YAML."""
 
 import asyncio
 import re
@@ -128,7 +129,7 @@ class ScriptedEngine:
                 args = spec.input_model.model_validate(refs(call.get("args") or {}))
                 out = await spec.fn(ctx, args)
                 if isinstance(out, BaseModel):
-                    outputs[call["name"]] = out.model_dump(mode="json")
+                    outputs[call.get("as", call["name"])] = out.model_dump(mode="json")
             elif "ui" in step:
                 spec = get_tool(f"ui_{step['ui']['type']}")
                 ui_id: list[str] = []
