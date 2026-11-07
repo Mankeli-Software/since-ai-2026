@@ -20,6 +20,10 @@ class VoiceSettings(BaseSettings):
     )
     output_format: str = "mp3_44100_64"  # VOICE_OUTPUT_FORMAT
     base_url: str = "https://api.elevenlabs.io"  # VOICE_BASE_URL
+    # One steady voice: each sentence is its own request, so pin the delivery.
+    stability: float = 0.6  # VOICE_STABILITY, 0-1; higher = less variation between sentences
+    similarity_boost: float = 0.8  # VOICE_SIMILARITY_BOOST
+    seed: int = 7  # VOICE_SEED, same text + seed -> same delivery
 
     # Cost guard: the route speaks any text it is given, so it is capped like the chat (#18).
     max_chars: int = 600  # VOICE_MAX_CHARS, per request (one or two sentences)
