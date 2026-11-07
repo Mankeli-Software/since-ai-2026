@@ -1,11 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Button } from '@/components/studio'
 import '@/styles/theme.css'
 import { ownFittingHref } from '../personas/personas'
 import { PersonaRow } from '../personas/PersonaRow'
-
-const cta =
-  'inline-block bg-accent px-6 py-3 font-display text-lg font-semibold uppercase tracking-wider text-accent-foreground transition-colors hover:bg-orange-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -19,7 +17,7 @@ createRoot(document.getElementById('root')!).render(
             Tell the fitter about your game. Add your own launch monitor data if you have it. Get a Takomo irons spec
             that you can check, with the reasons shown.
           </p>
-          <a className={`${cta} mt-8`} href={ownFittingHref}>Start my own fitting</a>
+          <Button href={ownFittingHref} variant="primary" size="lg" className="mt-8">Start my own fitting</Button>
         </header>
         <section className="mt-16 grid grid-cols-3 gap-8 border-t border-border-dark pt-10" aria-label="How it works">
           <div>
