@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react'
-import { Button, EnterKbd, Eyebrow, Kbd, useEnterKey, useNumberKeys } from '@/components/studio'
+import { Button, EnterKbd, Eyebrow, Kbd, useArrowKeys, useEnterKey, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import { ExamplePill } from './chrome'
 
@@ -82,7 +82,7 @@ const AMBER = '#E3B341'
 
 /**
  * R5 stock vs custom, on the light conversation card: a radiogroup of two cards (custom = recommended),
- * then "Choose this" confirms (number keys 1/2 select, Enter confirms). `onPick` gets 'stock' | 'custom' (the block's resume value).
+ * then "Choose this" confirms (number keys 1/2 or ← / → select, Enter confirms). `onPick` gets 'stock' | 'custom' (the block's resume value).
  * Delivery times are example copy from the design until commerce data exists.
  */
 export function StockVsCustomView(p: {
@@ -99,6 +99,7 @@ export function StockVsCustomView(p: {
   const off = p.locked || done
   const choices: Choice[] = ['stock', 'custom']
   useNumberKeys(2, (i) => setSel(choices[i]), !off)
+  useArrowKeys((dir) => setSel(dir < 0 ? 'stock' : 'custom'), !off)
   useEnterKey(() => p.onPick(sel), !off)
 
   const cards = [

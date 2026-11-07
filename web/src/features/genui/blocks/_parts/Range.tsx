@@ -1,5 +1,22 @@
 import type { ComponentProps } from 'react'
+import { Kbd } from '@/components/studio'
 import { cn } from '@/lib/utils'
+
+/** `← →` hint beside a range's label: the card wires `useArrowKeys` (Shift = big step). Decorative. */
+export function ArrowKbds({ className }: { className?: string }) {
+  return (
+    <span aria-hidden="true" title="Use ← → to adjust (Shift for bigger steps)" className={cn('inline-flex flex-none gap-1', className)}>
+      <Kbd>←</Kbd>
+      <Kbd>→</Kbd>
+    </span>
+  )
+}
+
+/** One arrow-key step from `value`, snapped to `step` and kept inside `min`..`max` (Shift = 10 steps). */
+export function stepValue(value: number, dir: -1 | 1, big: boolean, { min, max, step }: { min: number; max: number; step: number }) {
+  const next = Math.round((value + dir * step * (big ? 10 : 1)) / step) * step
+  return Math.min(max, Math.max(min, next))
+}
 
 /**
  * v3 range (C3b, C6a): orange fill up to the value, #C8C8C8 for the rest, orange thumb with a white ring.

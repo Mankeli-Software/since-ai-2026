@@ -115,7 +115,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
           {skipped > 0 && `I skipped ${skipped} ${skipped === 1 ? 'question' : 'questions'} you already answered.`}
         </span>
         <Button type="submit" size="xl" disabled={busy} aria-keyshortcuts="Enter" className="min-h-[58px] pr-4 pl-7 text-[22px]">
-          Show my fit →
+          Show my fit
           <EnterKbd tone="primary" />
         </Button>
       </div>

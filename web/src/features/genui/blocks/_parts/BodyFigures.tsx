@@ -14,18 +14,42 @@ function Figure() {
   )
 }
 
-export function HeightFigure() {
+// HeightFigure: the person is drawn 240 units tall (head top y=24, ground y=264) at TALLEST cm and shrinks toward the
+// ground line in proportion; the ruler stays put so the change reads against it.
+const TALLEST = 210
+const GROUND = 264
+const ease = 'transition-transform duration-150 ease-out motion-reduce:transition-none'
+const scaleFromGround = (s: number) => ({ transform: `scaleY(${s})`, transformBox: 'view-box', transformOrigin: `0 ${GROUND}px` }) as const
+const lift = (dy: number) => ({ transform: `translateY(${dy}px)` })
+
+export function HeightFigure({ cm = TALLEST }: { cm?: number }) {
+  const r = Math.min(1, Math.max(0.5, cm / TALLEST))
+  // Overall height (head top to ground) is r x 240. The head keeps its size and drops by dy; the body (neck y=56 to
+  // ground, 208 units) and the measure line (240 units) stretch from the ground so their tops meet the head.
+  const dy = 240 * (1 - r)
+  const body = (208 - dy) / 208
   return (
     <svg viewBox="0 0 240 280" className="h-[280px] max-w-full" role="img" aria-label="Person standing next to a height ruler">
-      <Figure />
-      <line x1="170" y1="24" x2="170" y2="264" stroke="#FF6E01" strokeWidth="2.5" />
-      <path d="M162 32 L170 24 L178 32 M162 256 L170 264 L178 256" fill="none" stroke="#FF6E01" strokeWidth="2.5" />
+      <circle cx="100" cy="40" r="16" fill="none" stroke="#0B0B0B" strokeWidth="2.5" className={ease} style={lift(dy)} />
+      <path
+        d={BODY} fill="none" stroke="#0B0B0B" strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke"
+        className={ease} style={scaleFromGround(body)}
+      />
+      <line x1="40" y1={GROUND} x2="200" y2={GROUND} stroke="#0B0B0B" strokeWidth="2.5" />
+      <line
+        x1="170" y1="24" x2="170" y2={GROUND} stroke="#FF6E01" strokeWidth="2.5" vectorEffect="non-scaling-stroke"
+        className={ease} style={scaleFromGround(r)}
+      />
+      <path d="M162 256 L170 264 L178 256" fill="none" stroke="#FF6E01" strokeWidth="2.5" />
+      <g className={ease} style={lift(dy)}>
+        <path d="M162 32 L170 24 L178 32" fill="none" stroke="#FF6E01" strokeWidth="2.5" />
+        <line x1="88" y1="24" x2="166" y2="24" stroke="#FF6E01" strokeDasharray="3 4" />
+      </g>
       <g stroke="#8F8F8F">
         {TICKS.map((y, i) => (
           <line key={y} x1="176" y1={y} x2={i % 2 ? 181 : 186} y2={y} />
         ))}
       </g>
-      <line x1="88" y1="24" x2="166" y2="24" stroke="#FF6E01" strokeDasharray="3 4" />
     </svg>
   )
 }
