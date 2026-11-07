@@ -60,7 +60,7 @@ export function R5Stock() {
   const respond = useSession((s) => s.respond)
   const pendingItem = [...ui].reverse().find((u) => u.block.type === 'stock_vs_custom' && u.interactive && !u.answered)
 
-  const stockadv = hasFlag('stockadv')
+  const stockadv = !hasFlag('nostockadv')
 
   useEffect(() => {
     if (!stockadv || !sessionId) return

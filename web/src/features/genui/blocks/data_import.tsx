@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Button, EnterKbd, Eyebrow, Kbd, useEnterKey, useNumberKeys } from '@/components/studio'
+import type { FittingState } from '@/api/client'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
 import type { BlockProps } from '../types'
@@ -21,6 +22,7 @@ const LINE_FAILED = "Couldn't use those readings. Each one needs to be between -
 // Local minimal types: these demo routes are not in the generated client yet.
 interface Sample { sample_id: string; kind?: string; label?: string }
 interface DemoGolfer { golfer_id: string; sample_imports?: Sample[] }
+interface ImportResult { import_id?: string; status?: string; report?: { n_shots?: number }; state?: FittingState | null }
 
 // C4c phone-mock illustrations (dark 120px panels), copied from V3-C4c-TrackMan.
 function StepArt({ n }: { n: 1 | 2 | 3 }) {
@@ -163,7 +165,7 @@ const noSpinCls = '[appearance:textfield] [&::-webkit-inner-spin-button]:appeara
  * Payloads unchanged: `{import_id}` or `{skipped: true}`.
  */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'data_import'>) {
-  const { sessionId, demo } = useSession()
+  const { sessionId, demo, mergeState } = useSession()
   const [lineOpen, setLineOpen] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
@@ -192,12 +194,17 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   if (!live) return <Answered prompt={block.prompt} answer={answer} />
 
   const done = (r: Response, n?: string) =>
-    r.json().then(async (j: { import_id?: string; status?: string; report?: { n_shots?: number } }) => {
+    r.json().then(async (j: ImportResult) => {
       if (!j.import_id) throw new Error('no id')
+      if (j.state) mergeState(j.state)
       // The golfer chose the file and tapped Import: that is the confirm. Shots reach the fit only once confirmed.
       if (j.status === 'pending') {
         const c = await fetch(`/api/sessions/${sessionId}/imports/${j.import_id}/confirm`, { method: 'POST' })
         if (!c.ok) throw new Error(String(c.status))
+        // The confirmed state (new shots, confidence) shows now, also for the header's local Add data block, which
+        // runs no turn (store/session.ts LOCAL_UI).
+        const confirmed = (await c.json()) as ImportResult
+        if (confirmed.state) mergeState(confirmed.state)
       }
       const shots = j.report?.n_shots
       respond({ import_id: j.import_id }, n ?? (shots ? `Imported ${shots} shots` : 'Imported my shots'))

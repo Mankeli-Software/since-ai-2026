@@ -80,12 +80,18 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
   const pct = state?.confidence == null ? null : Math.round(state.confidence * 100)
   const engineParam = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('engine') : null
   const engine = engineParam === 'live' || engineParam === 'scripted' ? engineParam : sessionEngine
-  const hdr = hasFlag('hdr')
+  const hdr = !hasFlag('nohdr')
   const missingCount = state?.missing?.length ?? 0
 
   return (
     <>
-      <header className="flex shrink-0 items-center gap-5 px-14 pt-7 max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0">
+      <header
+        className={cn(
+          'flex shrink-0 items-center gap-5 px-14 pt-7 max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0',
+          // All chips at 1280: tighten the spacing so nothing wraps or overflows.
+          hdr && 'max-[1366px]:gap-4 max-[1366px]:px-10',
+        )}
+      >
         {onBack && (
           <button
             type="button"
@@ -122,7 +128,13 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
           </Eyebrow>
         )}
         {engine && (
-          <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-c8 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+          <Eyebrow
+            size={11}
+            className={cn(
+              'flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-c8 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]',
+              hdr && 'max-[1366px]:hidden',
+            )}
+          >
             {engine === 'live' ? 'Live AI' : 'Replay'}
           </Eyebrow>
         )}
@@ -144,7 +156,10 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
             )}
           </>
         )}
-        {variant === 'chat' && step != null && <StepBars step={step} className="max-md:hidden" />}
+        {variant === 'chat' && step != null && (
+          // The step bars are the lowest-value item: with all chips showing they only fit on wide screens.
+          <StepBars step={step} className={cn('max-md:hidden', hdr && 'max-[1640px]:hidden')} />
+        )}
         <span className="flex flex-none items-center gap-2.5 max-md:hidden">
           <Eyebrow className="text-grey-a3">Fit confidence</Eyebrow>
           <ConfidenceSegments value={pct} showLabel={false} />
@@ -173,7 +188,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
             <span className="text-[13px] font-semibold">Add data</span>
           </button>
         )}
-        <div className="flex flex-col items-end gap-1">
+        <div className="relative flex-none">
         <button
           type="button"
           disabled={!state}
@@ -191,7 +206,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
           </span>
         </button>
           {hdr && saved?.status === 'ok' && saved.resumeUrl && (
-            <div className="flex items-center gap-1.5 text-[11px] text-grey-a3 max-md:hidden">
+            <div className="absolute top-full right-0 mt-1 flex items-center gap-1.5 whitespace-nowrap text-[11px] text-grey-a3 max-md:hidden">
               <span className="max-w-[140px] truncate" title={saved.resumeUrl}>{saved.resumeUrl}</span>
               <button
                 type="button"
