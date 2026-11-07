@@ -33,8 +33,8 @@ TOKENS: dict[str, tuple[str, tuple[tuple[str, str], ...]]] = {
 # Option id -> saved profile value, as in own.yaml. An age band saves its middle.
 AGES = {"u25": 21, "25_34": 30, "35_44": 40, "45_54": 50, "55_64": 60, "65_plus": 68}
 ROUNDS = {"weekly": "31-50", "2_3_month": "10-30", "season": "Under 10", "starting": "Under 10"}
-SAVES = {"hand": ("handedness", None), "sex": ("sex", None), "age": ("age", AGES),
-         "often": ("rounds_per_year", ROUNDS)}  # fmt: skip
+SAVES = {"years": ("years_playing", None), "hand": ("handedness", None), "sex": ("sex", None),
+         "age": ("age", AGES), "often": ("rounds_per_year", ROUNDS)}  # fmt: skip
 OFTEN_OF = {"Over 50": "weekly", "31-50": "weekly", "10-30": "2_3_month", "Under 10": "season"}
 
 
@@ -50,7 +50,7 @@ def _age_band(age: Any) -> str | None:
 def _prefill(profile: dict[str, Any]) -> dict[str, str | None]:
     """Token id -> option id the profile already answers (persona questionnaire), else None."""
     return {
-        "years": None,  # not a profile field
+        "years": profile.get("years_playing"),
         "often": OFTEN_OF.get(profile.get("rounds_per_year")),
         "hand": profile.get("handedness"),
         "sex": profile.get("sex"),

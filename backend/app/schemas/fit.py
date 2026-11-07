@@ -62,6 +62,16 @@ class IntakeAnswers(BaseModel):
     sex: Sex | None = None
     handedness: Handedness | None = None
     rounds_per_year: str | None = None
+    years_playing: Literal["new", "1_3", "3_10", "10_plus"] | None = Field(
+        default=None,
+        description='How long they have played (opening card): "new" = just started. '
+        "Decides the beginner skips (L26)",
+    )
+    hit_on_simulator: Literal["yes", "no", "skip"] | None = Field(
+        default=None,
+        description='"Have you hit on a simulator or launch monitor?" "yes" offers the import '
+        'once; "skip" = said yes, then skipped the import',
+    )
     score_bucket: Bucket | None = None
     reported_7i_speed_mph: float | None = None
     reported_7i_carry_yd: float | None = None

@@ -84,6 +84,9 @@ steps:
           default: 31
         sex: {by: $answer.sex, cases: {male: male, female: female}, default: male}
         handedness: {by: $answer.hand, cases: {right: right, left: left}, default: right}
+        years_playing:
+          by: $answer.years
+          cases: {"new": "new", "1_3": "1_3", "3_10": "3_10", "10_plus": "10_plus"}
         rounds_per_year:
           by: $answer.often
           cases: {"weekly": "31-50", "2_3_month": "10-30", "season": "Under 10", "starting": "Under 10"}

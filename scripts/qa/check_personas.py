@@ -10,6 +10,8 @@ from pathlib import Path
 
 from app.confidence.gate import gate_for
 from app.confidence.next_question import next_question
+from app.fitting.beginner import BEGINNER_SKIPS, is_beginner, with_beginner_defaults
+from app.fitting.mapping import missing_inputs
 from app.schemas.fit import FitEvidence, IntakeAnswers
 
 from scripts.qa._lib import QARunner, load_expected, parse_sse_events
@@ -266,22 +268,34 @@ def check_confidence_bands() -> None:
 
 
 def check_beginner_skips() -> None:
-    """Beginner: assert 8 questions or fewer with 'Not sure' defaults."""
+    """Beginner (L26): "Not sure" defaults for flight, tempo and characteristics, applied in one
+    shared place (`fitting.beginner`) without touching the caller's intake, so nothing is missing
+    once the 8 basics are in. Several years in is never a beginner, however few rounds."""
     intake = IntakeAnswers(
         age=30,
         sex="male",
         handedness="right",
+        years_playing="new",
         rounds_per_year="Under 10",
         score_bucket=5,
+        reported_7i_carry_yd=110,
+        glove="M",
+        height_cm=175,
+        wrist_to_floor_cm=84,
     )
     ev = FitEvidence()
     nq = next_question(intake, ev, None, answered=[])
-    assert nq is not None
+    assert nq is not None and nq.field not in BEGINNER_SKIPS, nq.field
+    assert intake.flight is None and intake.tempo is None, "caller's intake was mutated"
 
-    # Verify that characteristics, flight, tempo are automatically defaulted
-    assert intake.flight == "mid"
-    assert intake.tempo == "moderate"
-    assert intake.characteristics == ["forgiveness"]
+    filled = with_beginner_defaults(intake)
+    assert filled.flight == "mid"
+    assert filled.tempo == "moderate"
+    assert filled.characteristics == ["forgiveness"]
+    assert missing_inputs(filled, ev) == [], missing_inputs(filled, ev)
+
+    seasonal = intake.model_copy(update={"years_playing": "10_plus", "score_bucket": 3})
+    assert not is_beginner(seasonal)
 
 
 def register_persona_checks(runner: QARunner) -> None:

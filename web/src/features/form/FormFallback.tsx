@@ -52,9 +52,10 @@ export function FormFallback() {
         typeof value === 'object' &&
         'skipped' in value &&
         Boolean((value as { skipped: unknown }).skipped)
-      if (isSkip && nq.field === 'ball_line_offer') {
+      // Both offers record a skip under their own field, so they are not offered again.
+      if (isSkip && (nq.field === 'ball_line_offer' || nq.field === 'hit_on_simulator')) {
         await patchProfile({
-          ball_line_offer: { value: 'skip', source: 'questionnaire' },
+          [nq.field]: { value: 'skip', source: 'questionnaire' },
         })
         return
       }
