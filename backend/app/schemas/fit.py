@@ -1,17 +1,23 @@
 """Fit I/O models (plan §3.2, §3.5, §3.7). Owned by FIT after v0: additive changes only."""
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from app.schemas.common import (
     Bucket,
     Characteristic,
     Depth,
+    Flex,
     FlightPref,
     Glove,
+    GripSize,
     Handedness,
     HeadSlug,
+    Material,
     Part,
     Provenance,
+    Purchase,
     Sex,
     Spec,
     SpecValue,
@@ -85,3 +91,73 @@ class FitResult(BaseModel):
     why: list[WhyItem] = Field(default_factory=list)
     confidence: float | None = Field(default=None, ge=0, le=1)
     close_calls: list[CloseCall] = Field(default_factory=list)
+
+
+# --- Catalog (plan §3.2, §7 `GET /api/catalog`) -------------------------------------------------
+
+
+class HeadRatings(BaseModel):
+    """Takomo's own relative 0-5 scales, not measured values."""
+
+    distance: int
+    forgiveness: int
+    workability: int
+    distance_control: int
+    feel: int
+    offset: int
+
+
+class HeadProduct(BaseModel):
+    slug: HeadSlug
+    name: str
+    description: str
+    seven_iron_loft_deg: float
+    seven_iron_offset_mm: float
+    target_score_bucket: Bucket
+    target_score_label: str
+    ratings: HeadRatings
+    stock_shafts: list[str] = Field(description="Shaft models (not slugs) sold as stock")
+    default_shaft: str
+
+
+class ShaftProduct(BaseModel):
+    """One flex of one shaft model (each flex is its own record in the pack)."""
+
+    slug: str
+    model: str
+    build: str | None = Field(default=None, description="MKII or 301 build, when it matters")
+    manufacturer: str
+    material: Material
+    flex: Flex
+    weight_g: float
+    tempo_profile: list[str] | None = Field(default=None, description="None means any tempo")
+    flight_profile: list[str]
+    heads: list[HeadSlug]
+
+
+class GripProduct(BaseModel):
+    slug: GripSize
+    name: str
+    manufacturer: str
+
+
+class CatalogResponse(BaseModel):
+    heads: list[HeadProduct]
+    shafts: list[ShaftProduct]
+    grips: list[GripProduct]
+    length_options_in: list[float]
+    lie_options_deg: list[int]
+    videos: dict[str, Any] = Field(
+        default_factory=dict, description="fixtures/product_videos.json, keyed by head slug"
+    )
+
+
+class BuildCheck(BaseModel):
+    """`check_buildable`: the official scorer's buildability rule, without pandas.
+
+    An unbuildable spec scores 0. `purchase` is what the rules say the spec costs to buy
+    (stock or custom, from `purchase_for`); it is None when the spec cannot be built."""
+
+    buildable: bool
+    reasons: list[str] = Field(default_factory=list)
+    purchase: Purchase | None = None
