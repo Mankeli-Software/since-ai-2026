@@ -17,3 +17,4 @@ export type StreamEvent =
   | Schemas['MascotEvent']
   | Schemas['DoneEvent']
   | Schemas['ErrorEvent']
+export type MascotMood = Schemas['MascotEvent']['mood']
