@@ -134,3 +134,48 @@ class PublicSession(BaseModel):
     transcript: list[TranscriptEntry] = Field(default_factory=list)
     blocks: list[PublicBlock] = Field(default_factory=list)
     notice: SessionNotice | None = None
+
+
+class SaveSessionRequest(BaseModel):
+    email: str | None = Field(default=None, max_length=254)
+
+
+class SaveSessionResponse(BaseModel):
+    saved: bool = True
+    resume_url: str
+
+
+class ResumeSessionResponse(BaseModel):
+    session_id: str
+    demo_golfer_id: str | None = None
+    engine: Engine
+    state: FittingState
+
+
+class SampleImport(BaseModel):
+    sample_id: str
+    kind: Literal["trackman_csv", "ball_line"]
+    club: str | None = None
+    label: str
+
+
+class DemoGolferSummary(BaseModel):
+    golfer_id: str
+    name: str
+    age: int
+    teaser: str
+    synthetic: bool = True
+    sample_imports: list[SampleImport] = Field(default_factory=list)
+
+
+class DemoGolferDetail(BaseModel):
+    session_id: str
+    resume_token: str
+    golfer_id: str
+    name: str
+    age: int
+    teaser: str
+    synthetic: bool = True
+    profile: dict[str, ProvenancedValue] = Field(default_factory=dict)
+    sample_imports: list[SampleImport] = Field(default_factory=list)
+    state: FittingState

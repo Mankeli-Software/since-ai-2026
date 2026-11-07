@@ -16,6 +16,7 @@ from typing import Any, Protocol, cast
 
 import numpy as np
 from takomo_fit import baseline as _bl
+from takomo_fit import physics as _ph
 from takomo_fit import products as _pr
 
 from app.schemas.common import GripSize, HeadSlug, Purchase
@@ -43,6 +44,18 @@ GLOVE_EDGES_CM: tuple[float, ...] = tuple(float(x) for x in _pr.GLOVE_EDGES_CM)
 STOCK_GRIPS: tuple[str, ...] = tuple(_bl.STOCK_GRIPS)
 HANDEDNESS: tuple[str, ...] = ("right", "left")
 PURCHASES: tuple[str, ...] = ("stock", "custom")
+
+# --------------------------------------------------------------------------- physics constants
+MPH: float = float(_ph.MPH)
+YD: float = float(_ph.YD)
+BALL_MASS: float = float(_ph.BALL_MASS)
+BALL_DIAM: float = float(_ph.BALL_DIAM)
+BALL_R: float = float(_ph.BALL_R)
+AREA: float = float(_ph.AREA)
+G: float = float(_ph.G)
+RHO_STD: float = float(_ph.RHO_STD)
+AERO: dict[str, float] = dict(_ph.AERO)
+IMPACT: dict[str, float] = dict(_ph.IMPACT)
 
 
 # --------------------------------------------------------------------------- catalog data
@@ -270,3 +283,96 @@ def grip_change_edges_cm() -> tuple[tuple[float, str, str], ...]:
         if below != above:
             out.append((edge, below, above))
     return tuple(out)
+
+
+def shot_carry_yd(
+    club_speed_mph: float,
+    dynamic_loft_deg: float,
+    attack_deg: float = -3.0,
+    forgiveness: float = 3.0,
+) -> float:
+    """Carry distance in yards from takomo_fit.physics.shot."""
+    res = _ph.shot(
+        club_speed_mph=float(club_speed_mph),
+        dynamic_loft_deg=float(dynamic_loft_deg),
+        attack_deg=float(attack_deg),
+        forgiveness=float(forgiveness),
+    )
+    return _f(res["carry_yd"])
+
+
+# --------------------------------------------------------------------------- physics wrappers
+
+
+def physics_impact(
+    club_speed_mph: Any,
+    dynamic_loft_deg: Any,
+    attack_deg: Any,
+    face_deg: Any = 0.0,
+    path_deg: Any = 0.0,
+    offset_mm: Any = 0.0,
+    height_mm: Any = 0.0,
+    forgiveness: Any = 3.0,
+) -> dict[str, Any]:
+    return _ph.impact(
+        club_speed_mph,
+        dynamic_loft_deg,
+        attack_deg,
+        face_deg=face_deg,
+        path_deg=path_deg,
+        offset_mm=offset_mm,
+        height_mm=height_mm,
+        forgiveness=forgiveness,
+    )
+
+
+def physics_fly(
+    ball_speed_mph: Any,
+    launch_deg: Any,
+    spin_rpm: Any,
+    spin_axis_deg: Any = 0.0,
+    launch_dir_deg: Any = 0.0,
+    rho: float = _ph.RHO_STD,
+    dt: float = 0.02,
+    t_max: float = 12.0,
+    aero: dict[str, float] | None = None,
+) -> dict[str, Any]:
+    return _ph.fly(
+        ball_speed_mph,
+        launch_deg,
+        spin_rpm,
+        spin_axis_deg=spin_axis_deg,
+        launch_dir_deg=launch_dir_deg,
+        rho=rho,
+        dt=dt,
+        t_max=t_max,
+        aero=aero,
+    )
+
+
+def physics_shot(
+    club_speed_mph: Any,
+    dynamic_loft_deg: Any,
+    attack_deg: Any,
+    face_deg: Any = 0.0,
+    path_deg: Any = 0.0,
+    offset_mm: Any = 0.0,
+    height_mm: Any = 0.0,
+    forgiveness: Any = 3.0,
+    rho: float = _ph.RHO_STD,
+) -> dict[str, Any]:
+    return _ph.shot(
+        club_speed_mph,
+        dynamic_loft_deg,
+        attack_deg,
+        face_deg=face_deg,
+        path_deg=path_deg,
+        offset_mm=offset_mm,
+        height_mm=height_mm,
+        forgiveness=forgiveness,
+        rho=rho,
+    )
+
+
+def lie_face_effect_deg(lie_error_deg: Any, dynamic_loft_deg: Any) -> float:
+    return _f(_ph.lie_face_effect_deg(lie_error_deg, dynamic_loft_deg))

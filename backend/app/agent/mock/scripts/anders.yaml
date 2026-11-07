@@ -1,0 +1,73 @@
+persona: anders
+steps:
+  # Turn 1: 101 MKII fit and stock vs custom decision on +1° lie
+  - text: "Hello Anders, welcome to Takomo Fitter Studio."
+  - text: "Your 78 mph clubhead speed and score profile point directly to the game-improvement Takomo 101 MKII. Your test-club shots show an impact dynamic lie that is 1° upright."
+  - tool_call:
+      name: update_profile
+      args: {lie_override_deg: 1.0}
+  - tool_call:
+      name: run_fit
+      args: {}
+  - tool_call:
+      name: stage_focus
+      args: {part: lie}
+  - ui:
+      type: recommendation_card
+      spec:
+        head: 101-mkii
+        shaft: kbs-tour-lite-regular
+        shaft_model: "KBS Tour Lite"
+        flex: regular
+        material: steel
+        length_in: 0.0
+        lie_deg: 1
+        grip: standard
+        handedness: right
+        purchase: custom
+      purchase: custom
+      confidence: 0.81
+      gate: confident
+      runner_up:
+        head: 101-mkii
+        shaft: kbs-tour-lite-regular
+        shaft_model: "KBS Tour Lite"
+        flex: regular
+        material: steel
+        length_in: 0.0
+        lie_deg: 0
+        grip: standard
+        handedness: right
+        purchase: stock
+  - ui:
+      type: why_panel
+      depth: standard
+      items:
+        - part: lie
+          plain: "Your test-club shots average +1° upright. In standard lie, the face sits slightly open at impact, which causes a mild push to the right."
+          numbers:
+            dynamic_lie_deg: 63.0
+            lie_deg: 1.0
+          sources:
+            - source: trackman
+        - part: purchase
+          plain: "Stock sets come with 0° lie and include a 30-day return policy. Custom +1° lie bending makes the set non-returnable."
+          numbers:
+            stock_return_days: 30
+          sources:
+            - source: questionnaire
+  - ui:
+      type: stock_vs_custom
+      question: "A +1° upright lie straightens ~3 yards of push miss, but custom builds cannot be returned. Standard stock lie includes a 30-day trial return policy. Which do you prefer?"
+      reasons:
+        - "Dynamic lie is +1° upright (custom build, non-returnable)"
+        - "Standard stock lie is 0° (includes 30-day return policy)"
+      stock_return_days: 30
+      custom_returnable: false
+
+  # Turn 2: Confirmation
+  - text: "That is an honest trade-off. Many players start with stock clubs and have a local clubmaker bend them 1° if needed, preserving return flexibility."
+  - tool_call:
+      name: simulate_flight
+      args: {heads: [101-mkii]}
+  - text: "Your 101 MKII configuration is ready. Test different lie settings in the Tinker panel or save your build."

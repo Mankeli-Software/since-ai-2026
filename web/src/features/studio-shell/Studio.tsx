@@ -22,16 +22,23 @@ export function Studio() {
   const revealed = useSession((s) => s.state?.best != null) || hasFlag('reveal')
   const resultPhase = useSession((s) => isResultPhase(s.state, s.ui))
   const start = useSession((s) => s.start)
+  const resume = useSession((s) => s.resume)
 
   const q = new URLSearchParams(location.search)
-  const picking = !q.has('demo') && !q.has('start') // no persona chosen yet: show the start screen
+  const resumeToken = q.get('resume')
+  const picking = !q.has('demo') && !q.has('start') && !resumeToken
 
   useEffect(() => {
     if (picking) return
     const q = new URLSearchParams(location.search)
+    const token = q.get('resume')
+    if (token) {
+      void resume(token)
+      return
+    }
     const engine = q.get('engine')
     void start({ engine: engine === 'live' || engine === 'scripted' ? engine : undefined, demo: q.get('demo') })
-  }, [start, picking])
+  }, [start, resume, picking])
 
   if (v3) {
     if (picking) return <Welcome />

@@ -25,15 +25,22 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     const o = opts[i]
     if (!o) return
     if (!block.multi) return respond(o.id, o.label)
-    setPicked((p) => (p.includes(o.id) ? p.filter((x) => x !== o.id) : [...p, o.id]))
+    setPicked((p) => {
+      if (o.id === 'none') return p.includes('none') ? [] : ['none'] // "none" is exclusive
+      const clean = p.filter((x) => x !== 'none')
+      if (clean.includes(o.id)) return clean.filter((x) => x !== o.id)
+      if (block.field === 'characteristics' && clean.length >= 3) return clean // the pack counts only the top 3
+      return [...clean, o.id]
+    })
   }
   useNumberKeys(opts.length, pick, live)
 
   if (!interactive || answer) return <Answered prompt={block.prompt} answer={answer} />
 
   const sendMulti = () => {
-    const chosen = opts.filter((o) => picked.includes(o.id))
-    respond(chosen.map((o) => o.id), chosen.map((o) => o.label).join(', '))
+    const ids = picked.length === 0 && block.field === 'joint_pain' ? ['none'] : picked
+    const labels = ids.map((id) => opts.find((o) => o.id === id)?.label ?? id).join(', ')
+    respond(ids, labels || 'None')
   }
   const sendText = () => {
     const t = text.trim()
@@ -86,8 +93,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       <div className="flex items-center gap-3">
         <Button variant="outline" disabled={busy} onClick={() => respond(null, 'Not sure')}>Not sure</Button>
         {block.multi && (
-          <Button variant="dark" className="ml-auto" disabled={busy || picked.length === 0} onClick={sendMulti}>
-            That's it
+          <Button variant="dark" className="ml-auto" disabled={busy || (picked.length === 0 && block.field !== 'joint_pain')} onClick={sendMulti}>
+            {picked.length === 0 ? 'None' : "That's it"}
           </Button>
         )}
       </div>

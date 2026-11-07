@@ -2,10 +2,17 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.agent.tools._common import NOT_AVAILABLE, commit_state, intake_of, missing_of
+from app.agent.tools._common import (
+    NOT_AVAILABLE,
+    commit_state,
+    intake_of,
+    last_fit,
+    missing_of,
+    recompute_session_state,
+)
 from app.core.tooling import ToolContext, fitter_tool
 from app.fitting.mapping import build_answers
-from app.fitting.recommend import recommend_fit
+from app.fitting.session_inputs import evidence_of
 from app.schemas.chat import StageEvent
 from app.schemas.common import Depth, Provenance
 from app.schemas.fit import HeadScore, Recommendation
@@ -23,7 +30,7 @@ class RunFitOut(BaseModel):
     ranking: list[HeadScore] = Field(default_factory=list)
     provenance: dict[str, Provenance] = Field(default_factory=dict)
     confidence: str = Field(
-        default=NOT_AVAILABLE, description="No confidence number exists yet; do not state one"
+        default=NOT_AVAILABLE, description="Overall confidence score if available"
     )
 
 
@@ -35,20 +42,32 @@ async def run_fit(ctx: ToolContext, args: RunFitIn) -> RunFitOut:
     missing = missing_of(ctx)
     if missing:
         return RunFitOut(status="needs_info", missing=missing)
-    answers = build_answers(intake_of(ctx))  # shortcut: no evidence yet, see missing_of
-    result = recommend_fit(answers, top_n=2)
-    ctx.session.recommendation_json = result.model_dump_json()
-    best, runner = result.recs[0], result.recs[1] if len(result.recs) > 1 else None
-    # shortcut: no Monte Carlo confidence yet. TODO(FIT confidence): set confidence, per_part,
-    # close_calls and the real gate. Until then the gate is the honest low one.
-    await commit_state(
-        ctx, missing=[], best=best, runner_up=runner, gate="provisional", strength="low"
+
+    recompute_session_state(ctx.session)
+    fit = last_fit(ctx)
+    best = fit.recs[0] if fit and fit.recs else None
+    runner = fit.recs[1] if fit and len(fit.recs) > 1 else None
+    ranking = fit.ranking if fit else []
+
+    await commit_state(ctx)
+    if ranking:
+        await ctx.emit(StageEvent(seq=0, action="show_row", heads=[h.head for h in ranking]))
+
+    intake = intake_of(ctx)
+    evidence = evidence_of(ctx.session)
+    answers = build_answers(intake, evidence)
+
+    conf_str = (
+        f"{ctx.session.state.confidence:.2f}"
+        if ctx.session.state.confidence is not None
+        else NOT_AVAILABLE
     )
-    await ctx.emit(StageEvent(seq=0, action="show_row", heads=[h.head for h in result.ranking]))
+
     return RunFitOut(
         status="ok",
         best=best,
         runner_up=runner,
-        ranking=result.ranking,
+        ranking=ranking,
         provenance=answers.provenance,
+        confidence=conf_str,
     )

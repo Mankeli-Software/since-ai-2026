@@ -1,0 +1,72 @@
+{
+  "golfer_id": "DEMO-10",
+  "name": "Kaisa",
+  "age": 48,
+  "teaser": "Right-handed, shoots 85-92, carries 7-iron 110 yd.",
+  "synthetic": true,
+  "profile": {
+    "age": {
+      "value": 48,
+      "source": "questionnaire"
+    },
+    "sex": {
+      "value": "female",
+      "source": "questionnaire"
+    },
+    "handedness": {
+      "value": "right",
+      "source": "questionnaire"
+    },
+    "rounds_per_year": {
+      "value": "Under 10",
+      "source": "questionnaire"
+    },
+    "score_bucket": {
+      "value": 4,
+      "source": "questionnaire"
+    },
+    "characteristics": {
+      "value": [
+        "distance",
+        "more offset"
+      ],
+      "source": "questionnaire"
+    },
+    "flight": {
+      "value": "low",
+      "source": "questionnaire"
+    },
+    "tempo": {
+      "value": "moderate",
+      "source": "questionnaire"
+    },
+    "height_cm": {
+      "value": 170.2,
+      "source": "questionnaire"
+    },
+    "wrist_to_floor_cm": {
+      "value": 81.3,
+      "source": "questionnaire"
+    },
+    "glove": {
+      "value": "S",
+      "source": "questionnaire"
+    },
+    "glove_was_guessed": {
+      "value": true,
+      "source": "questionnaire"
+    },
+    "reported_7i_carry_yd": {
+      "value": 110.0,
+      "source": "questionnaire"
+    }
+  },
+  "sample_imports": [
+    {
+      "sample_id": "ball_line",
+      "kind": "ball_line",
+      "club": "own_7i",
+      "label": "Kaisa's ball-line readings"
+    }
+  ]
+}

@@ -55,7 +55,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     a === 'confirm_value'
       ? suggested != null ? `Use ${num(suggested)}${unit}` : 'Use the measured value'
       : a === 'keep' ? (shotLevel ? 'Keep it' : 'Keep my number')
-      : shotLevel ? 'Drop it' : 'Drop these shots'
+      : shotLevel ? 'Drop it'
+      : flags.every((f) => f.code.startsWith('S')) ? 'Drop these shots' : "Don't use my number"
   // Keep = outline; the "do it" action = dark (confirm_value when offered, else exclude). No orange in a callout.
   const dark: Action = block.actions.includes('confirm_value') ? 'confirm_value' : 'exclude'
   const order: Action[] = ['keep', 'exclude', 'confirm_value']

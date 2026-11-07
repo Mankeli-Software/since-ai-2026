@@ -1,0 +1,74 @@
+persona: hannu
+steps:
+  # Turn 1: Questionnaire review and ball-line test prompt
+  - text: "Hi Hannu, welcome to Takomo Fitter Studio. Let's find the best irons for your game."
+  - text: "From your questionnaire, you carry your 7-iron 145 yards. The static sizing chart suggests a standard lie, but dynamic delivery on turf often tells a different story."
+  - tool_call:
+      name: run_fit
+      args: {}
+  - tool_call:
+      name: stage_focus
+      args: {part: lie}
+  - ui:
+      type: data_import
+      prompt: "A quick 5-shot ball-line test on a mat shows which way your club leans at impact. Enter your marker-line readings below."
+      sources: ["ball_line", "skip"]
+      club_hint: own_7i
+      reason_code: lie_ball_line
+
+  # Turn 2: Ball-line results, honest close call explanation and simulator recommendation
+  - text: "We received your 5 marker-line readings."
+  - text: "Here is our honest assessment: the marker-line test on a range mat is approximate (sigma ~1.5°). When fused with your sizing chart, your lie angle remains a genuine close call between Standard and 1° Upright. In addition, without measured club speed, your flex is on the boundary."
+  - tool_call:
+      name: update_profile
+      args: {lie_override_deg: 0.8}
+  - tool_call:
+      name: run_fit
+      args: {}
+  - ui:
+      type: recommendation_card
+      spec:
+        head: 101-mkii
+        shaft: kbs-tour-lite-regular
+        shaft_model: "KBS Tour Lite"
+        flex: regular
+        material: steel
+        length_in: 0.0
+        lie_deg: 0
+        grip: standard
+        handedness: right
+        purchase: stock
+      purchase: stock
+      confidence: 0.58
+      gate: provisional
+      strength: low
+      runner_up:
+        head: 201-mkii
+        shaft: kbs-tour-lite-regular
+        shaft_model: "KBS Tour Lite"
+        flex: regular
+        material: steel
+        length_in: 0.0
+        lie_deg: 1
+        grip: standard
+        handedness: right
+        purchase: custom
+  - ui:
+      type: why_panel
+      depth: standard
+      items:
+        - part: lie
+          plain: "Lie is a close call: static chart suggests 0° Standard, while your ball-line readings lean +0.8° upright. Testing on a simulator is recommended before ordering custom."
+          numbers:
+            lie_deg: 0.0
+          sources:
+            - source: questionnaire
+            - source: ball_line
+  - text: "Rather than locking in a non-returnable custom order on rough mat data, we honestly recommend testing a Takomo 7-iron on a simulator first."
+  - ui:
+      type: simulator_map
+      simulator_ids:
+        - helsinki_indoor
+        - espoo_fitting
+        - turku_fitting
+  - text: "Hitting 5 to 10 shots on a TrackMan near you will turn this provisional fit into a confident specification."

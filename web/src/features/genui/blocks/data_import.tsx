@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
 import type { BlockProps } from '../types'
 import { Answered, cardLabelCls } from './_parts/Answered'
+import diagrams from '../../../../../fixtures/diagrams.json'
 
 export const type = 'data_import'
 
@@ -13,12 +14,7 @@ const CLUBS: [string, string][] = [
   ['takomo_201-mkii_kbs-tour-regular_std', 'Takomo 201 MKII test club'],
   ['takomo_101-mkii_kbs-tour-lite-regular_std', 'Takomo 101 MKII test club'],
 ]
-// shortcut: switch to fixtures/diagrams.json (#41) when it lands.
-const LINE_STEPS = [
-  'Draw a straight line on the ball.',
-  'Hit 3 to 5 shots off a hard surface.',
-  'Read how far the mark on the face leans from vertical.',
-]
+const LINE_STEPS = diagrams.ball_line_test.steps
 const UNAVAILABLE = 'Import is not available yet. You can skip for now.'
 
 // Local minimal types: these demo routes are not in the generated client yet.
@@ -233,7 +229,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
               </li>
             ))}
           </ol>
-          <span className="text-[14px] text-grey-55">+ = the line leans toward the toe. Enter degrees; at least 3 readings.</span>
+          <span className="text-[14px] text-grey-55">{diagrams.ball_line_test.caption}. Enter degrees; at least 3 readings.</span>
           <div className="flex flex-wrap items-center gap-2">
             {readings.map((v, i) => (
               <input
