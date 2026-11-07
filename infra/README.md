@@ -25,7 +25,69 @@ scripts/smoke.sh http://localhost:8080
 docker rm -f fitter
 ```
 
+## Team access (Juho, Matti)
+
+Project `takomo-fitter` (region `europe-north1`). Jesse is Owner; Juho Torkkeli and Matti Mäki-Kihniä have the
+**Admin** role (`roles/admin`, full control, including access management and project deletion). Deploys happen through
+GitHub Actions on every push to `main`, so changing things by hand is rarely needed.
+
+### Web UI
+
+Sign in with your private Gmail (check the account switcher, top right).
+
+- Dashboard: <https://console.cloud.google.com/home/dashboard?project=takomo-fitter>
+- Cloud Run service `fitter` (URL, versions, traffic, logs):
+  <https://console.cloud.google.com/run/detail/europe-north1/fitter?project=takomo-fitter>
+- Logs: <https://console.cloud.google.com/logs/query?project=takomo-fitter>
+- Secret `anthropic-api-key`:
+  <https://console.cloud.google.com/security/secret-manager/secret/anthropic-api-key/versions?project=takomo-fitter>
+- Docker images: <https://console.cloud.google.com/artifacts/docker/takomo-fitter/europe-north1/app?project=takomo-fitter>
+- Live app: <https://fitter-n3x3h3wroq-lz.a.run.app> (health check: `/api/health`)
+
+### CLI
+
+Install the gcloud CLI (<https://cloud.google.com/sdk/docs/install>), then:
+
+```sh
+gcloud auth login your.name@gmail.com
+gcloud config set project takomo-fitter
+gcloud config set run/region europe-north1
+```
+
+Common commands:
+
+```sh
+gcloud run services describe fitter --format='value(status.url)'   # live URL
+gcloud run revisions list --service fitter                          # deployed versions
+gcloud run services logs read fitter --limit 50                      # recent logs
+gcloud beta run services logs tail fitter                            # live logs
+just smoke https://fitter-n3x3h3wroq-lz.a.run.app                    # health check from the repo
+```
+
+### Adding the Claude key (Juho)
+
+Never paste the key into GitHub, Discord or a commit.
+
+```sh
+printf %s "$ANTHROPIC_KEY" | gcloud secrets versions add anthropic-api-key --data-file=-
+gcloud run services update fitter --update-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest
+```
+
+The second command makes the running service pick up the new key; the next deploy also picks it up.
+
+### Rules
+
+- **Deploy only by merging to `main`.** CI health-checks every new version before it gets traffic. Avoid
+  `gcloud run deploy` by hand.
+- **Don't change billing, access (IAM) or delete the project**, even though Admin allows it.
+- **Costs:** a €10 budget alert on the project emails Jesse (billing-account budgets aren't visible to project Admins).
+  Cloud Run is capped at 1 instance, and the image registry keeps only the newest 5 images.
+- **Freeze at Sun 06:00:** set the GitHub variable `DEPLOY_ENABLED` to `false` (see "Freeze" below).
+
 ## One-time GCP setup (issue #11)
+
+> **Done on Sat 7 Nov.** Everything below has been run for `takomo-fitter`. It stays here as the record and for
+> rebuilding the setup.
 
 Run these from a shell logged in as the project owner (`gcloud auth login`). Replace every `<…>` placeholder.
 
