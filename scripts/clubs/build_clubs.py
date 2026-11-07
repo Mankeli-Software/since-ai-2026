@@ -46,7 +46,7 @@ CLUB_SPECS = [
         "sole_mm": 21.5,
         "bounce_deg": 3.0,
         "weight_g": 272.0,
-        "has_toe_screw": True,
+        "has_toe_screw": False,
         "hosel_stamps": "TAKOMO"
     },
     {
@@ -62,7 +62,7 @@ CLUB_SPECS = [
         "sole_mm": 18.5,
         "bounce_deg": 3.5,
         "weight_g": 270.0,
-        "has_toe_screw": True,
+        "has_toe_screw": False,
         "hosel_stamps": "TAKOMO"
     },
     {
@@ -78,7 +78,7 @@ CLUB_SPECS = [
         "sole_mm": 16.0,
         "bounce_deg": 4.0,
         "weight_g": 270.0,
-        "has_toe_screw": True,
+        "has_toe_screw": False,
         "hosel_stamps": "TAKOMO"
     },
     {
