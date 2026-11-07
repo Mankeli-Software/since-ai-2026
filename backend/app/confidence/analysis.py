@@ -5,10 +5,12 @@ once per change. Pure: no I/O, no LLM.
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass, field
 
 from app.confidence.assess import assess
 from app.confidence.close_calls import find_close_calls
+from app.fitting.flight import current_clubs_verdict
 from app.fitting.mapping import DEFAULT_OPTIONS, InputEstimates, MappingOptions
 from app.fitting.recommend import recommend_fit
 from app.schemas.common import Part
@@ -27,6 +29,9 @@ class Analysis:
     estimates: InputEstimates | None = None
     close_calls: list[CloseCall] = field(default_factory=list)
     seed: int = 0
+    # "Your clubs are fine": carry gain (yd) of the recommended head over the golfer's own
+    # 7-iron shots, set only when it is small and the recommended spec needs no lie change.
+    current_clubs_verdict: float | None = None
 
     @property
     def per_part(self) -> dict[Part, PartConfidence]:
@@ -56,14 +61,24 @@ def analyze(
         a.estimates, a.answers, a.best, fit.ranking, a.state.per_part
     )
     state = a.state.model_copy(update={"per_part": per_part})
-    return Analysis(state, a.answers, a.best, runner_up, a.estimates, calls, a.seed or 0)
+    verdict = None
+    with contextlib.suppress(Exception):  # the meter never fails on a flight problem
+        verdict = current_clubs_verdict(
+            intake,
+            evidence,
+            a.best,
+            session_id=session_id,
+            evidence_version=evidence_version,
+        )
+    return Analysis(state, a.answers, a.best, runner_up, a.estimates, calls, a.seed or 0, verdict)
 
 
 def refresh_state(
     state: FittingState, analysis: Analysis, next_q: NextQuestionResponse | None = None
 ) -> FittingState:
     """`state` with the meter's fields, the best and runner-up spec and the next-question hint
-    replaced from `analysis`. The version is left alone: the store bumps it on save."""
+    replaced from `analysis`, with the current-clubs verdict. The version is left alone: the
+    store bumps it on save."""
     hint = None
     if next_q is not None and next_q.kind != "none" and next_q.field:
         hint = NextQuestionHint(
@@ -85,5 +100,6 @@ def refresh_state(
             "next_question": hint,
             "best": analysis.best,
             "runner_up": analysis.runner_up,
+            "current_clubs_verdict": analysis.current_clubs_verdict,
         }
     )

@@ -54,6 +54,7 @@ def recompute_session_state(session: FitSession) -> FittingState:
         fit = recommend_fit(a.answers, top_n=2)
         fit.confidence = a.confidence
         fit.close_calls = a.close_calls
+        fit.current_clubs_verdict = a.current_clubs_verdict
         if fit.recs:
             fit.why = explain_fit(
                 a.answers,

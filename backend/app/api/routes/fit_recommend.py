@@ -30,6 +30,7 @@ def _compute_fit(
     fit = recommend_fit(a.answers, top_n=2)
     fit.confidence = a.confidence
     fit.close_calls = a.close_calls
+    fit.current_clubs_verdict = a.current_clubs_verdict
     fit.why = explain_fit(
         a.answers,
         fit.recs[0],
