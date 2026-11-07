@@ -130,7 +130,7 @@ export function StockCustomCards({ value, onChange, stockTitle, customTitle, sto
   }
 
   return (
-    <div role="radiogroup" aria-label="Stock or custom" onKeyDown={onKey} className={cn('flex gap-3.5', className)}>
+    <div role="radiogroup" aria-label="Stock or custom" onKeyDown={onKey} className={cn('flex gap-3.5 max-md:flex-col max-md:gap-2.5', className)}>
       {cards.map((c) => {
         const on = value === c.id
         const custom = c.id === 'custom'
@@ -156,7 +156,7 @@ export function StockCustomCards({ value, onChange, stockTitle, customTitle, sto
                 aria-hidden="true"
                 className={cn('size-6 flex-none rounded-full', on ? 'border-[7px] border-tiger-orange bg-midnight' : 'border-2 border-grey-5f')}
               />
-              <span className="font-display text-[26px] leading-none font-bold uppercase">{c.title}</span>
+              <span className="font-display text-[26px] leading-none font-bold uppercase max-md:text-[22px]">{c.title}</span>
               {isRecommended && <Eyebrow className="ml-auto rounded-4 bg-tiger-orange px-2 py-[3px] text-midnight">Recommended</Eyebrow>}
             </span>
             <Eyebrow className="text-grey-8f">Your strikes</Eyebrow>

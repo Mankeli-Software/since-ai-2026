@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FitterAvatar } from '@/components/studio'
 import { StudioHeader } from '../studio-shell/StudioHeader'
 import { BuyBar } from './BuyBar'
 import {
@@ -29,6 +30,9 @@ import { isFixtureFlag, seedFixtureHeader, useResultsData, type ResultsData } fr
  *   right       = the 380px "Your fitter" aside (full height, own composer).
  * The view lives in ?view=summary|why|compare|ar|stock and R2's part in ?part= (history.replaceState).
  * Views talk to the chrome through useResultsChrome / ResultsNext / ResultsAside (see chrome.tsx).
+ *
+ * Phones (< md, mockups M-R1 / M-R1-Fitter): one column; the aside becomes a bottom sheet behind an
+ * "Ask the fitter" button that floats above the buy bar, and the header gets a back chevron off the summary.
  *
  * `fixture` renders the fixture preview without a session (dev.html?ff=results); studio.html uses
  * `?ff=v3,results-fixture` for the same thing.
@@ -71,6 +75,7 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
   const [nextEl, setNextEl] = useState<HTMLElement | null>(null)
   const [asideEl, setAsideEl] = useState<HTMLElement | null>(null)
   const [asideOverrides, setAsideOverrides] = useState(0)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
 
   // Fixture preview: give the shared header a confidence to show (only when no session exists).
@@ -120,17 +125,39 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
     <ResultsChromeContext.Provider value={chrome}>
       <ResultsSlotsContext.Provider value={slots}>
         <AsideDefaults.Provider value={asideDefaults}>
-          <div className="bg-bay flex h-screen flex-col overflow-hidden">
-            <StudioHeader variant="results" />
+          <div className="bg-bay flex h-screen flex-col overflow-hidden max-md:h-dvh">
+            <StudioHeader variant="results" onBack={view !== 'summary' ? () => go('summary') : undefined} />
             <div className="flex min-h-0 flex-1">
               <div className="flex min-w-0 flex-1 flex-col">
                 {view !== 'summary' && <DetailNav view={view} head={data.best?.head ?? null} />}
-                <main ref={mainRef} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-10 py-[18px]">
+                <main
+                  ref={mainRef}
+                  className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-10 py-[18px] max-md:px-4 max-md:pt-3 max-md:pb-20"
+                >
                   <View view={view} />
                 </main>
+                {/* Phone: the fitter lives in a bottom sheet; this pill floats just above the buy bar. */}
+                <div className="relative h-0 md:hidden">
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded={sheetOpen}
+                    onClick={() => setSheetOpen(true)}
+                    className="absolute right-4 bottom-3 z-10 inline-flex h-[52px] cursor-pointer items-center gap-2.5 rounded-full border border-grey-2a bg-grey-1a pr-[18px] pl-2 text-[16px] font-semibold text-washed-white shadow-[0_12px_30px_rgba(0,0,0,.55)]"
+                  >
+                    <FitterAvatar size={36} />
+                    Ask the fitter
+                  </button>
+                </div>
                 <BuyBar spec={buySpec ?? data.best} nextRef={setNextEl} />
               </div>
-              <FitterAside chips={chips} slotRef={setAsideEl} overridden={asideOverrides > 0} />
+              <FitterAside
+                chips={chips}
+                slotRef={setAsideEl}
+                overridden={asideOverrides > 0}
+                sheetOpen={sheetOpen}
+                onCloseSheet={() => setSheetOpen(false)}
+              />
             </div>
           </div>
         </AsideDefaults.Provider>

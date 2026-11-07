@@ -1,7 +1,8 @@
-import { createContext, useContext, useRef, useState, type FormEvent } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type FormEvent } from 'react'
 import { FitterAvatar } from '@/components/studio'
 import { useVoice, voiceAvailable } from '@/features/voice/store'
 import { VoiceBar } from '@/features/voice/VoiceConversation'
+import { cn } from '@/lib/utils'
 import { useSession, type ChatMessage } from '@/store/session'
 import { Text } from '../chat/Text'
 import { GenUiBlock } from '../genui/GenUiBlock'
@@ -66,14 +67,14 @@ export function AsideBody({ message, fallback, chips, block, children }: Results
         </div>
       )}
       {chips && chips.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 max-md:flex-nowrap max-md:overflow-x-auto max-md:[scrollbar-width:none]">
           {chips.map((c) => (
             <button
               key={c}
               type="button"
               disabled={busy}
               onClick={() => void say(c)}
-              className="h-[38px] cursor-pointer rounded-full border border-grey-3d bg-transparent px-3.5 text-[14px] font-medium text-washed-white transition-ui hover:border-grey-8f disabled:cursor-default disabled:opacity-50"
+              className="h-[38px] cursor-pointer rounded-full border border-grey-3d bg-transparent px-3.5 text-[14px] font-medium text-washed-white transition-ui hover:border-grey-8f disabled:cursor-default disabled:opacity-50 max-md:h-11 max-md:flex-none max-md:whitespace-nowrap"
             >
               {c}
             </button>
@@ -175,27 +176,59 @@ export interface FitterAsideProps {
   slotRef: (el: HTMLElement | null) => void
   /** A ResultsAside is mounted: hide the default body. */
   overridden: boolean
+  /** Phones only: the aside is a bottom sheet, shown while this is true. */
+  sheetOpen?: boolean
+  onCloseSheet?: () => void
 }
 
-/** "Your fitter" aside (spec §2.2): avatar + title, message, optional embedded block, chips, composer. */
-export function FitterAside({ chips, slotRef, overridden }: FitterAsideProps) {
+/**
+ * "Your fitter" aside (spec §2.2): avatar + title, message, optional embedded block, chips, composer.
+ * Phones (M-R1-Fitter): the same element becomes a bottom sheet over a dimmed page, so ResultsAside portals keep
+ * working; it is hidden until "Ask the fitter" opens it.
+ */
+export function FitterAside({ chips, slotRef, overridden, sheetOpen = false, onCloseSheet }: FitterAsideProps) {
+  useEffect(() => {
+    if (!sheetOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCloseSheet?.()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [sheetOpen, onCloseSheet])
+
   return (
-    <aside
-      aria-label="Your fitter"
-      className="flex min-h-0 w-[380px] flex-none flex-col gap-4 border-l border-grey-1f bg-grey-0f p-6"
-    >
-      <div className="flex flex-none items-center gap-3">
-        <FitterAvatar size={36} />
-        <span className="text-[16px] font-semibold">Your fitter</span>
-      </div>
-      {/* Only the middle scrolls: header and composer stay put at 1280×800. */}
-      <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1">
-        {!overridden && <AsideBody chips={chips} />}
-        <div ref={slotRef} className="contents" />
-        <ConversationLog />
-      </div>
-      <VoiceBar />
-      <Composer />
-    </aside>
+    <>
+      {sheetOpen && <div aria-hidden="true" onClick={onCloseSheet} className="fixed inset-0 z-40 bg-black/60 md:hidden" />}
+      <aside
+        aria-label="Your fitter"
+        className={cn(
+          'flex min-h-0 w-[380px] flex-none flex-col gap-4 border-l border-grey-1f bg-grey-0f p-6',
+          'max-md:fixed max-md:inset-x-0 max-md:top-12 max-md:bottom-0 max-md:z-50 max-md:w-auto max-md:rounded-t-20 max-md:border-t max-md:border-l-0 max-md:px-4 max-md:pt-2 max-md:pb-[18px] max-md:shadow-[0_-20px_40px_rgba(0,0,0,.5)]',
+          !sheetOpen && 'max-md:hidden',
+        )}
+      >
+        <span aria-hidden="true" className="mx-auto h-1 w-10 flex-none rounded-full bg-grey-3d md:hidden" />
+        <div className="flex flex-none items-center gap-3">
+          <FitterAvatar size={36} />
+          <span className="text-[16px] font-semibold">Your fitter</span>
+          <button
+            type="button"
+            onClick={onCloseSheet}
+            aria-label="Close the fitter"
+            className="-mr-2 ml-auto inline-flex size-11 cursor-pointer items-center justify-center border-0 bg-transparent text-washed-white md:hidden"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+        {/* Only the middle scrolls: header and composer stay put at 1280×800. */}
+        <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1">
+          {!overridden && <AsideBody chips={chips} />}
+          <div ref={slotRef} className="contents" />
+          <ConversationLog />
+        </div>
+        <VoiceBar />
+        <Composer />
+      </aside>
+    </>
   )
 }

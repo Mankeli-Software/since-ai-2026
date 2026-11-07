@@ -1,4 +1,4 @@
-import { Button, EnterKbd, Eyebrow, LogoMark, Wordmark, useEnterKey } from '@/components/studio'
+import { Button, ClubImage, EnterKbd, Eyebrow, LogoMark, Wordmark, useEnterKey } from '@/components/studio'
 import { ClubModel } from '@/features/stage3d/ClubModel'
 import { cn } from '@/lib/utils'
 import { ownFittingHrefV3, PERSONAS, personaHrefV3 } from './personas'
@@ -10,63 +10,92 @@ const STEPS = [
   { n: '04', title: 'Decide', text: 'Every reason shown, close calls included.' },
 ]
 
-/** v3 C1 welcome (mockup V3-C1-Welcome), with the "Try as" simulated golfers under the CTA (L16). Enter starts. */
+/**
+ * v3 C1 welcome (mockup V3-C1-Welcome), with the "Try as" simulated golfers under the CTA (L16). Enter starts.
+ * Phones (< md, mockup M-01): 56px header, the club as a 250px banner on top, one column, full-width CTA and the
+ * four steps as a list.
+ */
 export function Welcome() {
   useEnterKey(() => window.location.assign(ownFittingHrefV3()), true)
   return (
     <div className="bg-bay relative flex min-h-screen w-full flex-col overflow-hidden font-sans antialiased">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-[60px] -right-20 size-[760px] bg-[radial-gradient(ellipse_at_50%_55%,rgba(255,110,1,.2),transparent_62%)]"
+        className="pointer-events-none absolute top-[60px] -right-20 size-[760px] bg-[radial-gradient(ellipse_at_50%_55%,rgba(255,110,1,.2),transparent_62%)] max-md:hidden"
       />
       <ClubModel
         slug="201t-mkii"
         alt="Takomo 201T MkII iron"
-        className="absolute top-[70px] right-[20px] h-[680px] drop-shadow-club-hero [@media(max-height:860px)]:top-[44px] [@media(max-height:860px)]:right-[30px] [@media(max-height:860px)]:h-[610px]"
+        className="absolute top-[70px] right-[20px] h-[680px] drop-shadow-club-hero [@media(max-height:860px)]:top-[44px] [@media(max-height:860px)]:right-[30px] [@media(max-height:860px)]:h-[610px] max-md:hidden"
       />
-      <header className="flex items-center gap-5 px-14 pt-7">
-        <a href="/" aria-label="Takomo Fitter Studio, start" className="flex flex-none items-center gap-3.5 no-underline">
-          <LogoMark />
-          <Wordmark />
+      <header className="flex items-center gap-5 px-14 pt-7 max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0">
+        <a
+          href="/"
+          aria-label="Takomo Fitter Studio, start"
+          className="flex flex-none items-center gap-3.5 no-underline max-md:-ml-2 max-md:size-11 max-md:justify-center"
+        >
+          <LogoMark className="max-md:h-6 max-md:w-[26px]" />
+          <Wordmark className="max-md:hidden" />
         </a>
         <Eyebrow className="flex-none text-washed-white">Fitter Studio</Eyebrow>
-        <div className="h-px flex-1 bg-grey-3d" />
-        <Eyebrow className="flex-none text-grey-a3">Honestly better golf</Eyebrow>
+        <div className="h-px flex-1 bg-grey-3d max-md:hidden" />
+        <Eyebrow className="flex-none text-grey-a3 max-md:hidden">Honestly better golf</Eyebrow>
       </header>
-      <main className="relative flex flex-1 flex-col gap-[30px] px-14 pt-16 pb-14 [@media(max-height:860px)]:gap-6 [@media(max-height:860px)]:pt-9 [@media(max-height:860px)]:pb-8">
+      {/* Phone hero: the club as a banner above the copy (M-01) instead of floating behind it. */}
+      <div
+        aria-hidden="true"
+        className="relative h-[250px] flex-none bg-[radial-gradient(ellipse_60%_60%_at_60%_60%,rgba(255,110,1,.25),transparent_70%)] md:hidden"
+      >
+        <ClubImage slug="201t-mkii" alt="" className="absolute top-0 right-5 h-[250px] w-auto drop-shadow-club-hero" />
+      </div>
+      <main className="relative flex flex-1 flex-col gap-[30px] px-14 pt-16 pb-14 max-md:gap-4 max-md:px-4 max-md:pt-0 max-md:pb-6 [@media(max-height:860px)]:gap-6 [@media(max-height:860px)]:pt-9 [@media(max-height:860px)]:pb-8 max-md:[@media(max-height:860px)]:gap-4 max-md:[@media(max-height:860px)]:pt-0 max-md:[@media(max-height:860px)]:pb-6">
         <Eyebrow className="text-orange-hover">Welcome to the studio</Eyebrow>
-        <h1 className="m-0 max-w-[820px] font-display text-[length:clamp(112px,16.7vh,150px)] leading-[.84] font-extrabold tracking-normal uppercase">
+        <h1 className="m-0 max-w-[820px] font-display text-[length:clamp(112px,16.7vh,150px)] leading-[.84] font-extrabold tracking-normal uppercase max-md:text-[56px] max-md:leading-[.88]">
           Let's find your fit.
         </h1>
-        <p className="m-0 max-w-[640px] text-[21px] leading-normal text-grey-c8">
+        <p className="m-0 max-w-[640px] text-[21px] leading-normal text-grey-c8 max-md:text-[17px] max-md:leading-[1.5]">
           This is a fitter's first ten minutes, online. You talk, we measure what we can, and you see the reason for every part
           of your club before you decide anything.
         </p>
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-[22px]">
-            <Button href={ownFittingHrefV3()} variant="primary" size="xl" aria-keyshortcuts="Enter" className="pr-5">
+          <div className="flex items-center gap-[22px] max-md:flex-col max-md:items-stretch max-md:gap-3">
+            <Button href={ownFittingHrefV3()} variant="primary" size="xl" aria-keyshortcuts="Enter" className="pr-5 max-md:min-h-[52px] max-md:w-full max-md:text-[18px]">
               I'm ready. Let's start
               <EnterKbd tone="primary" />
             </Button>
-            <span className="text-[16px] text-grey-a3">About 4 minutes. Save any time.</span>
+            <span className="text-[16px] text-grey-a3 max-md:text-center max-md:text-[14px]">About 4 minutes. Save any time.</span>
           </div>
           <nav aria-labelledby="try-as" className="flex flex-wrap items-center gap-2">
-            <span id="try-as" className="mr-1.5 text-[15px] text-grey-a3">
+            <span id="try-as" className="mr-1.5 text-[15px] text-grey-a3 max-md:w-full">
               Or try as a simulated golfer
             </span>
             {PERSONAS.map((p) => (
-              <Button key={p.id} href={personaHrefV3(p)} variant="ghostOnDark" size="sm" title={p.teaser} className="min-h-9 px-3.5">
+              <Button key={p.id} href={personaHrefV3(p)} variant="ghostOnDark" size="sm" title={p.teaser} className="min-h-9 px-3.5 max-md:min-h-11">
                 {p.name}, {p.age}
               </Button>
             ))}
           </nav>
         </div>
-        <ol className="mt-auto mb-0 grid list-none grid-cols-4 gap-7 p-0">
+        <ol className="mt-auto mb-0 grid list-none grid-cols-4 gap-7 p-0 max-md:mt-2 max-md:grid-cols-1 max-md:gap-0">
           {STEPS.map((s, i) => (
-            <li key={s.n} className={cn('flex flex-col gap-2 border-t-2 pt-5', i === 0 ? 'border-tiger-orange' : 'border-grey-3d')}>
-              <span className={cn('font-display text-[18px] font-bold tabular-nums', i === 0 ? 'text-orange-hover' : 'text-grey-8f')}>{s.n}</span>
-              <span className="font-display text-[28px] leading-tight font-bold uppercase">{s.title}</span>
-              <span className="text-[15px] leading-[1.45] text-grey-c8">{s.text}</span>
+            <li
+              key={s.n}
+              className={cn(
+                'flex flex-col gap-2 border-t-2 pt-5',
+                'max-md:grid max-md:grid-cols-[22px_minmax(0,1fr)] max-md:gap-x-3.5 max-md:gap-y-0.5 max-md:border-t max-md:border-grey-26 max-md:py-3',
+                i === 0 ? 'border-tiger-orange' : 'border-grey-3d',
+              )}
+            >
+              <span
+                className={cn(
+                  'font-display text-[18px] font-bold tabular-nums max-md:row-span-2 max-md:text-[16px] max-md:text-orange-hover',
+                  i === 0 ? 'text-orange-hover' : 'text-grey-8f',
+                )}
+              >
+                {s.n}
+              </span>
+              <span className="font-display text-[28px] leading-tight font-bold uppercase max-md:text-[20px]">{s.title}</span>
+              <span className="text-[15px] leading-[1.45] text-grey-c8 max-md:leading-[1.4]">{s.text}</span>
             </li>
           ))}
         </ol>

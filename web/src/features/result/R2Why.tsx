@@ -5,6 +5,7 @@ import { useSession, type UiItem } from '@/store/session'
 import type { CameraPreset, CameraPresetName } from '../stage3d'
 import { StageBoundary } from '../studio-shell/StageBoundary'
 import { ResultsAside, ResultsNext, WHY_PARTS, useResultsChrome, type WhyPart } from './chrome'
+import { PhoneNext } from './PhoneBits'
 import type { Spec } from './types'
 import { GRIP_BY_GLOVE } from './why/charts/GloveGripMap'
 import { findItem, type GloveAnswer, type PartContent, type PartCtx } from './why/parts/content'
@@ -19,6 +20,8 @@ import { shaftContent } from './why/parts/shaft'
  *   grid 200px | 1fr | 270px: the part list, the reason (eyebrow, H1, reason, chart, stats, callout, actions,
  *   Forge link) and the 3D focus panel. Each part's content comes from why/parts/<part>.tsx.
  * The part lives in ?part= (chrome). The buy bar's Next chains Head → Shaft → Length → Lie → Grip → Compare heads.
+ * Phones (M-R2-*): one column. The parts become a swipe row, the 3D panel a short banner above the reason, and
+ * the Next link (hidden in the phone buy bar) a card at the bottom.
  */
 
 // Lazy so three.js loads after the screen (web/CLAUDE.md, 3D rules).
@@ -79,19 +82,24 @@ const R2_PRESETS: Partial<Record<CameraPresetName, CameraPreset>> = {
 
 function PartList({ contents, active, onPick }: { contents: PartContent[]; active: WhyPart; onPick: (p: WhyPart) => void }) {
   return (
-    <nav aria-label="Parts of your club">
-      <ul className="m-0 flex list-none flex-col gap-1 p-0">
+    <nav
+      aria-label="Parts of your club"
+      className="max-md:order-1 max-md:-mx-4 max-md:overflow-x-auto max-md:px-4 max-md:[scrollbar-width:none] max-md:[mask-image:linear-gradient(90deg,#000_88%,transparent)]"
+    >
+      <ul className="m-0 flex list-none flex-col gap-1 p-0 max-md:flex-row max-md:gap-2">
         {contents.map((c) => {
           const on = c.part === active
           return (
-            <li key={c.part}>
+            <li key={c.part} className="max-md:flex-none">
               <button
                 type="button"
                 aria-current={on ? 'true' : undefined}
                 onClick={() => onPick(c.part)}
                 className={cn(
-                  'flex w-full cursor-pointer items-center gap-3 rounded-12 border-0 px-3 py-2.5 text-left transition-ui',
-                  on ? 'bg-washed-white text-midnight' : 'bg-transparent text-washed-white hover:bg-grey-12',
+                  'flex w-full cursor-pointer items-center gap-3 rounded-12 border-0 px-3 py-2.5 text-left transition-ui max-md:w-auto max-md:gap-2.5 max-md:py-2 max-md:pr-3.5 max-md:pl-2',
+                  on
+                    ? 'bg-washed-white text-midnight'
+                    : 'bg-transparent text-washed-white hover:bg-grey-12 max-md:bg-grey-12 max-md:shadow-[inset_0_0_0_1px_var(--color-grey-26)]',
                 )}
               >
                 <span className={cn('inline-flex size-9 flex-none items-center justify-center rounded-[9px]', on ? 'bg-midnight' : 'bg-grey-1a')}>
@@ -101,7 +109,7 @@ function PartList({ contents, active, onPick }: { contents: PartContent[]; activ
                   <Eyebrow size={11} className={on ? 'text-grey-55' : 'text-grey-8f'}>
                     {c.label}
                   </Eyebrow>
-                  <span className="truncate font-display text-[19px] font-bold uppercase">{c.listValue}</span>
+                  <span className="truncate font-display text-[19px] font-bold uppercase max-md:text-[17px] max-md:whitespace-nowrap">{c.listValue}</span>
                 </span>
               </button>
             </li>
@@ -158,7 +166,7 @@ function Callout({ c }: { c: NonNullable<PartContent['callout']> }) {
     )
   }
   return (
-    <div className="flex items-start gap-3 rounded-12 border border-grey-26 bg-grey-12 px-4 py-3">
+    <div className="flex items-start gap-3 rounded-12 border border-grey-26 bg-grey-12 px-4 py-3 max-md:flex-col max-md:gap-1">
       <span className="font-display text-[15px] font-bold tracking-[0.04em] whitespace-nowrap text-washed-white uppercase">{c.title}</span>
       <span className="text-[15px] leading-[1.45] text-grey-c8">{c.body}</span>
     </div>
@@ -178,16 +186,16 @@ function Reason({ c, example }: { c: PartContent; example: boolean }) {
   const { go } = useResultsChrome()
   const n = c.stats.length
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4 max-md:order-3">
       <div className="flex flex-col gap-2">
         <Eyebrow className="text-grey-8f">{c.label}</Eyebrow>
-        <h1 className="m-0 font-display text-[44px] leading-[.9] font-extrabold uppercase">{c.title}</h1>
+        <h1 className="m-0 font-display text-[44px] leading-[.9] font-extrabold uppercase max-md:text-[36px]">{c.title}</h1>
         <ProvenanceLine p={c.provenance} example={example} />
       </div>
-      <p className="m-0 text-[19px] leading-[1.45] text-grey-c8">{c.reason}</p>
-      {c.chart}
+      <p className="m-0 text-[19px] leading-[1.45] text-grey-c8 max-md:text-[17px]">{c.reason}</p>
+      {c.chart && <div className="min-w-0 max-md:overflow-x-auto">{c.chart}</div>}
       {n > 0 && (
-        <div className={cn('grid gap-2.5', n >= 4 ? 'grid-cols-4 max-[1400px]:grid-cols-2' : 'grid-cols-3')}>
+        <div className={cn('grid gap-2.5', n >= 4 ? 'grid-cols-4 max-[1400px]:grid-cols-2' : 'grid-cols-3 max-md:grid-cols-2')}>
           {c.stats.map((s) => (
             <StatTile key={s.label} tone="dark" label={s.label} value={s.accent ? <span className="text-orange-hover">{s.value}</span> : s.value} />
           ))}
@@ -195,9 +203,9 @@ function Reason({ c, example }: { c: PartContent; example: boolean }) {
       )}
       {c.callout && <Callout c={c.callout} />}
       {(c.actions.length > 0 || c.forge) && (
-        <div className="mt-auto flex flex-wrap items-center gap-3">
+        <div className="mt-auto flex flex-wrap items-center gap-3 max-md:flex-col max-md:items-stretch">
           {c.actions.map((a) => (
-            <Button key={a.label} variant={a.variant} onClick={() => go(a.view)}>
+            <Button key={a.label} variant={a.variant} onClick={() => go(a.view)} className="max-md:min-h-[52px]">
               {a.label}
             </Button>
           ))}
@@ -207,7 +215,7 @@ function Reason({ c, example }: { c: PartContent; example: boolean }) {
               target="_blank"
               rel="noopener noreferrer"
               title={c.forge.title}
-              className="inline-flex items-center gap-1.5 text-[15px] text-orange-hover transition-ui hover:text-washed-white"
+              className="inline-flex items-center gap-1.5 text-[15px] text-orange-hover transition-ui hover:text-washed-white max-md:min-h-11"
             >
               {c.forge.label}
               <span className="sr-only"> (opens in a new tab)</span>
@@ -229,7 +237,7 @@ function FocusPanel({ best, stage }: { best: Spec; stage: PartContent['stage'] }
   )
   const caption = `${stage.caption}${gl && stage.drag ? ' Drag to rotate.' : ''}`
   return (
-    <figure className="relative m-0 min-h-[440px] overflow-hidden rounded-18 border border-grey-26 bg-[radial-gradient(ellipse_70%_50%_at_50%_55%,rgba(255,110,1,.14),#121212_72%)]">
+    <figure className="relative m-0 min-h-[440px] overflow-hidden rounded-18 max-md:order-2 max-md:h-[170px] max-md:min-h-0 border border-grey-26 bg-[radial-gradient(ellipse_70%_50%_at_50%_55%,rgba(255,110,1,.14),#121212_72%)]">
       <div className="absolute inset-0">
         {gl ? (
           <StageBoundary fallback={still}>
@@ -293,10 +301,13 @@ export function R2Why() {
   const c = contents.find((x) => x.part === part) ?? contents[0]
   return (
     <>
-      <div className="grid flex-1 grid-cols-[200px_minmax(0,1fr)_270px] gap-7 max-[1400px]:grid-cols-[176px_minmax(0,1fr)_236px] max-[1400px]:gap-5">
+      <div className="grid flex-1 grid-cols-[200px_minmax(0,1fr)_270px] gap-7 max-[1400px]:grid-cols-[176px_minmax(0,1fr)_236px] max-[1400px]:gap-5 max-md:grid-cols-1 max-md:gap-4">
         <PartList contents={contents} active={c.part} onPick={setPart} />
         <Reason key={c.part} c={c} example={example} />
         <FocusPanel best={best} stage={c.stage} />
+        <div className="order-4 md:hidden">
+          <PhoneNext label={c.next.label} to={c.next.to} />
+        </div>
       </div>
       <ResultsNext label={c.next.label} to={c.next.to} />
       <ResultsAside message={c.aside.message} chips={c.aside.chips} />
