@@ -12,7 +12,7 @@ const STOP = /^(stop|stop talking|end|goodbye|bye|that's all|lopeta)\b/
 const REPEAT = /^(repeat|say (that|it) again|again|come again|pardon|sorry what|what was that|toista)\b/
 
 /**
- * The hands-free voice loop (#51, `?ff=voice`). Half duplex, so the mic never hears the fitter:
+ * The hands-free voice loop (#51, on by default, `?ff=novoice` turns it off). Half duplex, so the mic never hears the fitter:
  *
  *   listen -> the golfer pauses -> answer the open card (or send it as chat text) -> the reply streams
  *   and is spoken sentence by sentence (ElevenLabs) -> the next card's question is read out -> listen
