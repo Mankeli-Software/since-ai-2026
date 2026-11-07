@@ -55,3 +55,20 @@ TEMPO_GIVEN_REPORTED: dict[str, dict[str, float]] = {
     "quick": {"moderate": 0.429, "quick": 0.493, "smooth": 0.078},
     "smooth": {"moderate": 0.391, "quick": 0.032, "smooth": 0.577},
 }
+
+# Delivery priors for ball flight simulation (train median/sd, plan §3.6).
+LOFT_DELTA_DEG = -6.9
+ATTACK_ANGLE_DEG = -3.0
+CLUB_PATH_DEG = 0.0
+FACE_ANGLE_DEG = 0.0
+IMPACT_OFFSET_MM = 0.0
+IMPACT_HEIGHT_MM = 0.0
+
+# Shot-to-shot dispersion SDs for 200-sample Monte Carlo per head.
+SHOT_FACE_SD_DEG = 2.0
+SHOT_PATH_SD_DEG = 1.5
+SHOT_OFFSET_SD_MM = 10.0
+SHOT_HEIGHT_SD_MM = 8.0
+SHOT_SPEED_SD_MPH = 1.2
+SHOT_LOFT_SD_DEG = 1.2
+SHOT_ATTACK_SD_DEG = 0.8
