@@ -32,7 +32,7 @@ steps:
           plain: "Your test-club shots average +1° upright. In standard lie, the face sits slightly open at impact, which causes a mild push to the right."
           numbers:
             dynamic_lie_deg: 63.0
-            lie_deg: 1.0
+            lie_deg: $state.best.lie_deg
           sources:
             - source: trackman
         - part: purchase
@@ -51,7 +51,7 @@ steps:
       custom_returnable: false
 
   # Turn 3: Confirmation
-  - text: "That is an honest trade-off. Many players start with stock clubs and have a local clubmaker bend them 1° if needed, preserving return flexibility."
+  - text: "That is an honest trade-off. A stock set gives you a 30-day return policy to test your lie on the course."
   - tool_call:
       name: simulate_flight
       args: {heads: [$state.best.head]}
