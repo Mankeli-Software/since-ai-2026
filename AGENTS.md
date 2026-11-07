@@ -94,7 +94,7 @@ Check which lane your task belongs to and **only touch its owned paths**:
    - Confidence 30–50%: show result with `gate="provisional"` and `strength="low"` ("add data to firm this up").
    - Current-bag check (#16) and "don't buy yet" ending are **cut to slides**.
    - **Irons only**, plus a static *"Driver fitting is next"* teaser card in the result.
-   - Embed Takomo product videos via `fixtures/product_videos.json` (approved). Label all social-proof stats as `"example"`.
+   - Embed Takomo product videos via `fixtures/product_videos.json` (approved; see `docs/PRODUCT_VIDEOS.md` for full influencer WITB & video mappings). Label all social-proof stats as `"example"`.
 9. **L15 — Accounts & Deliverable:** Anthropic Claude API + GCP Cloud Run owned by Jesse. Accuracy CSV filename: `mankeli_takomo_test_predictions.csv` at repo root (5,000 rows, every row passing `check_buildable`).
 10. **L16 — "Try as" picker:** Landing + studio start screen offer Try as Mikko / Hannu / Lars / Anders + Start my own fitting. Persona sessions start from questionnaire answers only (no phone measurements), run on the live engine, offer one-tap sample imports, and always show a "Simulated golfer" badge. Never cut.
 11. **L17 — No test pipeline:** see §1.2.
