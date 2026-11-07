@@ -6,13 +6,21 @@ export interface ChatMessage {
   id: string
   role: 'assistant' | 'user'
   text: string
+  /** Arrival order across messages and ui items (the chat timeline sorts on it). */
+  seq: number
 }
 export interface UiItem {
   id: string
   block: UIBlock
   interactive: boolean
   answered: boolean
+  seq: number
+  /** What the golfer sent back; blocks render read-only with it. */
+  answer?: { value: unknown; displayText: string }
 }
+
+let seqCounter = 0
+const nextSeq = () => ++seqCounter
 
 interface SessionStore {
   sessionId: string | null
@@ -44,11 +52,11 @@ export const useSession = create<SessionStore>()((set, get) => {
           const last = s.messages.at(-1)
           return last?.id === ev.msg_id
             ? { messages: [...s.messages.slice(0, -1), { ...last, text: last.text + ev.delta }] }
-            : { messages: [...s.messages, { id: ev.msg_id, role: 'assistant', text: ev.delta }] }
+            : { messages: [...s.messages, { id: ev.msg_id, role: 'assistant', text: ev.delta, seq: nextSeq() }] }
         })
         break
       case 'ui':
-        set((s) => ({ ui: [...s.ui, { id: ev.id, block: ev.block, interactive: ev.interactive, answered: false }] }))
+        set((s) => ({ ui: [...s.ui, { id: ev.id, block: ev.block, interactive: ev.interactive, answered: false, seq: nextSeq() }] }))
         break
       case 'state':
         get().mergeState(ev.state)
@@ -119,13 +127,17 @@ export const useSession = create<SessionStore>()((set, get) => {
       }
     },
     say: (text) => {
-      set((s) => ({ messages: [...s.messages, { id: `u-${s.messages.length}`, role: 'user', text }] }))
+      // Typed text while an input block waits also answers it on the server (agent/engines/base.py answer_of).
+      set((s) => ({
+        ui: s.ui.map((u) => (u.interactive && !u.answered ? { ...u, answered: true, answer: { value: text, displayText: text } } : u)),
+        messages: [...s.messages, { id: `u-${s.messages.length}`, role: 'user', text, seq: nextSeq() }],
+      }))
       return turn({ message: { kind: 'text', text } })
     },
     respond(componentId, value, displayText) {
       set((s) => ({
-        ui: s.ui.map((u) => (u.id === componentId ? { ...u, answered: true } : u)),
-        messages: [...s.messages, { id: `u-${s.messages.length}`, role: 'user', text: displayText }],
+        ui: s.ui.map((u) => (u.id === componentId ? { ...u, answered: true, answer: { value, displayText } } : u)),
+        messages: [...s.messages, { id: `u-${s.messages.length}`, role: 'user', text: displayText, seq: nextSeq() }],
       }))
       return turn({ message: { kind: 'ui_response', component_id: componentId, value, display_text: displayText } })
     },
