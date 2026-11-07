@@ -27,7 +27,8 @@ def intake_of(session: FitSession) -> IntakeAnswers:
 
 
 def evidence_of(session: FitSession) -> FitEvidence:
-    """Evidence known to the session."""
+    """Evidence known to the session: phone values, flags, ball-line readings and the shots of
+    confirmed imports (`state.shots`, already free of S1/S3/S7 rejects; S8 mishits kept)."""
     phone = _values(session, PHONE_FIELDS)
     ball_line_pv = session.profile.get("ball_line_tilt_deg")
     ball_line_tilt_deg: list[float] = []
