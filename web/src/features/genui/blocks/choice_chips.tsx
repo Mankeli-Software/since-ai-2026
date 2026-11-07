@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { Button, OptTile, useNumberKeys } from '@/components/studio'
+import { Button, EnterKbd, OptTile, useEnterKey, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockProps } from '../types'
 import { Answered, cardLabelCls } from './_parts/Answered'
@@ -11,7 +11,7 @@ const COLS: Record<number, string> = { 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'g
 
 /**
  * Reference block: copy this shape for every new block.
- * Single pick resumes with the option id; `multi` resumes with an id list after "That's it".
+ * Single pick resumes with the option id (or number key); `multi` resumes with an id list after "That's it" (Enter).
  * "Not sure" resumes with null (same as slider's unknown); free text resumes with the typed string.
  */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'choice_chips'>) {
@@ -35,13 +35,16 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   }
   useNumberKeys(opts.length, pick, live)
 
-  if (!interactive || answer) return <Answered prompt={block.prompt} answer={answer} />
-
+  const canSendMulti = picked.length > 0 || block.field === 'joint_pain'
   const sendMulti = () => {
     const ids = picked.length === 0 && block.field === 'joint_pain' ? ['none'] : picked
     const labels = ids.map((id) => opts.find((o) => o.id === id)?.label ?? id).join(', ')
     respond(ids, labels || 'None')
   }
+  useEnterKey(sendMulti, live && !!block.multi && canSendMulti)
+
+  if (!interactive || answer) return <Answered prompt={block.prompt} answer={answer} />
+
   const sendText = () => {
     const t = text.trim()
     if (t) respond(t, t)
@@ -93,8 +96,9 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       <div className="flex items-center gap-3">
         <Button variant="outline" disabled={busy} onClick={() => respond(null, 'Not sure')}>Not sure</Button>
         {block.multi && (
-          <Button variant="dark" className="ml-auto" disabled={busy || (picked.length === 0 && block.field !== 'joint_pain')} onClick={sendMulti}>
+          <Button variant="dark" className="ml-auto pr-3" disabled={busy || !canSendMulti} aria-keyshortcuts="Enter" onClick={sendMulti}>
             {picked.length === 0 ? 'None' : "That's it"}
+            <EnterKbd />
           </Button>
         )}
       </div>

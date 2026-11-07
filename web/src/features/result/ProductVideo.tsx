@@ -48,9 +48,10 @@ export interface ProductVideoProps {
 
 export function ProductVideo({ head, className }: ProductVideoProps) {
   const data = productVideos[head] ?? productVideos['201t-mkii']
+  const videos = data?.videos.filter((v) => v.kind === 'official' || v.kind === 'influencer_witb') ?? []
 
   const [activeYoutubeId, setActiveYoutubeId] = useState<string>(
-    data?.youtube_id ?? data?.videos[0]?.youtube_id ?? ''
+    data?.youtube_id ?? videos[0]?.youtube_id ?? ''
   )
   const [isPlayingMp4, setIsPlayingMp4] = useState<boolean>(false)
   const [activeFilter, setActiveFilter] = useState<'all' | VideoKind>('all')
@@ -58,7 +59,8 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
   // When head changes, reset to that head's primary video and defaults
   useEffect(() => {
     if (data) {
-      setActiveYoutubeId(data.youtube_id || data.videos[0]?.youtube_id || '')
+      const vids = data.videos.filter((v) => v.kind === 'official' || v.kind === 'influencer_witb')
+      setActiveYoutubeId(data.youtube_id || vids[0]?.youtube_id || '')
       setIsPlayingMp4(false)
       setActiveFilter('all')
     }
@@ -72,12 +74,12 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
     )
   }
 
-  const activeVideo = data.videos.find((v) => v.youtube_id === activeYoutubeId) ?? data.videos[0]
+  const activeVideo = videos.find((v) => v.youtube_id === activeYoutubeId) ?? videos[0]
 
   const filteredVideos =
     activeFilter === 'all'
-      ? data.videos
-      : data.videos.filter((v) => v.kind === activeFilter)
+      ? videos
+      : videos.filter((v) => v.kind === activeFilter)
 
   const handleSelectInfluencer = (inf: Influencer) => {
     setIsPlayingMp4(false)
@@ -279,7 +281,7 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
       <div className="flex flex-col gap-2 pt-1">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Explore Videos ({data.videos.length})
+            Explore Videos ({videos.length})
           </span>
           <div className="flex items-center gap-1 rounded-md bg-secondary p-0.5 text-[11px]">
             <button
@@ -317,18 +319,6 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
               )}
             >
               In The Bag
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('independent_review')}
-              className={cn(
-                'rounded-sm px-2 py-1 font-medium transition-all cursor-pointer',
-                activeFilter === 'independent_review'
-                  ? 'bg-background text-foreground shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              Reviews
             </button>
           </div>
         </div>

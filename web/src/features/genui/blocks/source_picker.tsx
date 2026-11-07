@@ -1,4 +1,4 @@
-import { useNumberKeys } from '@/components/studio'
+import { Kbd, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockProps } from '../types'
 
@@ -91,7 +91,10 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
                   {t.name}
                 </span>
               )}
-              <span className="text-[14px] text-grey-55">{photo ? t.name : t.hint}</span>
+              <span className="flex w-full items-end justify-between gap-3">
+                <span className="text-[14px] text-grey-55">{photo ? t.name : t.hint}</span>
+                {i < 9 && <Kbd>{i + 1}</Kbd>}
+              </span>
             </button>
           )
         })}

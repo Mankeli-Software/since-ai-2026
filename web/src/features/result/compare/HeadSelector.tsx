@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { ClubImage, Eyebrow } from '@/components/studio'
 import { cn } from '@/lib/utils'
+import { ExamplePill } from '../chrome'
 import { STATUS_TOOLTIP } from '../fixtures/commerce'
 import { headName } from '../specLabel'
 import type { Spec } from '../types'
@@ -61,13 +62,14 @@ export function HeadSelector({ options, selected, onSelect, shaft, rowToggle }: 
                     </span>
                   )}
                 </span>
-                <span title={STATUS_TOOLTIP} className="inline-flex min-w-0 items-center gap-1.5 text-[13px] text-grey-a3">
+                <span title={STATUS_TOOLTIP} className="inline-flex min-w-0 flex-wrap items-center gap-1.5 text-[13px] text-grey-a3">
                   <span
                     aria-hidden="true"
                     className={cn('size-[7px] flex-none rounded-full', avail.tone === 'green' ? 'bg-status-green' : 'bg-status-amber')}
                   />
-                  <span className="truncate">{avail.text}</span>
-                  <span className="sr-only"> (example)</span>
+                  <span>{avail.text}</span>
+                  <ExamplePill />
+                  <span className="text-[11px] text-grey-8f">example; real stock comes from Takomo&apos;s inventory</span>
                 </span>
               </span>
             </button>

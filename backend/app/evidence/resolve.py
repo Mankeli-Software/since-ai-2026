@@ -78,6 +78,8 @@ def resolve(
         is_profile = f.code.startswith(GOLFER_PREFIX) and f.field in session.profile
         if req.action == "confirm_value" and is_profile and f.suggested_value is not None:
             old = session.profile[f.field]  # type: ignore[index]
+            if f.code == "G11" and "claimed_7i_carry_yd" not in session.profile:
+                session.profile["claimed_7i_carry_yd"] = old.model_copy()
             source = "trackman" if f.code == "G11" else old.source
             _set_profile(session, f.field, f.suggested_value, f.code, source)  # type: ignore[arg-type]
             res.changed_fields.append(f.field)  # type: ignore[arg-type]

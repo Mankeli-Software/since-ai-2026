@@ -1,5 +1,5 @@
 import { type ReactNode, useId, useState } from 'react'
-import { Button, useNumberKeys } from '@/components/studio'
+import { Button, EnterKbd, Kbd, useEnterKey, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockProps } from '../types'
 import { Answered, BigNumber, cardLabelCls } from './_parts/Answered'
@@ -42,7 +42,7 @@ const unitLabel = (u: Unit, field: Block['field']) => (u === 'cm' ? 'cm' : field
 const unsure = (block: Block, respond: Respond) => respond({ field: block.field, value: null, unsure: true }, 'Not sure')
 
 /**
- * C6a / C6b / C6: illustration panel + one measurement. Numeric fields resume with
+ * C6a / C6b / C6: illustration panel + one measurement; Enter = Next, number keys pick a glove size. Numeric fields resume with
  * `{field, value_cm, unit, raw}`; glove resumes with `{field: "glove", value: <size id>, raw: <label>}`;
  * "Not sure" resumes with `{field, value: null, unsure: true}`.
  */
@@ -71,11 +71,22 @@ function Panel({ children }: { children: ReactNode }) {
   return <div className="flex min-h-[300px] items-center justify-center rounded-14 bg-grey-ed p-3">{children}</div>
 }
 
+/** The dark "Next →" with its Enter hint; Enter runs it (the boxed field's own Enter handler is left alone). */
+function NextButton({ busy, onNext, canNext }: { busy: boolean; onNext: () => void; canNext: boolean }) {
+  useEnterKey(onNext, !busy && canNext)
+  return (
+    <Button variant="dark" className="min-h-[52px] pr-3 pl-6" disabled={busy || !canNext} aria-keyshortcuts="Enter" onClick={onNext}>
+      Next →
+      <EnterKbd />
+    </Button>
+  )
+}
+
 function Footer({ block, busy, respond, onNext, canNext }: PartProps & { onNext: () => void; canNext: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <Button variant="outline" disabled={busy} onClick={() => unsure(block, respond)}>Not sure</Button>
-      <Button variant="dark" className="min-h-[52px] px-6" disabled={busy || !canNext} onClick={onNext}>Next →</Button>
+      <NextButton busy={busy} onNext={onNext} canNext={canNext} />
     </div>
   )
 }
@@ -226,12 +237,13 @@ function Glove({ block, busy, respond }: PartProps) {
                 disabled={busy}
                 onClick={() => setPicked(o.id)}
                 className={cn(
-                  'flex h-[72px] cursor-pointer flex-col items-center justify-center gap-0.5 rounded-12 border bg-white text-midnight transition-ui disabled:cursor-not-allowed disabled:opacity-60',
+                  'relative flex h-[72px] cursor-pointer flex-col items-center justify-center gap-0.5 rounded-12 border bg-white text-midnight transition-ui disabled:cursor-not-allowed disabled:opacity-60',
                   on ? 'border-midnight shadow-[inset_0_0_0_1px_#0B0B0B]' : 'border-grey-d9 hover:border-grey-8f',
                 )}
               >
                 <span className="font-display text-[28px] leading-none font-extrabold">{o.label}</span>
                 {o.sub && <span className="text-[12px] text-grey-55">{o.sub}</span>}
+                {i < 9 && <Kbd className="absolute top-1 right-1 h-[18px] min-w-[18px] px-1 text-[11px]">{i + 1}</Kbd>}
               </button>
             )
           })}
@@ -247,7 +259,7 @@ function Glove({ block, busy, respond }: PartProps) {
           </span>
         </button>
         <div className="flex items-center justify-end gap-3 border-t border-grey-e4 pt-2">
-          <Button variant="dark" className="min-h-[52px] px-6" disabled={busy || !chosen} onClick={submit}>Next →</Button>
+          <NextButton busy={busy} onNext={() => void submit()} canNext={!!chosen} />
         </div>
       </div>
     </>
