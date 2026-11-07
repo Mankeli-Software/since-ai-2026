@@ -11,6 +11,9 @@ Reference for agents and teammates working on **The Fitter in Your Pocket** (Tak
 
 ```
 data/
+├── docs/
+│   ├── 2025-02_Takomo_Brand_Book_public_version_compressed.pdf   Takomo brand book (public, 31 slides)
+│   └── 2025-02_Takomo_Brand_Book_public_version_compressed.md    markdown copy of the brand book
 └── TakomoGolf_SinceAI2026_FINAL/
     ├── Since_AI_Challenge_Brief_Takomo_Golf.docx   Takomo's challenge brief
     ├── Takomo_swing_analysis_data_assessment.md    our own analysis (6 Nov), not from organisers
@@ -107,6 +110,7 @@ Baselines (dev split): **B1** today's tool on self-reports, 77.1 (13.7 % of spec
 | Phone measurement code | `LAB/camera/` |
 | Templates for logging real TrackMan sessions | `LAB/event_kit/` |
 | Judging criteria and deliverables | `Since_AI_Challenge_Brief_Takomo_Golf.docx` |
+| Brand colours, fonts, tone of voice | `data/docs/2025-02_Takomo_Brand_Book_public_version_compressed.md` (quick-reference table at the top) |
 
 ## 4. Caveats
 
