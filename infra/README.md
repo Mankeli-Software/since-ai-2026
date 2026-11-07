@@ -267,6 +267,51 @@ host (`https://<dev-store>.myshopify.com`) only in the Final phase (§6.5).
 5. **Cold start:** `gcloud run services update fitter --region europe-north1 --min-instances=0`, wait for the
    instance to go away, `time curl -fsS "$URL/api/health"`, then set `--min-instances=1` back.
 
+### Firestore session store (issue #20, optional)
+
+`STORE=memory` (the default) loses sessions on every redeploy. `STORE=firestore` keeps them in Firestore Native
+(`backend/app/persistence/firestore.py`), so saved fittings survive a redeploy. **Not switched on yet.** Do it in this
+order:
+
+1. **Dependency (lead's call, deps are frozen):** add `google-cloud-firestore` to `backend/pyproject.toml` and run
+   `uv lock` (never hand-edit `uv.lock`). Without it, a `STORE=firestore` boot fails with a clear error, so the smoke
+   check keeps the old revision on traffic.
+2. **Create the database and grant the runtime SA** (as the project owner):
+   ```sh
+   export PROJECT_ID=takomo-fitter
+   export RUNTIME_SA="fitter-runtime@${PROJECT_ID}.iam.gserviceaccount.com"
+   gcloud services enable firestore.googleapis.com --project "$PROJECT_ID"
+   gcloud firestore databases create --project "$PROJECT_ID" \
+     --database='(default)' --location=europe-north1 --type=firestore-native
+   gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+     --member="serviceAccount:$RUNTIME_SA" --role=roles/datastore.user --condition=None
+   ```
+3. **Set `STORE=firestore` on the service.** `ci.yml` passes `STORE=memory` in `env_vars` on every deploy, so a
+   `gcloud run services update --update-env-vars` is undone by the next merge. Change that one value in `ci.yml`
+   (INFRA lane), for example to `STORE=${{ vars.PROD_STORE || 'memory' }}`, then
+   `gh variable set PROD_STORE --repo "$GH_REPO" --body firestore`. On Cloud Run the client finds the project and
+   credentials itself; no key file. Optional env: `FIRESTORE_DATABASE` (default `(default)`), `FIRESTORE_COLLECTION`
+   (default `sessions`), `FIRESTORE_PROJECT`.
+4. **Check:** `just smoke <URL>`, `/api/health` shows `"store":"firestore"`, then create a session, run a turn,
+   redeploy, and `GET /api/sessions/<id>` still returns it.
+
+**Keep `--max-instances=1`.** The plan allows 3 with Firestore, but the cost guard (#18, `backend/app/agent/guard.py`)
+keeps its rate limits and daily model-call cap in memory, so more instances would split those counters. Raise it only
+after the guard counters move to Firestore too.
+
+Layout: `sessions/{id}` (session + turn lock lease), `sessions/{id}/messages/{seq}`, `sessions/{id}/imports/{id}`
+(parsed numbers only, never the raw upload). The turn lock is a lease taken in a transaction, so a crashed turn frees
+itself after its TTL. To try it locally against the emulator (no GCP, no credentials):
+
+```sh
+docker run -d --rm --name fs-emu -p 127.0.0.1:8085:8085 gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators \
+  gcloud emulators firestore start --host-port=0.0.0.0:8085
+STORE=firestore FIRESTORE_EMULATOR_HOST=127.0.0.1:8085 GOOGLE_CLOUD_PROJECT=demo-fitter just dev
+```
+
+(Until step 1 lands, run the backend with `uv run --frozen --project backend --with google-cloud-firestore uvicorn ...`;
+`--with` does not touch the lockfile.)
+
 ### Freeze (Sun 06:00, §10.6)
 
 ```sh

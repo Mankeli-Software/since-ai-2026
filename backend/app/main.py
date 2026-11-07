@@ -69,9 +69,13 @@ def create_app() -> FastAPI:
     )
     install_error_handlers(app)
 
-    if settings.store != "memory":
-        log.warning("store_unavailable", extra={"store": settings.store, "using": "memory"})
-    app.state.store = InMemorySessionStore()
+    if settings.store == "firestore":
+        # Lazy: STORE=memory (the default) never imports the Firestore client or needs GCP creds.
+        from app.persistence.firestore import FirestoreSessionStore
+
+        app.state.store = FirestoreSessionStore()
+    else:
+        app.state.store = InMemorySessionStore()
 
     for module in discover("app.api.routes"):
         router = getattr(module, "router", None)
