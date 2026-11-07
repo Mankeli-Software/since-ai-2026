@@ -61,6 +61,107 @@
   --radius-sm: 2px;
   --radius-md: 4px;
   --radius-lg: 6px;
+
+  /*
+   * ---- Flow v3 tokens (docs/ui-v3/design-spec.md §1.2/§1.3). Additive: the names above keep working. ----
+   * Greys are named by their hex so mockup values map 1:1: #161616 -> grey-16, #C8C8C8 -> grey-c8.
+   */
+  --color-midnight: #0b0b0b; /* stage bg, text on light, dark buttons */
+  --color-orange-hover: #ff8a33; /* .bp:hover, orange links/eyebrows on dark, "yours" in compare tiles */
+  --color-orange-light: #ffb078; /* spec "orange-300": code labels, light accents */
+  --color-orange-tint: #ffe6d3; /* callout bg on light, Measured pill */
+  --color-orange-text: #c24f00; /* orange text on white/light */
+  --color-orange-deep: #7a3300; /* text on orange-tint (Measured pill) */
+  --color-selected-dark: #1a140f; /* bg of an orange-bordered selected card on dark */
+
+  /* Dark greys (stage) */
+  --color-grey-0e: #0e0e0e; /* buy bar */
+  --color-grey-0f: #0f0f0f; /* results aside */
+  --color-grey-12: #121212; /* cards/panels on dark, dark stat tiles */
+  --color-grey-14: #141414; /* chat composer */
+  --color-grey-16: #161616; /* recap chip, aside composer */
+  --color-grey-1a: #1a1a1a; /* icon tiles, back pill */
+  --color-grey-1f: #1f1f1f; /* aside border, inactive band */
+  --color-grey-26: #262626; /* borders on dark, Say-it button */
+  --color-grey-2a: #2a2a2a; /* composer border, faint chart lines */
+  --color-grey-3d: #3d3d3d; /* header rule, off segments/step bars, outlines on dark */
+  --color-grey-5f: #5f5f5f; /* "You told me" label, inactive tab numbers */
+
+  /* Light greys (talk) */
+  --color-grey-ed: #ededed; /* kbd bg, segmented track */
+  --color-grey-e4: #e4e4e4; /* dividers/borders on light cards */
+  --color-grey-d9: #d9d9d9; /* unselected option tile border */
+  --color-grey-cf: #cfcfcf;
+  --color-grey-c8: #c8c8c8; /* outline button, input border, secondary text on dark */
+  --color-grey-a3: #a3a3a3; /* secondary text on dark */
+  --color-grey-8f: #8f8f8f; /* tertiary text, dashed guess borders, units */
+  --color-grey-6b: #6b6b6b; /* lightest allowed grey on white */
+  --color-grey-55: #555555; /* secondary text on white (7.4:1) */
+  --color-grey-44: #444444;
+  --color-grey-33: #333333;
+
+  /* Status */
+  --color-status-green: #3fb950;
+  --color-status-amber: #e3b341;
+  --color-status-green-fill: #dde8dd;
+
+  /* Radii: rounded-4 ... rounded-20 (px). Pills use rounded-full. */
+  --radius-3: 3px;
+  --radius-4: 4px;
+  --radius-5: 5px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-16: 16px;
+  --radius-18: 18px;
+  --radius-20: 20px;
+  --radius-40: 40px;
+
+  --tracking-eyebrow: 0.16em;
+
+  --shadow-card: 0 30px 60px rgba(0, 0, 0, 0.5); /* conversation card */
+  --shadow-phone: 0 40px 80px rgba(0, 0, 0, 0.6);
+  --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.12); /* segmented active thumb */
+  --drop-shadow-club: 0 30px 40px rgba(0, 0, 0, 0.7); /* hero club image */
+  --drop-shadow-club-hero: 0 40px 50px rgba(0, 0, 0, 0.75); /* welcome hero */
+
+  /* Motion: 240 ms ease-out for UI, 600 ms for camera moves. `ease-ui` + `duration-240`, or `transition-ui`. */
+  --ease-ui: cubic-bezier(0, 0, 0.58, 1);
+  --duration-ui: 240ms;
+  --duration-camera: 600ms;
+}
+
+/* Stage grid background (every v3 screen): midnight with a faint 56px grid. Sets text to washed-white. */
+@utility bg-bay {
+  background-color: #0b0b0b;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 56px 56px;
+  color: #f8f8f8;
+}
+
+/* Orange hero glow behind the club image (absolute, aria-hidden div). */
+@utility bg-hero-glow {
+  background-image: radial-gradient(ellipse at 50% 60%, rgba(255, 110, 1, 0.14), transparent 65%);
+}
+
+/* The one UI transition: 240 ms ease-out on colour, shadow, opacity and transform. */
+@utility transition-ui {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, flex-grow;
+  transition-duration: var(--duration-ui);
+  transition-timing-function: var(--ease-ui);
+}
+
+/* `.eb` eyebrow: Barlow Condensed 600 13px, .16em, uppercase. Override the size with text-[11px] etc. */
+@utility eyebrow {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
 }
 
 @layer base {
