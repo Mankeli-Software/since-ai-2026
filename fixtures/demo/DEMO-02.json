@@ -1,0 +1,65 @@
+{
+  "golfer_id": "DEMO-02",
+  "name": "Aino",
+  "age": 29,
+  "teaser": "Right-handed, shoots over 92, carries 7-iron 100 yd.",
+  "synthetic": true,
+  "profile": {
+    "age": {
+      "value": 29,
+      "source": "questionnaire"
+    },
+    "sex": {
+      "value": "female",
+      "source": "questionnaire"
+    },
+    "handedness": {
+      "value": "right",
+      "source": "questionnaire"
+    },
+    "rounds_per_year": {
+      "value": "Under 10",
+      "source": "questionnaire"
+    },
+    "score_bucket": {
+      "value": 5,
+      "source": "questionnaire"
+    },
+    "characteristics": {
+      "value": [
+        "forgiveness",
+        "distance"
+      ],
+      "source": "questionnaire"
+    },
+    "flight": {
+      "value": "high",
+      "source": "questionnaire"
+    },
+    "tempo": {
+      "value": "quick",
+      "source": "questionnaire"
+    },
+    "height_cm": {
+      "value": 166.0,
+      "source": "questionnaire"
+    },
+    "wrist_to_floor_cm": {
+      "value": 84.0,
+      "source": "questionnaire"
+    },
+    "glove": {
+      "value": "XS",
+      "source": "questionnaire"
+    },
+    "glove_was_guessed": {
+      "value": false,
+      "source": "questionnaire"
+    },
+    "reported_7i_carry_yd": {
+      "value": 100.0,
+      "source": "questionnaire"
+    }
+  },
+  "sample_imports": []
+}

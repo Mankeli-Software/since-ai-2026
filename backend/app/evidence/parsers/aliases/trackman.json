@@ -1,0 +1,26 @@
+{
+  "vendor": "trackman",
+  "club": ["Club", "Club Type", "Club Name"],
+  "columns": {
+    "club_speed_mph": ["Club Speed", "ClubSpeed"],
+    "attack_angle_deg": ["Attack Angle", "AttackAngle"],
+    "dynamic_loft_deg": ["Dynamic Loft", "DynamicLoft"],
+    "club_path_deg": ["Club Path", "ClubPath"],
+    "face_angle_deg": ["Face Angle", "FaceAngle"],
+    "face_to_path_deg": ["Face To Path", "Face to Path", "FaceToPath"],
+    "ball_speed_mph": ["Ball Speed", "BallSpeed"],
+    "smash_factor": ["Smash Factor", "SmashFactor", "Smash"],
+    "launch_angle_deg": ["Launch Angle", "LaunchAngle", "Vertical Launch"],
+    "launch_direction_deg": ["Launch Direction", "LaunchDirection", "Horizontal Launch"],
+    "spin_rate_rpm": ["Spin Rate", "SpinRate", "Total Spin"],
+    "spin_axis_deg": ["Spin Axis", "SpinAxis"],
+    "carry_yd": ["Carry", "Carry Distance", "Carry Flat"],
+    "total_yd": ["Total", "Total Distance", "Total Flat"],
+    "side_yd": ["Side", "Carry Side", "Side Carry"],
+    "apex_yd": ["Height", "Max Height", "MaxHeight", "Apex"],
+    "landing_angle_deg": ["Landing Angle", "Land. Angle", "LandingAngle"],
+    "impact_offset_mm": ["Impact Offset", "ImpactOffset"],
+    "impact_height_mm": ["Impact Height", "ImpactHeight"],
+    "impact_toe_up_deg": ["Dynamic Lie", "DynamicLie"]
+  }
+}

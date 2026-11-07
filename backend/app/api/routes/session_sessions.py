@@ -2,8 +2,10 @@ import secrets
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, status
+from starlette.concurrency import run_in_threadpool
 
 from app.agent.guard import check_session_create, pick_engine
+from app.api.demo import seed_demo_session
 from app.api.deps import SessionDep, SettingsDep, StoreDep
 from app.api.guard_deps import DemoKeyHeader
 from app.schemas.session import (
@@ -45,6 +47,8 @@ async def create_session(
         state=FittingState(),
         notice=notice,
     )
+    if body.demo_golfer_id:
+        await run_in_threadpool(seed_demo_session, session, body.demo_golfer_id)
     await store.create(session)
     return CreateSessionResponse(
         session_id=session.id, resume_token=session.resume_token, state=session.state, notice=notice

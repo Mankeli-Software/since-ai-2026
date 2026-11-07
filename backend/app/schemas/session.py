@@ -150,3 +150,32 @@ class ResumeSessionResponse(BaseModel):
     demo_golfer_id: str | None = None
     engine: Engine
     state: FittingState
+
+
+class SampleImport(BaseModel):
+    sample_id: str
+    kind: Literal["trackman_csv", "ball_line"]
+    club: str | None = None
+    label: str
+
+
+class DemoGolferSummary(BaseModel):
+    golfer_id: str
+    name: str
+    age: int
+    teaser: str
+    synthetic: bool = True
+    sample_imports: list[SampleImport] = Field(default_factory=list)
+
+
+class DemoGolferDetail(BaseModel):
+    session_id: str
+    resume_token: str
+    golfer_id: str
+    name: str
+    age: int
+    teaser: str
+    synthetic: bool = True
+    profile: dict[str, ProvenancedValue] = Field(default_factory=dict)
+    sample_imports: list[SampleImport] = Field(default_factory=list)
+    state: FittingState

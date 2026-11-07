@@ -44,8 +44,8 @@ function Scene({ stageRef, handedness = 'right', shaftMaterial = 'steel', length
       el.textContent = text
       el.style.display = text ? 'block' : 'none'
     }
-    const dl = g?.length === undefined ? 0 : g.length - cur.current.length
-    const dg = g?.lie === undefined ? 0 : g.lie - cur.current.lie
+    const dl = g?.length === undefined ? 0 : cur.current.length - g.length
+    const dg = g?.lie === undefined ? 0 : cur.current.lie - g.lie
     set(lenEl.current, Math.abs(dl) < 0.05 ? '' : `${dl > 0 ? '+' : ''}${dl.toFixed(1)} in`)
     set(lieEl.current, Math.abs(dg) < 0.05 ? '' : `${dg > 0 ? '+' : ''}${dg.toFixed(dg % 1 ? 1 : 0)}° ${dg > 0 ? 'upright' : 'flat'}`)
   }, [])

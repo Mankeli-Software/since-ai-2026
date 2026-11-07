@@ -16,6 +16,7 @@ from app.api.deps import SessionDep, StoreDep
 from app.confidence.analysis import analyze, refresh_state
 from app.confidence.next_question import next_question
 from app.core.errors import InvalidInputError
+from app.evidence import session_flags
 from app.fitting.session_inputs import PROFILE_FIELDS, answered, evidence_of, intake_of
 from app.schemas.common import ProvenancedValue
 from app.schemas.confidence import NextQuestionResponse, ProfilePatch, ProfilePatchResponse
@@ -75,7 +76,11 @@ def _apply(session: FitSession, body: ProfilePatch) -> FittingState:
     except ValidationError as e:
         raise InvalidInputError(str(e.errors()[0]["msg"])) from e
 
-    session.state = session.state.model_copy(update={"precision_offered": offered})
+    # v1 golfer rules (G2 -> G1 -> G3, G11) on the new values, before the meter reads the flags.
+    session.flags, pending = session_flags.refresh(session)
+    session.state = session.state.model_copy(
+        update={"precision_offered": offered, "pending_flags": pending}
+    )
     a = analyze(intake, evidence, session_id=session.id, evidence_version=session.evidence_version)
     nq = next_question(intake, evidence, a, answered=answered(session), offered=offered)
     return refresh_state(session.state, a, nq)
@@ -88,5 +93,4 @@ async def patch_profile(
     expected = session.state.version
     session.state = await run_in_threadpool(_apply, session, body)
     state = await store.save(session, expected_version=expected)
-    # Plausibility flags on profile values come with EVIDENCE's rules (#31).
-    return ProfilePatchResponse(state=state, flags=[])
+    return ProfilePatchResponse(state=state, flags=list(state.pending_flags))

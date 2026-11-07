@@ -1,0 +1,85 @@
+{
+  "golfer_id": "DEMO-16",
+  "name": "Ben",
+  "age": 31,
+  "teaser": "Right-handed, shoots 78-84, carries 7-iron 185 yd.",
+  "synthetic": true,
+  "profile": {
+    "age": {
+      "value": 31,
+      "source": "questionnaire"
+    },
+    "sex": {
+      "value": "male",
+      "source": "questionnaire"
+    },
+    "handedness": {
+      "value": "right",
+      "source": "questionnaire"
+    },
+    "rounds_per_year": {
+      "value": "Over 50",
+      "source": "questionnaire"
+    },
+    "score_bucket": {
+      "value": 3,
+      "source": "questionnaire"
+    },
+    "characteristics": {
+      "value": [
+        "distance",
+        "forgiveness",
+        "workability"
+      ],
+      "source": "questionnaire"
+    },
+    "flight": {
+      "value": "low",
+      "source": "questionnaire"
+    },
+    "tempo": {
+      "value": "moderate",
+      "source": "questionnaire"
+    },
+    "height_cm": {
+      "value": 188.0,
+      "source": "questionnaire"
+    },
+    "wrist_to_floor_cm": {
+      "value": 94.5,
+      "source": "questionnaire"
+    },
+    "glove": {
+      "value": "L",
+      "source": "questionnaire"
+    },
+    "glove_was_guessed": {
+      "value": false,
+      "source": "questionnaire"
+    },
+    "reported_7i_carry_yd": {
+      "value": 185.0,
+      "source": "questionnaire"
+    }
+  },
+  "sample_imports": [
+    {
+      "sample_id": "own_7i",
+      "kind": "trackman_csv",
+      "club": "own_7i",
+      "label": "Own 7-iron TrackMan CSV"
+    },
+    {
+      "sample_id": "takomo_201",
+      "kind": "trackman_csv",
+      "club": "takomo_201-mkii_kbs-tour-regular_std",
+      "label": "Takomo 201 MKII test-club CSV"
+    },
+    {
+      "sample_id": "takomo_101",
+      "kind": "trackman_csv",
+      "club": "takomo_101-mkii_kbs-tour-lite-regular_std",
+      "label": "Takomo 101 MKII test-club CSV"
+    }
+  ]
+}
