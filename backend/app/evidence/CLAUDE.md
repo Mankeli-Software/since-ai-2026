@@ -66,7 +66,7 @@ def s7_club_speed_spike(shots: list[Shot]) -> list[Flag]:
 - Round stats: `parsers/round_stats.py` (`parse_round_stats` → `score_bucket_from_score` via `app.pack`) and G13 in
   its own file, `plausibility/round_history.py`.
 
-## Wave 2 rules (#33), gated by `EVIDENCE_WAVE2=1` (`evidence/settings.py`, default off)
+## Wave 2 rules (#33), gated by `EVIDENCE_WAVE2` (`evidence/settings.py`, default on)
 
 - `shot_checks.py` is the only place that reads the W2 setting for shots: `run_shot_rules(shots, monitor=,
   import_id=)` (trackman-csv and confirm routes), `run_screenshot_rules(session)` (screenshot route) and
@@ -81,7 +81,8 @@ def s7_club_speed_spike(shots: list[Shot]) -> list[Flag]:
 - `plausibility/golfer_w2.py`: G4-G10 (`wave2_golfer_flags`, in `session_flags.refresh`) and G12 / G14
   (`wave2_fit_flags`, in `session_flags.refresh_fit_flags`, called after the rescore by the confirm, recheck,
   and profile patch routes with FIT's own swing buckets).
-- Off by default so the v1 demo flow is unchanged.
+- On by default: they raise no flags on the persona fixtures or profiles, so the demo flow is unchanged.
+  `EVIDENCE_WAVE2=0` turns them off.
 
 ## Severities (σ effect in `fuse.py`)
 

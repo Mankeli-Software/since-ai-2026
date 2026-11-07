@@ -6,10 +6,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class EvidenceSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="EVIDENCE_", extra="ignore")
 
-    # EVIDENCE_WAVE2=1 adds the Wave 2 plausibility rules (plan §5.2, #33) to the import routes
-    # and the golfer recheck. Off by default: the v1 demo flow (Mikko, Hannu, Lars, Anders) is
-    # exactly the v1 rules until the team turns it on.
-    wave2: bool = False
+    # The Wave 2 plausibility rules (plan §5.2, #33) on the import routes and the golfer recheck.
+    # On by default: they raise no flags on the persona fixtures or profiles, so the v1 demo flow
+    # (Mikko, Hannu, Lars, Anders) is unchanged. EVIDENCE_WAVE2=0 turns them off.
+    wave2: bool = True
 
 
 settings = EvidenceSettings()
