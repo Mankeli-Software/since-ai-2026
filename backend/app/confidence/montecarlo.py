@@ -178,8 +178,9 @@ def simulate(
     if "flight" in est.at_prior:
         flights = _draw_choice(rng, priors.FLIGHT, n)
     else:
-        measured = est.flight.prov.source in ("trackman", "radar")
-        wrong = priors.FLIGHT_WRONG["landing_angle" if measured else "questionnaire"]
+        wrong = est.flight.wrong
+        if wrong is None:  # older callers: fall back to the questionnaire rate
+            wrong = priors.FLIGHT_WRONG["questionnaire"]
         flights = _draw_flight(rng, str(est.flight.value), wrong, n)
     if "tempo" in est.at_prior:
         tempos = _draw_choice(rng, priors.TEMPO, n)

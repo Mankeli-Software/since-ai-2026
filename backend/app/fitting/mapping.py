@@ -71,7 +71,13 @@ class MappingOptions:
     tempo_quick_below_s: float = 1.05
     tempo_smooth_above_s: float = 1.35
     # --- flight (pack: high if landing angle < 35 deg, low if > 45 deg)
-    flight_from_own_7i: bool = True  # exp: no dev golfer has own-7i TrackMan without a 201 session
+    # exp, kept: own-7i TrackMan only (test clubs removed), dev 88.21 -> 88.94. The own club's
+    # loft is usually unknown (a strong loft lands flatter: Mikko's trap), so a reading within
+    # `flight_own_7i_margin_deg` of a line does not override the golfer's answer. Kept by team
+    # decision although dev did not improve: train flight 82.9% vs 82.5% right (n=4,962), dev
+    # own-7i-only 88.91 vs 88.94 (n=750, ~3 golfers), and it fixes the Mikko demo spine.
+    flight_from_own_7i: bool = True
+    flight_own_7i_margin_deg: float = 0.5
     flight_high_below_deg: float = 35.0
     flight_low_above_deg: float = 45.0
     # --- lie
@@ -159,10 +165,12 @@ class Estimate:
 
 @dataclass(frozen=True)
 class Choice:
-    """A discrete input (glove, flight, tempo, score bucket) and where it came from."""
+    """A discrete input (glove, flight, tempo, score bucket) and where it came from. `wrong` is
+    the measured chance the source gets it wrong (set where it is known, e.g. flight)."""
 
     value: str | int
     prov: Provenance
+    wrong: float | None = None
 
 
 @dataclass(frozen=True)
@@ -308,28 +316,54 @@ def _tempo(intake: IntakeAnswers, ev: FitEvidence, o: MappingOptions) -> Choice 
 
 
 def _flight(intake: IntakeAnswers, ev: FitEvidence, o: MappingOptions) -> Choice | None:
-    for clubs, label, enabled in (
-        ([s for s in ev.shots if s.club.startswith("takomo_201")], "201 test club", True),
-        ([s for s in ev.shots if s.club == "own_7i"], "own 7-iron", o.flight_from_own_7i),
+    """Flight from the mean landing angle (201 test club, then own 7-iron), else the answer.
+    `wrong` is the measured error of the source, higher within 1 deg of a line."""
+    lines = (o.flight_high_below_deg, o.flight_low_above_deg)
+    answer = intake.flight if _flag_factor(ev, "flight") is not None else None
+    for clubs, label, kind, enabled in (
+        (
+            [s for s in ev.shots if s.club.startswith("takomo_201")],
+            "201 test club",
+            "test_club",
+            True,
+        ),
+        ([s for s in ev.shots if s.club == "own_7i"], "own 7-iron", "own_7i", o.flight_from_own_7i),
     ):
         angles = _values(clubs, "landing_angle_deg")
-        if enabled and angles:
-            mean = statistics.fmean(angles)
-            if mean < o.flight_high_below_deg:
-                flight = "high"
-            elif mean > o.flight_low_above_deg:
-                flight = "low"
-            else:
-                flight = "mid"
-            prov = Provenance(
-                source=_session_source(clubs[0].session),
-                sd=_se(angles),
-                n=len(angles),
-                note=f"{label} landing angle {mean:.1f} deg",
+        if not (enabled and angles):
+            continue
+        mean = statistics.fmean(angles)
+        to_line = min(abs(mean - x) for x in lines)
+        if kind == "own_7i" and answer is not None and to_line < o.flight_own_7i_margin_deg:
+            note = (
+                f"own 7-iron landing angle {mean:.1f} deg is too close to a flight line to "
+                "override your answer (your club's loft is unknown)"
             )
-            return Choice(flight, prov)
-    if intake.flight is not None and _flag_factor(ev, "flight") is not None:
-        return Choice(intake.flight, Provenance(source="questionnaire"))
+            return Choice(
+                answer,
+                Provenance(source="questionnaire", note=note),
+                priors.FLIGHT_WRONG["questionnaire"],
+            )
+        if mean < o.flight_high_below_deg:
+            flight = "high"
+        elif mean > o.flight_low_above_deg:
+            flight = "low"
+        else:
+            flight = "mid"
+        near = to_line < priors.FLIGHT_NEAR_LINE_DEG
+        prov = Provenance(
+            source=_session_source(clubs[0].session),
+            sd=_se(angles),
+            n=len(angles),
+            note=f"{label} landing angle {mean:.1f} deg",
+        )
+        return Choice(flight, prov, priors.FLIGHT_WRONG[f"{kind}_near_line" if near else kind])
+    if answer is not None:
+        return Choice(
+            answer,
+            Provenance(source="questionnaire"),
+            priors.FLIGHT_WRONG["questionnaire"],
+        )
     return None
 
 

@@ -18,7 +18,17 @@ FLIGHT = {"mid": 0.640, "high": 0.229, "low": 0.131}
 TEMPO = {"moderate": 0.567, "smooth": 0.250, "quick": 0.182}
 
 # How often a source gets a discrete field wrong.
-FLIGHT_WRONG = {"questionnaire": 0.412, "landing_angle": 0.095}
+# Flight from a mean landing angle is much less reliable within 1 deg of the 35 / 45 deg lines
+# (train: 201 test club 33% wrong near a line vs 5% further away; own 7-iron 41% vs 12%, because
+# the own club's loft is usually unknown; questionnaire 41% overall).
+FLIGHT_WRONG = {
+    "questionnaire": 0.412,
+    "test_club": 0.050,
+    "test_club_near_line": 0.334,
+    "own_7i": 0.119,
+    "own_7i_near_line": 0.410,
+}
+FLIGHT_NEAR_LINE_DEG = 1.0
 # Questionnaire glove vs true glove on train: exact, one size off, two or more off.
 GLOVE_OFF_BY = (0.631, 0.294, 0.075)
 
