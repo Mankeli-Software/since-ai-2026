@@ -34,7 +34,7 @@ export function HeadSelector({ options, selected, onSelect, shaft, rowToggle }: 
         </Eyebrow>
         {rowToggle}
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-3 max-md:flex-col max-md:gap-2.5">
         {options.map((o) => {
           const on = o.head === selected
           const first = o.rank === 'best'
@@ -50,7 +50,7 @@ export function HeadSelector({ options, selected, onSelect, shaft, rowToggle }: 
                 on ? 'border-2 border-tiger-orange bg-selected-dark' : 'border border-grey-3d bg-grey-12 hover:border-grey-8f',
               )}
             >
-              <ClubImage slug={o.head} className="h-[70px] w-auto flex-none" />
+              <ClubImage slug={o.head} className="h-[70px] w-auto flex-none max-md:h-14" />
               <span className="flex min-w-0 flex-col gap-[3px]">
                 <Eyebrow className={first ? 'text-orange-hover' : 'text-grey-8f'}>{RANK_LABEL[o.rank]}</Eyebrow>
                 <span className="font-display text-[22px] font-bold uppercase">

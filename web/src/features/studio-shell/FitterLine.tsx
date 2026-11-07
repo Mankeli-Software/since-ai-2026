@@ -5,23 +5,24 @@ import { Text } from '../chat/Text'
 /**
  * The fitter's latest line (spec §2.1): avatar 44 + Barlow 500 24px/1.45, `**bold**` for key facts.
  * Each further message of the same turn is its own paragraph, indented to the text column.
+ * Phones (M-02): avatar 32 and 18px text.
  */
 export function FitterLine({ messages }: { messages: ChatMessage[] }) {
   const lines = messages.filter((m) => m.text.trim())
   if (lines.length === 0) return null
   const [first, ...rest] = lines
-  const p = 'text-[24px] font-medium leading-[1.45] text-washed-white [&_strong]:font-bold'
+  const p = 'text-[24px] font-medium leading-[1.45] text-washed-white [&_strong]:font-bold max-md:text-[18px] max-md:font-normal'
   return (
     <div className="flex flex-col gap-2" aria-live="polite">
-      <div className="flex items-start gap-4">
-        <FitterAvatar size={44} />
-        <p className={`mt-1.5 mb-0 ${p}`}>
+      <div className="flex items-start gap-4 max-md:gap-2.5">
+        <FitterAvatar size={44} className="max-md:size-8!" />
+        <p className={`mt-1.5 mb-0 max-md:mt-0.5 ${p}`}>
           <span className="sr-only">Fitter: </span>
           <Text text={first.text.trim()} />
         </p>
       </div>
       {rest.map((m) => (
-        <p key={m.id} className={`mt-0 mb-0 ml-[60px] ${p}`}>
+        <p key={m.id} className={`mt-0 mb-0 ml-[60px] max-md:ml-[42px] ${p}`}>
           <Text text={m.text.trim()} />
         </p>
       ))}
@@ -32,7 +33,7 @@ export function FitterLine({ messages }: { messages: ChatMessage[] }) {
 /** Subtle "Thinking…" while a turn streams and no card is up yet. */
 export function Thinking() {
   return (
-    <p role="status" className="m-0 ml-[60px] flex items-center gap-1.5 text-grey-a3">
+    <p role="status" className="m-0 ml-[60px] flex max-md:ml-[42px] items-center gap-1.5 text-grey-a3">
       <span className="sr-only">Running the numbers…</span>
       {[0, 160, 320].map((d) => (
         <span

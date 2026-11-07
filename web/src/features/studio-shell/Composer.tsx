@@ -32,6 +32,7 @@ export interface ComposerProps {
 /**
  * Free-text composer (spec §2.1). "Say it" works in browsers that can listen (`?ff=novoice` turns it off):
  * it starts the hands-free voice conversation (features/voice), and tapping it again ends it.
+ * Phones (M-02): a 48px pill with an icon-only round mic.
  */
 export function Composer({
   onSend,
@@ -63,8 +64,8 @@ export function Composer({
       className={cn(
         'flex items-center rounded-full',
         light
-          ? 'h-16 gap-2.5 border border-grey-c8 bg-white pr-2.5 pl-[26px] focus-within:border-midnight'
-          : 'h-[60px] gap-2.5 border border-grey-2a bg-grey-14 pr-2 pl-[22px] focus-within:border-grey-5f',
+          ? 'h-16 gap-2.5 border border-grey-c8 bg-white pr-2.5 pl-[26px] focus-within:border-midnight max-md:h-14 max-md:gap-1.5 max-md:pr-1.5 max-md:pl-4'
+          : 'h-[60px] gap-2.5 border border-grey-2a bg-grey-14 pr-2 pl-[22px] focus-within:border-grey-5f max-md:h-12 max-md:gap-1 max-md:pr-0.5 max-md:pl-4',
       )}
     >
       <label htmlFor={inputId} className="sr-only">
@@ -79,25 +80,28 @@ export function Composer({
         onChange={(e) => setDraft(e.target.value)}
         className={cn(
           'h-full min-w-0 flex-1 border-0 bg-transparent font-sans font-normal outline-none focus-visible:outline-none',
-          light ? 'text-[20px] text-midnight placeholder:text-grey-6b' : 'text-[17px] text-washed-white placeholder:text-grey-8f',
+          light
+            ? 'text-[20px] text-midnight placeholder:text-grey-6b max-md:text-[16px]'
+            : 'text-[17px] text-washed-white placeholder:text-grey-8f max-md:text-[16px]',
         )}
       />
       <button
         type="button"
         disabled={!voice}
         aria-pressed={voice ? listening : undefined}
+        aria-label={listening ? 'End voice' : 'Say it'}
         title={voice ? (listening ? 'End the voice conversation' : 'Talk with the fitter, hands free') : 'Voice needs Chrome, Edge or Safari'}
         onClick={toggleVoice}
         className={cn(
           'inline-flex flex-none cursor-pointer items-center rounded-full border-0 font-display font-bold uppercase text-washed-white transition-ui disabled:cursor-not-allowed disabled:opacity-50',
           light
-            ? 'h-[52px] gap-2.5 bg-midnight pr-[22px] pl-[18px] text-[18px] tracking-[0.04em]'
-            : 'h-11 gap-2 bg-grey-26 pr-4 pl-3 text-[15px] tracking-[0.05em]',
+            ? 'h-[52px] gap-2.5 bg-midnight pr-[22px] pl-[18px] text-[18px] tracking-[0.04em] max-md:size-11 max-md:justify-center max-md:p-0'
+            : 'h-11 gap-2 bg-grey-26 pr-4 pl-3 text-[15px] tracking-[0.05em] max-md:size-11 max-md:justify-center max-md:p-0',
           listening && 'shadow-[inset_0_0_0_2px_#FF6E01]',
         )}
       >
         <MicIcon size={light ? 20 : 18} />
-        {listening ? 'End voice' : 'Say it'}
+        <span className="max-md:hidden">{listening ? 'End voice' : 'Say it'}</span>
       </button>
       <button
         type="submit"
@@ -106,7 +110,7 @@ export function Composer({
         className={cn(
           'inline-flex flex-none cursor-pointer items-center justify-center rounded-full border-0 transition-ui disabled:cursor-not-allowed',
           light
-            ? 'size-[52px] bg-tiger-orange hover:bg-orange-hover disabled:opacity-60'
+            ? 'size-[52px] bg-tiger-orange hover:bg-orange-hover disabled:opacity-60 max-md:size-11'
             : 'size-11 bg-grey-3d enabled:hover:bg-grey-5f disabled:opacity-60',
         )}
       >

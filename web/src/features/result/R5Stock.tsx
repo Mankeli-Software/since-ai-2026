@@ -26,9 +26,9 @@ function NothingCustom({ best }: { best: Spec | null }) {
   const custom = best?.purchase === 'custom'
   const delta = best ? customDelta(best) : []
   return (
-    <section className="flex flex-col items-start gap-3 rounded-16 border border-grey-26 bg-grey-12 p-8">
+    <section className="flex flex-col items-start gap-3 rounded-16 border border-grey-26 bg-grey-12 p-8 max-md:p-5">
       <Eyebrow className="text-orange-hover">Stock or custom</Eyebrow>
-      <h1 className="m-0 font-display text-[44px] leading-[.9] font-extrabold uppercase">
+      <h1 className="m-0 font-display text-[44px] leading-[.9] font-extrabold uppercase max-md:text-[36px]">
         {custom ? 'Your fit is already custom.' : 'Stock fits you. Nothing custom needed.'}
       </h1>
       <p className="m-0 max-w-[560px] text-[17px] leading-[1.5] text-grey-c8">
@@ -36,7 +36,7 @@ function NothingCustom({ best }: { best: Spec | null }) {
           ? `It's built to your spec${delta.length ? ` (${delta.join(', ')})` : ''}, so there's no stock-or-custom choice to make here.`
           : "Your shots don't point to a custom build, so you keep the quick delivery and the returns. This page only shows up when custom is really worth it."}
       </p>
-      <ViewLink view="summary" className="text-[15px] font-semibold text-orange-hover">
+      <ViewLink view="summary" className="text-[15px] font-semibold text-orange-hover max-md:inline-flex max-md:min-h-11 max-md:items-center">
         ← Back to your fit
       </ViewLink>
     </section>
@@ -103,7 +103,7 @@ export function R5Stock() {
           Only shown when custom is earned
         </Eyebrow>
       </div>
-      <h1 className="m-0 font-display text-[56px] leading-[.88] font-extrabold uppercase">{block.question}</h1>
+      <h1 className="m-0 font-display text-[56px] leading-[.88] font-extrabold uppercase max-md:text-[40px]">{block.question}</h1>
       {block.reasons && block.reasons.length > 0 && (
         <ul className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-[15px] text-grey-c8">
           {block.reasons.map((r) => (
