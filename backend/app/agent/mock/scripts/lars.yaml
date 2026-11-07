@@ -1,11 +1,27 @@
+# Lars (DEMO-04): a close call between the 301 CB and 301 MB, shown honestly with the trade-off
+# (plan L8). The close_call card is what R3 (Compare heads) shows next to the two heads.
+# Every number in the chat comes from the state or a tool output of the same turn: `$ref` for a
+# whole value, `{$ref:fmt}` inside a sentence (scripted_engine). Never type a number in here.
 persona: lars
 steps:
-  # Turn 1: Tour player evaluation and 301 CB vs 301 MB close call
-  - text: "Welcome Lars. At 88 mph 7-iron speed, you can play either of our tour forged irons."
+  # Turn 1: his speed, the head close call and the trade-off
   - tool_call:
       name: run_fit
       args: {}
-  - text: "We're looking at a dead heat between the 301 CB and 301 MB. No sales BS—here's the raw trade-off between the two."
+  - tool_call:
+      name: explain_part
+      as: why_flex
+      args: {part: flex}
+  - tool_call:
+      name: get_close_call
+      as: head_call
+      args: {part: head}
+  - text: "Welcome Lars. You told me {$profile.reported_7i_speed_mph:.0f} mph with a 7-iron. The fit works from {$why_flex.why.numbers.speed_mph:.1f} mph once the usual over-report is taken out, which puts you in {$state.best.flex} flex."
+  - text:
+      by: $head_call.status
+      cases:
+        ok: "Your top two heads are the {$head_call.ours_label} and the {$head_call.alt_label}, at {$head_call.ours_points:g} and {$head_call.alt_points:g} points on Takomo's head scoring. That's a close call, so no sales BS: here's the trade-off, not a winner."
+      default: "Your best head is the {$head_call.ours_label}. Here's how it compares with the runner-up."
   - tool_call:
       name: simulate_flight
       args: {heads: [$state.best.head, $state.runner_up.head]}
@@ -25,6 +41,18 @@ steps:
           land_angle: $simulate_flight.result.per_head.1.summary.land_angle
           side_sd: $simulate_flight.result.per_head.1.summary.side.sd
           score_total: $run_fit.ranking.1.total
+  # The split is the two heads' score points (get_close_call, basis head_score). No card when
+  # the fit does not call the head close.
+  - ui:
+      by: $head_call.status
+      cases:
+        ok:
+          type: close_call
+          part: head
+          a: {label: $head_call.ours_label, share: $head_call.ours_share}
+          b: {label: $head_call.alt_label, share: $head_call.alt_share}
+          tradeoff: "**{$head_call.ours_points:g} vs {$head_call.alt_points:g}** on Takomo's head scoring. On the flight model they carry {$simulate_flight.result.per_head.0.summary.carry.mean:.0f} and {$simulate_flight.result.per_head.1.summary.carry.mean:.0f} yd. Either is a fair pick."
+          next_step: "Hit both on a launch monitor"
   - ui:
       type: recommendation_card
       # Bound to the live fit so the card always matches the buy bar and the header confidence.
@@ -45,20 +73,29 @@ steps:
   - ui:
       type: why_panel
       depth: numbers
-      items: [$why_head.why, $why_shaft.why]
+      items: [$why_head.why, $why_flex.why, $why_shaft.why]
   - ui:
       type: choice_chips
-      prompt: "Which matters more to your scoring: the slight toe-strike forgiveness of the CB, or the surgical shot-shaping of the MB blade?"
+      prompt: "Which matters more to you: a bit more help on off-centre strikes from the cavity back, or more shot-shaping from the muscle back?"
       field: head_choice
       options:
         - id: 301-cb
-          label: "Takomo 301 CB (Cavity Back)"
+          label: "Takomo 301 CB (cavity back)"
         - id: 301-mb
-          label: "Takomo 301 MB (Muscle Back)"
+          label: "Takomo 301 MB (muscle back)"
 
-  # Turn 2: Selected build confirmation and flight view
-  - text: "Both heads give you forged feel and workability."
+  # Turn 2: his pick, then where to look next (v3 results)
+  - tool_call:
+      name: get_close_call
+      as: head_call
+      args: {part: head}
+  - text:
+      by: $answer
+      cases:
+        301-cb: "The 301 CB it is. Same forged feel as the MB, with a little more help when you miss the centre."
+        301-mb: "The 301 MB it is. With the scoring this close ({$head_call.ours_points:g} vs {$head_call.alt_points:g}), the head you like looking down at is a fair way to decide."
+      default: "Choice noted. Either head is a fair pick."
   - tool_call:
       name: simulate_flight
       args: {heads: [$state.best.head, $state.runner_up.head]}
-  - text: "Dispersion is mapped on the stage. Tweak in Tinker or hit Save in the top bar."
+  - text: "Open **Compare heads** to see both fly side by side, or hit Save in the top bar to keep your fit."

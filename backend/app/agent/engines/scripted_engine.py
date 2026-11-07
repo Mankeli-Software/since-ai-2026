@@ -11,8 +11,14 @@ instead of copies in the YAML. `$answer.age ?? 31` falls back to the YAML value 
 missing or null; an `$answer`/`$profile` ref without a fallback that does not resolve drops its
 key, so `update_profile` saves only what the golfer gave.
 
+Inside a longer string, `{$<ref>}` or `{$<ref>:<format spec>}` (Python format, e.g. `:.0f`,
+`:+d`) is filled in place, so a sentence quotes the same numbers: "You carry it
+{$profile.reported_7i_carry_yd:.0f} yards." If any placeholder does not resolve (missing, null or
+the wrong type for its format), the whole string is left out rather than shown half-filled.
+
 `{by: <ref>, cases: {<value>: ...}, default: ...}` picks a case by the resolved value (compared as
-strings), anywhere a value goes, including a `text` step. That is how the fitter's line matches the
+strings), anywhere a value goes, including a `text` step and a whole `ui` step (no matching case
+and no default: the block is not shown). That is how the fitter's line matches the
 answer although the script never branches."""
 
 import asyncio
@@ -37,6 +43,7 @@ PERSONAS = {"DEMO-01": "mikko", "DEMO-09": "hannu", "DEMO-04": "lars", "DEMO-13"
 CHUNK_WORDS = 3
 CHUNK_DELAY_S = 0.02
 REF = re.compile(r"^\$[a-z_]+(\.\w+)*( \?\? .+)?$")
+INLINE = re.compile(r"\{(\$[a-z_]+(?:\.\w+)*)(?::([^{}]*))?\}")
 SOFT_ROOTS = {"answer", "profile"}  # unresolved without a fallback: drop the key, don't fail
 MISSING = object()
 
@@ -68,6 +75,20 @@ def _lookup(ref: str, roots: dict[str, Any]) -> Any:
     return cur
 
 
+def _fill(text: str, roots: dict[str, Any]) -> Any:
+    """Fill `{$ref}` / `{$ref:fmt}` placeholders in `text`; MISSING if any of them fails."""
+    try:
+        return INLINE.sub(lambda m: _format(_lookup(m[1], roots), m[2]), text)
+    except (KeyError, IndexError, TypeError, ValueError):
+        return MISSING
+
+
+def _format(value: Any, spec: str | None) -> str:
+    if value is None or value is MISSING:
+        raise ValueError("unresolved placeholder")
+    return format(value, spec or "")
+
+
 def resolve_refs(value: Any, roots: dict[str, Any]) -> Any:
     """Replace `$root.path` strings and `{by, cases}` picks (see module docstring) in a step,
     recursively. A dict key or list item that resolves to nothing is left out."""
@@ -88,6 +109,8 @@ def resolve_refs(value: Any, roots: dict[str, Any]) -> Any:
         return [v for v in (resolve_refs(v, roots) for v in value) if v is not MISSING]
     if isinstance(value, str) and REF.match(value):
         return _lookup(value, roots)
+    if isinstance(value, str) and "{$" in value:
+        return _fill(value, roots)
     return value
 
 
@@ -177,7 +200,10 @@ class ScriptedEngine:
                 if isinstance(out, BaseModel):
                     outputs[call.get("as", call["name"])] = out.model_dump(mode="json")
             elif "ui" in step:
-                spec = get_tool(f"ui_{step['ui']['type']}")
+                block = refs(step["ui"])
+                if block is MISSING:  # a `{by, cases}` pick with no matching case: no block
+                    continue
+                spec = get_tool(f"ui_{block['type']}")
                 ui_id: list[str] = []
 
                 async def capture(ev: StreamEvent, ui_id: list[str] = ui_id) -> None:
@@ -186,7 +212,7 @@ class ScriptedEngine:
                     await ctx.emit(ev)
 
                 sub = ToolContext(session=s, emit=capture, store=ctx.store, budget=ctx.budget)
-                await spec.fn(sub, spec.input_model.model_validate(refs(step["ui"])))
+                await spec.fn(sub, spec.input_model.model_validate(block))
                 if spec.kind == "ui_input":
                     s.pending_ui_id = ui_id[0]
                     break

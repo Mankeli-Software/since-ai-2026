@@ -126,7 +126,12 @@ never invents them. `ui_*` tools are generated from `schemas/ui/`, never hand-wr
 
 - `agent/mock/scripts/<persona>.yaml`: steps of `text`, `tool_call`, `ui`, replayed against the **real** tools.
   A string like `$state.best` or `$run_fit.best.head_score` in a step is filled from the state or an earlier
-  tool output of the same turn, so display blocks quote the tools' numbers.
+  tool output of the same turn, so display blocks quote the tools' numbers. Inside a sentence use
+  `{$ref}` / `{$ref:fmt}` (`"{$why_flex.why.numbers.speed_mph:.1f} mph"`); a placeholder that does not resolve
+  drops the whole string. Never type a fit number into a script. `{by, cases}` picks also work on a whole `ui`
+  step (no match, no block) and nest.
+- `get_close_call` (labels + integer split for `ui_close_call`) and `stock_advice` (stock vs fitted: return days,
+  lie change, flight deltas) exist so scripts and the model can quote those numbers.
 - Personas: Mikko (spine), Hannu, Lars, Anders. No others (L8). Must work with zero API keys.
 - `own.yaml` is not a persona: it is the Flow v3 walkthrough for an own fitting (no demo golfer).
 - Scripts never branch, so a skipped import must still leave a sane fit. Bind result cards to `$state`
