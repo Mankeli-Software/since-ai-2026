@@ -111,7 +111,7 @@ export function StagePanel() {
                 : 'bg-surface-dark-3 text-ink-300 hover:text-washed-white'
           }`}
         >
-          <span>{tinkerOpen ? 'Close Tinker' : 'Tinker Specs'}</span>
+          <span>{tinkerOpen ? 'Close Tinker' : 'Tinker & Test'}</span>
           {isTinkered && !tinkerOpen && (
             <span className="h-1.5 w-1.5 rounded-full bg-tiger-orange" title="Custom overrides active" />
           )}

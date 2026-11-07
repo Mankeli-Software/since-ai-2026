@@ -2,9 +2,9 @@
   "ball_line_test": {
     "title": "Ball-line test",
     "steps": [
-      "Draw a straight line around the ball with a marker.",
-      "Hit 3 to 5 shots off a hard surface, such as a mat or a board.",
-      "After each shot, read how far the mark on the club face leans from vertical, in degrees."
+      "Draw a straight line around the ball with a Sharpie.",
+      "Hit 3–5 shots off a mat or impact board.",
+      "Check the tilt of the line left on the club face (degrees from vertical)."
     ],
     "caption": "+ = the line leans toward the toe"
   },

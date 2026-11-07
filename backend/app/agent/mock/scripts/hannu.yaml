@@ -88,7 +88,7 @@ steps:
       by: $state.best.purchase
       cases:
         stock: "As it stands your set is stock, so you keep the {$stock_advice.advice.stock_return_days}-day return. Still, we'd rather you hit a Takomo test club on a simulator before anyone settles your lie."
-        custom: "This build would be a custom order, and custom clubs can't be returned. We'd rather you hit a Takomo test club on a simulator before you commit to a lie from a mat test."
+        custom: "This build would be a custom order, and custom clubs can't be returned. Rather than nudge you into that off a mat test, we'd rather you hit a Takomo test club on a simulator first."
   - ui:
       type: simulator_map
       simulator_ids:

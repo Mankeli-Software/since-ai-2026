@@ -16,7 +16,7 @@ steps:
       name: get_close_call
       as: head_call
       args: {part: head}
-  - text: "Welcome Lars. You told me {$profile.reported_7i_speed_mph:.0f} mph with a 7-iron. The fit works from {$why_flex.why.numbers.speed_mph:.1f} mph once the usual over-report is taken out, which puts you in {$state.best.flex} flex."
+  - text: "Hej Lars. You told me {$profile.reported_7i_speed_mph:.0f} mph with a 7-iron. The fit works from {$why_flex.why.numbers.speed_mph:.1f} mph once the usual over-report is taken out, which puts you in {$state.best.flex} flex."
   - text:
       by: $head_call.status
       cases:
@@ -76,7 +76,7 @@ steps:
       items: [$why_head.why, $why_flex.why, $why_shaft.why]
   - ui:
       type: choice_chips
-      prompt: "Which matters more to you: a bit more help on off-centre strikes from the cavity back, or more shot-shaping from the muscle back?"
+      prompt: "Which matters more to your scoring: a bit more forgiveness on toe strikes from the CB, or the sharper shot-shaping of the MB blade?"
       field: head_choice
       options:
         - id: 301-cb

@@ -30,7 +30,7 @@ export function FitterLine({ messages }: { messages: ChatMessage[] }) {
   )
 }
 
-/** Subtle "Thinking…" while a turn streams and no card is up yet. */
+/** Subtle "Running the numbers…" while a turn streams and no card is up yet. */
 export function Thinking() {
   return (
     <p role="status" className="m-0 ml-[60px] flex max-md:ml-[42px] items-center gap-1.5 text-on-page-2">

@@ -69,7 +69,7 @@ export function ChatPanel() {
             </div>
           ),
         )}
-        {busy && <p className="text-sm italic text-muted-foreground" aria-live="polite">Thinking…</p>}
+        {busy && <p className="text-sm italic text-muted-foreground" aria-live="polite">Running the numbers…</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div ref={endRef} />
       </div>
