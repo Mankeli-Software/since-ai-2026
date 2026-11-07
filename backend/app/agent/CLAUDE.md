@@ -113,6 +113,14 @@ reasoning parts are not interchangeable across a provider switch.
 - The reply `{kind: "ui_response", component_id, value, display_text}` resumes that `tool_use` as its `tool_result`.
 - Live first turn = the fixed opening (`agent/opening.py`): greeting + `sentence_builder` card, no model call,
   prefilled for personas. Its answer is saved by the engine and opens the model's first turn as an `[answer]` line.
+- **Conversation order (`flow.py`, VISION §6):** the `next_question` tool runs `flow.next_step`, which wraps FIT's
+  `confidence.next_question` and changes only order and cards: talk first ("how's your game?": flight, what they'd
+  change, aches; chips take free text), then the simulator fork → picker (own fittings) → import, then FIT's gaps,
+  body last (height, wrist, glove tiles), then the reveal. Precision offers come right after an import, or from the
+  turn after the reveal, never in front of it. Flow markers are `flow_*` profile keys (source `derived`).
+- The engine does the bookkeeping for tapped answers (`_presave`: save, resolve an outlier review, read an import's
+  report, next step) and marks results `speak_first`: the model tends to only *think* its line before a card.
+  After the golfer's own 7-iron import it says the shots line itself (fixed copy, report numbers, G11 ego carry).
 - Per-session lock (409 if busy); the turn runs in a background task and commits messages + state atomically.
 - 8 SSE events with monotonic `seq`: `turn_start, text, ui, stage, state, mascot, done, error`. No GZip on SSE.
 
