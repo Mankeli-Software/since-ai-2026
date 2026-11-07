@@ -1,4 +1,5 @@
 import { Eyebrow } from '@/components/studio'
+import { useSession } from '@/store/session'
 import { ResultsAside, ViewLink, useResultsChrome } from './chrome'
 import { StockCustomCards, type Purchase } from './compare/StockCustomCards'
 import { customDelta } from './specLabel'
@@ -44,6 +45,9 @@ export function R5Stock() {
   const { data, buySpec, setBuySpec } = useResultsChrome()
   const block = data.latest('stock_vs_custom')
   const best = data.best
+  const ui = useSession((s) => s.ui)
+  const respond = useSession((s) => s.respond)
+  const pendingItem = [...ui].reverse().find((u) => u.block.type === 'stock_vs_custom' && u.interactive && !u.answered)
 
   if (!block || !best) {
     return <NothingCustom best={best} />
@@ -75,7 +79,12 @@ export function R5Stock() {
       <StockCustomCards
         className="flex-[1_0_auto]"
         value={value}
-        onChange={(v) => setBuySpec(b[v])}
+        onChange={(v) => {
+          setBuySpec(b[v])
+          if (pendingItem) {
+            void respond(pendingItem.id, v, v === 'stock' ? 'Stock' : 'Custom')
+          }
+        }}
         stockTitle={lieDelta ? 'Stock, 0°' : 'Stock'}
         customTitle={delta.length ? `Custom, ${delta.join(', ')}` : 'Custom build'}
         stockReturnDays={block.stock_return_days ?? 30}
