@@ -65,6 +65,9 @@ class IntakeAnswers(BaseModel):
     score_bucket: Bucket | None = None
     reported_7i_speed_mph: float | None = None
     reported_7i_carry_yd: float | None = None
+    claimed_7i_carry_yd: float | None = Field(
+        default=None, description="The golfer's own carry claim, kept when G11 replaces it"
+    )
     characteristics: list[Characteristic] = Field(default_factory=list)
     flight: FlightPref | None = None
     tempo: Tempo | None = None

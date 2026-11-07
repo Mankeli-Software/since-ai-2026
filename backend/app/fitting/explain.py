@@ -102,7 +102,7 @@ def explain_fit(
         if runner_up_name:
             head_plain += f" Runner-up {runner_up_name} scored {runner_up_total:g} points."
     else:  # standard
-        head_plain = f"The {head_name} suits your swing speed and handicap."
+        head_plain = f"The {head_name} suits your swing speed and scoring."
         if runner_up_name:
             head_plain += (
                 f" The {runner_up_name} is close behind "
@@ -154,8 +154,9 @@ def explain_fit(
     flex_numbers: dict[str, float] = {"swing_bucket": float(answers.swing_bucket)}
     if answers.est_7i_speed_mph is not None:
         flex_numbers["speed_mph"] = round(float(answers.est_7i_speed_mph), 1)
-    if intake and intake.reported_7i_carry_yd is not None:
-        flex_numbers["claimed_carry_yd"] = float(intake.reported_7i_carry_yd)
+    claimed = (intake.claimed_7i_carry_yd or intake.reported_7i_carry_yd) if intake else None
+    if claimed is not None:
+        flex_numbers["claimed_carry_yd"] = float(claimed)
     if intake and intake.reported_7i_speed_mph is not None:
         flex_numbers["reported_speed_mph"] = float(intake.reported_7i_speed_mph)
 
@@ -177,10 +178,16 @@ def explain_fit(
             f"{answers.swing_bucket}{speed_str}."
         )
     else:  # standard
-        if is_measured and intake and intake.reported_7i_carry_yd and answers.est_7i_speed_mph:
+        if (
+            is_measured
+            and intake
+            and intake.claimed_7i_carry_yd is not None
+            and claimed is not None
+            and answers.est_7i_speed_mph
+        ):
             flex_plain = (
                 f"{rec.flex.capitalize()} flex fits your measured swing speed. "
-                f"Your {intake.reported_7i_carry_yd:g} yd claim was higher than your shots show."
+                f"Your {claimed:g} yd claim was higher than your shots show."
             )
         elif is_measured and answers.est_7i_speed_mph:
             flex_plain = (
@@ -250,6 +257,8 @@ def explain_fit(
         "height_cm": float(answers.height_cm),
         "length_in": float(rec.length_in),
     }
+    if answers.wrist_to_floor_cm is not None:
+        length_numbers["wrist_to_floor_cm"] = float(answers.wrist_to_floor_cm)
     length_sources: list[Provenance] = (
         [answers.provenance["height_cm"]]
         if "height_cm" in answers.provenance
@@ -363,7 +372,11 @@ def explain_fit(
         if "glove" in answers.provenance
         else [Provenance(source="questionnaire")]
     )
-    grip_plain = f"{rec.grip.capitalize()} grip fits your glove size ({answers.glove})."
+    grip_plain = f"{rec.grip.capitalize()} grip fits your glove size ({answers.glove}). " + (
+        "Standard and midsize grips keep the set stock."
+        if rec.grip != "oversize"
+        else "Oversize grips make the set a custom order; standard and midsize are stock."
+    )
 
     items.append(
         WhyItem(
