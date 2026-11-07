@@ -1,0 +1,1269 @@
+{
+  "format": "Takomo Fitter Studio 3D Rig Manifest",
+  "version": "1.0.0",
+  "coordinateSystem": {
+    "units": "meters",
+    "up": "+Y",
+    "target": "+Z",
+    "heel": "+X",
+    "toe": "-X",
+    "notes": "Right-handed 7-iron glTF coordinate system. Sole center ground-contact point tangent to Y=0."
+  },
+  "heads": {
+    "101-mkii": {
+      "slug": "101-mkii",
+      "name": "Iron 101 MKII",
+      "glbPath": "assets/clubs/heads/101-mkii.glb",
+      "arGlbPath": "assets/clubs/ar/101-mkii.glb",
+      "arUsdzPath": "assets/clubs/ar/101-mkii.usdz",
+      "specs": {
+        "slug": "101-mkii",
+        "name": "Iron 101 MKII",
+        "category": "Game Improvement",
+        "construction": "Hollow-body 17-4/431 SS",
+        "loft_deg": 29.0,
+        "lie_deg": 62.5,
+        "offset_mm": 3.4,
+        "blade_mm": 78.8,
+        "topline_mm": 7.0,
+        "sole_mm": 21.5,
+        "bounce_deg": 3.0,
+        "weight_g": 272.0,
+        "has_toe_screw": true,
+        "hosel_stamps": "TAKOMO"
+      },
+      "boundingBox": [
+        -0.05480000004172325,
+        0.0005142856971360743,
+        -0.03225594013929367,
+        0.058245085179805756,
+        0.05941584333777428,
+        0.010065070353448391
+      ],
+      "hoselSocket": {
+        "position": [
+          0.05232103694042465,
+          0.05632518790681708,
+          0.0034
+        ],
+        "axis": [
+          0.46174861323503386,
+          0.8870108331782217,
+          0.0
+        ],
+        "quaternion": [
+          0.0,
+          0.0,
+          -0.2376858923261731,
+          0.9713420698132614
+        ]
+      },
+      "anchors": {
+        "sweetSpot": [
+          0.0,
+          0.024,
+          0.01
+        ],
+        "toplineMidpoint": [
+          0.0,
+          0.046,
+          -0.018
+        ],
+        "hoselLeadingEdge": [
+          0.05232103694042465,
+          0.05632518790681708,
+          0.0034
+        ],
+        "faceLeadingEdge": [
+          0.0,
+          0.001,
+          0.0
+        ]
+      },
+      "cameraPresets": {
+        "addressEye": {
+          "position": [
+            0.08,
+            0.95,
+            -0.15
+          ],
+          "target": [
+            0.0,
+            0.02,
+            0.0
+          ]
+        },
+        "backHero": {
+          "position": [
+            0.0,
+            0.04,
+            -0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "faceOn": {
+          "position": [
+            0.0,
+            0.04,
+            0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "sole": {
+          "position": [
+            0.0,
+            -0.2,
+            0.01
+          ],
+          "target": [
+            0.0,
+            0.005,
+            0.0
+          ]
+        },
+        "hoselLie": {
+          "position": [
+            0.20232103694042464,
+            0.2063251879068171,
+            0.0
+          ],
+          "target": [
+            0.05232103694042465,
+            0.05632518790681708,
+            0.0034
+          ]
+        },
+        "headFace": {
+          "position": [
+            0.01,
+            0.045,
+            0.24
+          ],
+          "target": [
+            0.005,
+            0.026,
+            0.0
+          ]
+        },
+        "addressDTL": {
+          "position": [
+            0.04,
+            0.14,
+            -0.42
+          ],
+          "target": [
+            0.01,
+            0.035,
+            0.02
+          ]
+        },
+        "shaft": {
+          "position": [
+            0.3265435856337975,
+            0.48942323260157333,
+            0.62
+          ],
+          "target": [
+            0.24654,
+            0.42942,
+            0.0034
+          ]
+        },
+        "grip": {
+          "position": [
+            0.4369240269977304,
+            0.7583013727077239,
+            0.34
+          ],
+          "target": [
+            0.39692,
+            0.7183,
+            0.0034
+          ]
+        },
+        "clubRow": {
+          "position": [
+            0.0,
+            0.16,
+            -0.58
+          ],
+          "target": [
+            0.0,
+            0.03,
+            0.0
+          ]
+        }
+      },
+      "images": {
+        "heroBack": "assets/clubs/images/101-mkii/hero_back.webp",
+        "photoBag": "assets/clubs/images/101-mkii/photo_bag.webp",
+        "photoUpright": "assets/clubs/images/101-mkii/photo_upright.webp",
+        "refAddress": "assets/clubs/images/101-mkii/ref_address.webp",
+        "refFace": "assets/clubs/images/101-mkii/ref_face.webp",
+        "refSoleOrToe": "assets/clubs/images/101-mkii/ref_sole_or_toe.webp",
+        "refField": "assets/clubs/images/101-mkii/ref_field.webp",
+        "renderHero": "assets/clubs/images/101-mkii/render_hero.webp",
+        "renderBack": "assets/clubs/images/101-mkii/render_back.webp",
+        "renderAddress": "assets/clubs/images/101-mkii/render_address.webp",
+        "renderFace": "assets/clubs/images/101-mkii/render_face.webp",
+        "renderSole": "assets/clubs/images/101-mkii/render_sole.webp",
+        "hero": "assets/clubs/images/101-mkii/hero.webp",
+        "back": "assets/clubs/images/101-mkii/back.webp",
+        "address": "assets/clubs/images/101-mkii/address.webp",
+        "face": "assets/clubs/images/101-mkii/face.webp",
+        "sole": "assets/clubs/images/101-mkii/sole.webp"
+      }
+    },
+    "201-mkii": {
+      "slug": "201-mkii",
+      "name": "Iron 201 MKII",
+      "glbPath": "assets/clubs/heads/201-mkii.glb",
+      "arGlbPath": "assets/clubs/ar/201-mkii.glb",
+      "arUsdzPath": "assets/clubs/ar/201-mkii.usdz",
+      "specs": {
+        "slug": "201-mkii",
+        "name": "Iron 201 MKII",
+        "category": "Players Distance",
+        "construction": "Hollow-body + Tungsten",
+        "loft_deg": 31.0,
+        "lie_deg": 62.0,
+        "offset_mm": 2.77,
+        "blade_mm": 77.0,
+        "topline_mm": 5.8,
+        "sole_mm": 18.5,
+        "bounce_deg": 3.5,
+        "weight_g": 270.0,
+        "has_toe_screw": true,
+        "hosel_stamps": "TAKOMO"
+      },
+      "boundingBox": [
+        -0.05299999937415123,
+        0.0005142856971360743,
+        -0.03315331041812897,
+        0.058726321905851364,
+        0.059211134910583496,
+        0.009426944889128208
+      ],
+      "hoselSocket": {
+        "position": [
+          0.052811444236904065,
+          0.05606717214654186,
+          0.00277
+        ],
+        "axis": [
+          0.4694715627858908,
+          0.8829475928589269,
+          0.0
+        ],
+        "quaternion": [
+          0.0,
+          0.0,
+          -0.24192189559966773,
+          0.9702957262759965
+        ]
+      },
+      "anchors": {
+        "sweetSpot": [
+          0.0,
+          0.024,
+          0.01
+        ],
+        "toplineMidpoint": [
+          0.0,
+          0.046,
+          -0.018
+        ],
+        "hoselLeadingEdge": [
+          0.052811444236904065,
+          0.05606717214654186,
+          0.00277
+        ],
+        "faceLeadingEdge": [
+          0.0,
+          0.001,
+          0.0
+        ]
+      },
+      "cameraPresets": {
+        "addressEye": {
+          "position": [
+            0.08,
+            0.95,
+            -0.15
+          ],
+          "target": [
+            0.0,
+            0.02,
+            0.0
+          ]
+        },
+        "backHero": {
+          "position": [
+            0.0,
+            0.04,
+            -0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "faceOn": {
+          "position": [
+            0.0,
+            0.04,
+            0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "sole": {
+          "position": [
+            0.0,
+            -0.2,
+            0.01
+          ],
+          "target": [
+            0.0,
+            0.005,
+            0.0
+          ]
+        },
+        "hoselLie": {
+          "position": [
+            0.20281144423690406,
+            0.20606717214654185,
+            0.0
+          ],
+          "target": [
+            0.052811444236904065,
+            0.05606717214654186,
+            0.00277
+          ]
+        },
+        "headFace": {
+          "position": [
+            0.01,
+            0.045,
+            0.24
+          ],
+          "target": [
+            0.005,
+            0.026,
+            0.0
+          ]
+        },
+        "addressDTL": {
+          "position": [
+            0.04,
+            0.14,
+            -0.42
+          ],
+          "target": [
+            0.01,
+            0.035,
+            0.02
+          ]
+        },
+        "shaft": {
+          "position": [
+            0.33028245086215663,
+            0.48745612044523506,
+            0.62
+          ],
+          "target": [
+            0.25028,
+            0.42746,
+            0.00277
+          ]
+        },
+        "grip": {
+          "position": [
+            0.4431780715440143,
+            0.755010960697159,
+            0.34
+          ],
+          "target": [
+            0.40318,
+            0.71501,
+            0.00277
+          ]
+        },
+        "clubRow": {
+          "position": [
+            0.0,
+            0.16,
+            -0.58
+          ],
+          "target": [
+            0.0,
+            0.03,
+            0.0
+          ]
+        }
+      },
+      "images": {
+        "heroBack": "assets/clubs/images/201-mkii/hero_back.webp",
+        "photoBag": "assets/clubs/images/201-mkii/photo_bag.webp",
+        "photoUpright": "assets/clubs/images/201-mkii/photo_upright.webp",
+        "refAddress": "assets/clubs/images/201-mkii/ref_address.webp",
+        "refFace": "assets/clubs/images/201-mkii/ref_face.webp",
+        "refSoleOrToe": "assets/clubs/images/201-mkii/ref_sole_or_toe.webp",
+        "refField": "assets/clubs/images/201-mkii/ref_field.webp",
+        "renderHero": "assets/clubs/images/201-mkii/render_hero.webp",
+        "renderBack": "assets/clubs/images/201-mkii/render_back.webp",
+        "renderAddress": "assets/clubs/images/201-mkii/render_address.webp",
+        "renderFace": "assets/clubs/images/201-mkii/render_face.webp",
+        "renderSole": "assets/clubs/images/201-mkii/render_sole.webp",
+        "hero": "assets/clubs/images/201-mkii/hero.webp",
+        "back": "assets/clubs/images/201-mkii/back.webp",
+        "address": "assets/clubs/images/201-mkii/address.webp",
+        "face": "assets/clubs/images/201-mkii/face.webp",
+        "sole": "assets/clubs/images/201-mkii/sole.webp"
+      }
+    },
+    "201t-mkii": {
+      "slug": "201t-mkii",
+      "name": "Iron 201T MKII",
+      "glbPath": "assets/clubs/heads/201t-mkii.glb",
+      "arGlbPath": "assets/clubs/ar/201t-mkii.glb",
+      "arUsdzPath": "assets/clubs/ar/201t-mkii.usdz",
+      "specs": {
+        "slug": "201t-mkii",
+        "name": "Iron 201T MKII",
+        "category": "Compact Players",
+        "construction": "Compact Hollow-body",
+        "loft_deg": 33.0,
+        "lie_deg": 62.5,
+        "offset_mm": 2.46,
+        "blade_mm": 74.8,
+        "topline_mm": 5.0,
+        "sole_mm": 16.0,
+        "bounce_deg": 4.0,
+        "weight_g": 270.0,
+        "has_toe_screw": true,
+        "hosel_stamps": "TAKOMO"
+      },
+      "boundingBox": [
+        -0.05079999938607216,
+        0.0005142856971360743,
+        -0.03454058617353439,
+        0.05823458358645439,
+        0.0594184435904026,
+        0.009105661883950233
+      ],
+      "hoselSocket": {
+        "position": [
+          0.05232103694042465,
+          0.05632518790681708,
+          0.00246
+        ],
+        "axis": [
+          0.46174861323503386,
+          0.8870108331782217,
+          0.0
+        ],
+        "quaternion": [
+          0.0,
+          0.0,
+          -0.2376858923261731,
+          0.9713420698132614
+        ]
+      },
+      "anchors": {
+        "sweetSpot": [
+          0.0,
+          0.024,
+          0.01
+        ],
+        "toplineMidpoint": [
+          0.0,
+          0.046,
+          -0.018
+        ],
+        "hoselLeadingEdge": [
+          0.05232103694042465,
+          0.05632518790681708,
+          0.00246
+        ],
+        "faceLeadingEdge": [
+          0.0,
+          0.001,
+          0.0
+        ]
+      },
+      "cameraPresets": {
+        "addressEye": {
+          "position": [
+            0.08,
+            0.95,
+            -0.15
+          ],
+          "target": [
+            0.0,
+            0.02,
+            0.0
+          ]
+        },
+        "backHero": {
+          "position": [
+            0.0,
+            0.04,
+            -0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "faceOn": {
+          "position": [
+            0.0,
+            0.04,
+            0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "sole": {
+          "position": [
+            0.0,
+            -0.2,
+            0.01
+          ],
+          "target": [
+            0.0,
+            0.005,
+            0.0
+          ]
+        },
+        "hoselLie": {
+          "position": [
+            0.20232103694042464,
+            0.2063251879068171,
+            0.0
+          ],
+          "target": [
+            0.05232103694042465,
+            0.05632518790681708,
+            0.00246
+          ]
+        },
+        "headFace": {
+          "position": [
+            0.01,
+            0.045,
+            0.24
+          ],
+          "target": [
+            0.005,
+            0.026,
+            0.0
+          ]
+        },
+        "addressDTL": {
+          "position": [
+            0.04,
+            0.14,
+            -0.42
+          ],
+          "target": [
+            0.01,
+            0.035,
+            0.02
+          ]
+        },
+        "shaft": {
+          "position": [
+            0.3265435856337975,
+            0.48942323260157333,
+            0.62
+          ],
+          "target": [
+            0.24654,
+            0.42942,
+            0.00246
+          ]
+        },
+        "grip": {
+          "position": [
+            0.4369240269977304,
+            0.7583013727077239,
+            0.34
+          ],
+          "target": [
+            0.39692,
+            0.7183,
+            0.00246
+          ]
+        },
+        "clubRow": {
+          "position": [
+            0.0,
+            0.16,
+            -0.58
+          ],
+          "target": [
+            0.0,
+            0.03,
+            0.0
+          ]
+        }
+      },
+      "images": {
+        "heroBack": "assets/clubs/images/201t-mkii/hero_back.webp",
+        "photoBag": "assets/clubs/images/201t-mkii/photo_bag.webp",
+        "photoUpright": "assets/clubs/images/201t-mkii/photo_upright.webp",
+        "refAddress": "assets/clubs/images/201t-mkii/ref_address.webp",
+        "refFace": "assets/clubs/images/201t-mkii/ref_face.webp",
+        "refSoleOrToe": "assets/clubs/images/201t-mkii/ref_sole_or_toe.webp",
+        "refField": "assets/clubs/images/201t-mkii/ref_field.webp",
+        "renderHero": "assets/clubs/images/201t-mkii/render_hero.webp",
+        "renderBack": "assets/clubs/images/201t-mkii/render_back.webp",
+        "renderAddress": "assets/clubs/images/201t-mkii/render_address.webp",
+        "renderFace": "assets/clubs/images/201t-mkii/render_face.webp",
+        "renderSole": "assets/clubs/images/201t-mkii/render_sole.webp",
+        "hero": "assets/clubs/images/201t-mkii/hero.webp",
+        "back": "assets/clubs/images/201t-mkii/back.webp",
+        "address": "assets/clubs/images/201t-mkii/address.webp",
+        "face": "assets/clubs/images/201t-mkii/face.webp",
+        "sole": "assets/clubs/images/201t-mkii/sole.webp"
+      }
+    },
+    "301-cb": {
+      "slug": "301-cb",
+      "name": "Iron 301 CB",
+      "glbPath": "assets/clubs/heads/301-cb.glb",
+      "arGlbPath": "assets/clubs/ar/301-cb.glb",
+      "arUsdzPath": "assets/clubs/ar/301-cb.usdz",
+      "specs": {
+        "slug": "301-cb",
+        "name": "Iron 301 CB",
+        "category": "Forged Cavity Back",
+        "construction": "1-piece Forged S20C",
+        "loft_deg": 34.0,
+        "lie_deg": 62.5,
+        "offset_mm": 1.8,
+        "blade_mm": 71.0,
+        "topline_mm": 4.5,
+        "sole_mm": 15.0,
+        "bounce_deg": 4.5,
+        "weight_g": 267.0,
+        "has_toe_screw": false,
+        "hosel_stamps": "TAKOMO FORGED S20C"
+      },
+      "boundingBox": [
+        -0.04699999839067459,
+        0.0005142856971360743,
+        -0.0351715013384819,
+        0.05824748054146767,
+        0.059418685734272,
+        0.008422794751822948
+      ],
+      "hoselSocket": {
+        "position": [
+          0.05232103694042465,
+          0.05632518790681708,
+          0.0018
+        ],
+        "axis": [
+          0.46174861323503386,
+          0.8870108331782217,
+          0.0
+        ],
+        "quaternion": [
+          0.0,
+          0.0,
+          -0.2376858923261731,
+          0.9713420698132614
+        ]
+      },
+      "anchors": {
+        "sweetSpot": [
+          0.0,
+          0.024,
+          0.01
+        ],
+        "toplineMidpoint": [
+          0.0,
+          0.046,
+          -0.018
+        ],
+        "hoselLeadingEdge": [
+          0.05232103694042465,
+          0.05632518790681708,
+          0.0018
+        ],
+        "faceLeadingEdge": [
+          0.0,
+          0.001,
+          0.0
+        ]
+      },
+      "cameraPresets": {
+        "addressEye": {
+          "position": [
+            0.08,
+            0.95,
+            -0.15
+          ],
+          "target": [
+            0.0,
+            0.02,
+            0.0
+          ]
+        },
+        "backHero": {
+          "position": [
+            0.0,
+            0.04,
+            -0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "faceOn": {
+          "position": [
+            0.0,
+            0.04,
+            0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "sole": {
+          "position": [
+            0.0,
+            -0.2,
+            0.01
+          ],
+          "target": [
+            0.0,
+            0.005,
+            0.0
+          ]
+        },
+        "hoselLie": {
+          "position": [
+            0.20232103694042464,
+            0.2063251879068171,
+            0.0
+          ],
+          "target": [
+            0.05232103694042465,
+            0.05632518790681708,
+            0.0018
+          ]
+        },
+        "headFace": {
+          "position": [
+            0.01,
+            0.045,
+            0.24
+          ],
+          "target": [
+            0.005,
+            0.026,
+            0.0
+          ]
+        },
+        "addressDTL": {
+          "position": [
+            0.04,
+            0.14,
+            -0.42
+          ],
+          "target": [
+            0.01,
+            0.035,
+            0.02
+          ]
+        },
+        "shaft": {
+          "position": [
+            0.3265435856337975,
+            0.48942323260157333,
+            0.62
+          ],
+          "target": [
+            0.24654,
+            0.42942,
+            0.0018
+          ]
+        },
+        "grip": {
+          "position": [
+            0.4369240269977304,
+            0.7583013727077239,
+            0.34
+          ],
+          "target": [
+            0.39692,
+            0.7183,
+            0.0018
+          ]
+        },
+        "clubRow": {
+          "position": [
+            0.0,
+            0.16,
+            -0.58
+          ],
+          "target": [
+            0.0,
+            0.03,
+            0.0
+          ]
+        }
+      },
+      "images": {
+        "heroBack": "assets/clubs/images/301-cb/hero_back.webp",
+        "photoBag": "assets/clubs/images/301-cb/photo_bag.webp",
+        "photoUpright": "assets/clubs/images/301-cb/photo_upright.webp",
+        "refAddress": "assets/clubs/images/301-cb/ref_address.webp",
+        "refFace": "assets/clubs/images/301-cb/ref_face.webp",
+        "refSoleOrToe": "assets/clubs/images/301-cb/ref_sole_or_toe.webp",
+        "refField": "assets/clubs/images/301-cb/ref_field.webp",
+        "renderHero": "assets/clubs/images/301-cb/render_hero.webp",
+        "renderBack": "assets/clubs/images/301-cb/render_back.webp",
+        "renderAddress": "assets/clubs/images/301-cb/render_address.webp",
+        "renderFace": "assets/clubs/images/301-cb/render_face.webp",
+        "renderSole": "assets/clubs/images/301-cb/render_sole.webp",
+        "hero": "assets/clubs/images/301-cb/hero.webp",
+        "back": "assets/clubs/images/301-cb/back.webp",
+        "address": "assets/clubs/images/301-cb/address.webp",
+        "face": "assets/clubs/images/301-cb/face.webp",
+        "sole": "assets/clubs/images/301-cb/sole.webp"
+      }
+    },
+    "301-mb": {
+      "slug": "301-mb",
+      "name": "Iron 301 MB",
+      "glbPath": "assets/clubs/heads/301-mb.glb",
+      "arGlbPath": "assets/clubs/ar/301-mb.glb",
+      "arUsdzPath": "assets/clubs/ar/301-mb.usdz",
+      "specs": {
+        "slug": "301-mb",
+        "name": "Iron 301 MB",
+        "category": "Muscle Back Blade",
+        "construction": "1-piece Forged S20C",
+        "loft_deg": 34.0,
+        "lie_deg": 62.5,
+        "offset_mm": 1.8,
+        "blade_mm": 71.0,
+        "topline_mm": 4.5,
+        "sole_mm": 13.0,
+        "bounce_deg": 4.5,
+        "weight_g": 267.0,
+        "has_toe_screw": false,
+        "hosel_stamps": "TAKOMO FORGED S20C"
+      },
+      "boundingBox": [
+        -0.04699999839067459,
+        0.0005142856971360743,
+        -0.0351715013384819,
+        0.05826254189014435,
+        0.05941178277134895,
+        0.008415653370320797
+      ],
+      "hoselSocket": {
+        "position": [
+          0.05232103694042465,
+          0.05632518790681708,
+          0.0018
+        ],
+        "axis": [
+          0.46174861323503386,
+          0.8870108331782217,
+          0.0
+        ],
+        "quaternion": [
+          0.0,
+          0.0,
+          -0.2376858923261731,
+          0.9713420698132614
+        ]
+      },
+      "anchors": {
+        "sweetSpot": [
+          0.0,
+          0.024,
+          0.01
+        ],
+        "toplineMidpoint": [
+          0.0,
+          0.046,
+          -0.018
+        ],
+        "hoselLeadingEdge": [
+          0.05232103694042465,
+          0.05632518790681708,
+          0.0018
+        ],
+        "faceLeadingEdge": [
+          0.0,
+          0.001,
+          0.0
+        ]
+      },
+      "cameraPresets": {
+        "addressEye": {
+          "position": [
+            0.08,
+            0.95,
+            -0.15
+          ],
+          "target": [
+            0.0,
+            0.02,
+            0.0
+          ]
+        },
+        "backHero": {
+          "position": [
+            0.0,
+            0.04,
+            -0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "faceOn": {
+          "position": [
+            0.0,
+            0.04,
+            0.22
+          ],
+          "target": [
+            0.0,
+            0.025,
+            0.0
+          ]
+        },
+        "sole": {
+          "position": [
+            0.0,
+            -0.2,
+            0.01
+          ],
+          "target": [
+            0.0,
+            0.005,
+            0.0
+          ]
+        },
+        "hoselLie": {
+          "position": [
+            0.20232103694042464,
+            0.2063251879068171,
+            0.0
+          ],
+          "target": [
+            0.05232103694042465,
+            0.05632518790681708,
+            0.0018
+          ]
+        },
+        "headFace": {
+          "position": [
+            0.01,
+            0.045,
+            0.24
+          ],
+          "target": [
+            0.005,
+            0.026,
+            0.0
+          ]
+        },
+        "addressDTL": {
+          "position": [
+            0.04,
+            0.14,
+            -0.42
+          ],
+          "target": [
+            0.01,
+            0.035,
+            0.02
+          ]
+        },
+        "shaft": {
+          "position": [
+            0.3265435856337975,
+            0.48942323260157333,
+            0.62
+          ],
+          "target": [
+            0.24654,
+            0.42942,
+            0.0018
+          ]
+        },
+        "grip": {
+          "position": [
+            0.4369240269977304,
+            0.7583013727077239,
+            0.34
+          ],
+          "target": [
+            0.39692,
+            0.7183,
+            0.0018
+          ]
+        },
+        "clubRow": {
+          "position": [
+            0.0,
+            0.16,
+            -0.58
+          ],
+          "target": [
+            0.0,
+            0.03,
+            0.0
+          ]
+        }
+      },
+      "images": {
+        "heroBack": "assets/clubs/images/301-mb/hero_back.webp",
+        "photoBag": "assets/clubs/images/301-mb/photo_bag.webp",
+        "photoUpright": "assets/clubs/images/301-mb/photo_upright.webp",
+        "refAddress": "assets/clubs/images/301-mb/ref_address.webp",
+        "refFace": "assets/clubs/images/301-mb/ref_face.webp",
+        "refSoleOrToe": "assets/clubs/images/301-mb/ref_sole_or_toe.webp",
+        "refField": "assets/clubs/images/301-mb/ref_field.webp",
+        "renderHero": "assets/clubs/images/301-mb/render_hero.webp",
+        "renderBack": "assets/clubs/images/301-mb/render_back.webp",
+        "renderAddress": "assets/clubs/images/301-mb/render_address.webp",
+        "renderFace": "assets/clubs/images/301-mb/render_face.webp",
+        "renderSole": "assets/clubs/images/301-mb/render_sole.webp",
+        "hero": "assets/clubs/images/301-mb/hero.webp",
+        "back": "assets/clubs/images/301-mb/back.webp",
+        "address": "assets/clubs/images/301-mb/address.webp",
+        "face": "assets/clubs/images/301-mb/face.webp",
+        "sole": "assets/clubs/images/301-mb/sole.webp"
+      }
+    }
+  },
+  "parts": {
+    "ferrule": {
+      "glbPath": "assets/clubs/parts/ferrule.glb",
+      "length_m": 0.019,
+      "outer_diam_base_m": 0.0134,
+      "outer_diam_top_m": 0.0125,
+      "bore_diam_m": 0.0094,
+      "accentRing": {
+        "width_m": 0.001,
+        "offset_from_top_m": 0.003,
+        "material": "polished_chrome"
+      }
+    },
+    "shaft": {
+      "glbPath": "assets/clubs/parts/shaft.glb",
+      "length_m": 0.8763,
+      "tip_diam_m": 0.0094,
+      "butt_diam_m": 0.01524,
+      "material_name": "ShaftMaterial",
+      "stockLength_in": 37.0
+    },
+    "grip": {
+      "glbPath": "assets/clubs/parts/grip.glb",
+      "length_m": 0.265,
+      "collar_diam_m": 0.016,
+      "butt_diam_m": 0.027,
+      "origin": "bottom_collar",
+      "attach_offset_y_m": 0.6113,
+      "scalingNote": "Scale X and Z to adjust thickness for standard (1.00), midsize (1.04), and oversize (1.08)"
+    }
+  },
+  "tinkerFormulas": {
+    "length_in": "shaft.scale.y = (length_in - 2.5) / 34.5; grip.position.y = shaft.scale.y * 0.8763 - 0.265",
+    "lie_deg": "HoselSocket.rotation.z = -radians(90.0 - lie_deg)",
+    "grip_slug": {
+      "standard": {
+        "scale_xz": 1.0
+      },
+      "midsize": {
+        "scale_xz": 1.04
+      },
+      "oversize": {
+        "scale_xz": 1.08
+      }
+    },
+    "shaft_material": {
+      "steel": {
+        "metallic": 0.98,
+        "roughness": 0.08,
+        "color": [
+          0.88,
+          0.9,
+          0.92
+        ]
+      },
+      "graphite_matte": {
+        "metallic": 0.1,
+        "roughness": 0.4,
+        "color": [
+          0.15,
+          0.16,
+          0.18
+        ]
+      }
+    }
+  },
+  "headOrder": [
+    "101-mkii",
+    "201-mkii",
+    "201t-mkii",
+    "301-cb",
+    "301-mb"
+  ],
+  "defaultCameraPresets": {
+    "addressEye": {
+      "position": [
+        0.08,
+        0.95,
+        -0.15
+      ],
+      "target": [
+        0.0,
+        0.02,
+        0.0
+      ]
+    },
+    "backHero": {
+      "position": [
+        0.0,
+        0.04,
+        -0.22
+      ],
+      "target": [
+        0.0,
+        0.025,
+        0.0
+      ]
+    },
+    "faceOn": {
+      "position": [
+        0.0,
+        0.04,
+        0.22
+      ],
+      "target": [
+        0.0,
+        0.025,
+        0.0
+      ]
+    },
+    "sole": {
+      "position": [
+        0.0,
+        -0.2,
+        0.01
+      ],
+      "target": [
+        0.0,
+        0.005,
+        0.0
+      ]
+    },
+    "hoselLie": {
+      "position": [
+        0.20281144423690406,
+        0.20606717214654185,
+        0.0
+      ],
+      "target": [
+        0.052811444236904065,
+        0.05606717214654186,
+        0.00277
+      ]
+    },
+    "headFace": {
+      "position": [
+        0.01,
+        0.045,
+        0.24
+      ],
+      "target": [
+        0.005,
+        0.026,
+        0.0
+      ]
+    },
+    "addressDTL": {
+      "position": [
+        0.04,
+        0.14,
+        -0.42
+      ],
+      "target": [
+        0.01,
+        0.035,
+        0.02
+      ]
+    },
+    "shaft": {
+      "position": [
+        0.33028245086215663,
+        0.48745612044523506,
+        0.62
+      ],
+      "target": [
+        0.25028,
+        0.42746,
+        0.00277
+      ]
+    },
+    "grip": {
+      "position": [
+        0.4431780715440143,
+        0.755010960697159,
+        0.34
+      ],
+      "target": [
+        0.40318,
+        0.71501,
+        0.00277
+      ]
+    },
+    "clubRow": {
+      "position": [
+        0.0,
+        0.16,
+        -0.58
+      ],
+      "target": [
+        0.0,
+        0.03,
+        0.0
+      ]
+    }
+  }
+}
