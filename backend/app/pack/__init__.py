@@ -285,6 +285,22 @@ def grip_change_edges_cm() -> tuple[tuple[float, str, str], ...]:
     return tuple(out)
 
 
+def shot_carry_yd(
+    club_speed_mph: float,
+    dynamic_loft_deg: float,
+    attack_deg: float = -3.0,
+    forgiveness: float = 3.0,
+) -> float:
+    """Carry distance in yards from takomo_fit.physics.shot."""
+    res = _ph.shot(
+        club_speed_mph=float(club_speed_mph),
+        dynamic_loft_deg=float(dynamic_loft_deg),
+        attack_deg=float(attack_deg),
+        forgiveness=float(forgiveness),
+    )
+    return _f(res["carry_yd"])
+
+
 # --------------------------------------------------------------------------- physics wrappers
 
 
