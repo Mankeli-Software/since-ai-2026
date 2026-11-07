@@ -107,10 +107,6 @@ function Scene({ stageRef, handedness = 'right', shaftMaterial = 'steel', length
         <Lightformer intensity={1} position={[-4, 1, 2]} scale={[4, 4, 1]} />
         <Lightformer intensity={1} position={[4, 1, 2]} scale={[4, 4, 1]} />
       </Environment>
-      <mesh rotation-x={-Math.PI / 2} position-y={-0.001}>
-        <planeGeometry args={[2, 2]} />
-        <meshStandardMaterial color="#2b3036" roughness={0.9} />
-      </mesh>
       <ClubRig ref={rig} left={left} highlight={highlight} head={head} assetBase={assetBase} onHeadError={onHeadError} />
       {hasGhost && (
         <ClubRig
