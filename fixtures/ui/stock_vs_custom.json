@@ -1,0 +1,7 @@
+{
+  "type": "stock_vs_custom",
+  "question": "A 1 degree lie change is worth building custom. Stock or custom?",
+  "reasons": ["Your test-club shots show a 1 degree upright lie.", "Stock keeps the standard lie.", "Custom is built to order and cannot be returned."],
+  "stock_return_days": 30,
+  "custom_returnable": false
+}
