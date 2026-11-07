@@ -3,7 +3,12 @@
    gutters copy the header's .l-header__container (1400px, 72px from 1024px up, 16px below), so the
    banner lines up with the logo and the cart. */
 
+/* Sticky: sits under the site header on load, then pins under the theme's fixed header bar
+   (main.ts sets `top` to that bar's bottom edge while it is fixed). */
 .fs-banner {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: block;
   background: #0b0b0b;
   color: #f8f8f8;

@@ -12,6 +12,19 @@ const go = (e: Event) => {
 
 document.addEventListener('submit', go, true)
 
+// The sticky banner pins under the theme's header bar, which turns position: fixed past 120px of scroll.
+const header = document.querySelector<HTMLElement>('.l-header__container')
+const banner = document.querySelector<HTMLElement>('.fs-banner')
+if (header && banner) {
+  const sync = () => {
+    const pinned = getComputedStyle(header).position === 'fixed'
+    banner.style.top = `${pinned ? Math.max(0, header.getBoundingClientRect().bottom) : 0}px`
+  }
+  addEventListener('scroll', () => requestAnimationFrame(sync), { passive: true })
+  addEventListener('resize', sync)
+  sync()
+}
+
 document.addEventListener(
   'click',
   (e) => {
