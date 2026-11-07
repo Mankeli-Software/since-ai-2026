@@ -1,0 +1,79 @@
+import type { ReactNode } from 'react'
+import { ClubImage, Eyebrow } from '@/components/studio'
+import { cn } from '@/lib/utils'
+import { STATUS_TOOLTIP } from '../fixtures/commerce'
+import { headName } from '../specLabel'
+import type { Spec } from '../types'
+import { exampleAvailability } from './availability'
+import { num, type HeadOption } from './pair'
+
+const RANK_LABEL: Record<HeadOption['rank'], string> = {
+  best: '1st, your fit',
+  runner: '2nd, close behind',
+  other: 'Compared',
+}
+
+export interface HeadSelectorProps {
+  options: HeadOption[]
+  selected: string
+  onSelect(head: string): void
+  /** The fit's shaft, for the example availability line. */
+  shaft: Spec['shaft'] | undefined
+  /** The "Show all five heads" toggle, rendered in the header row. */
+  rowToggle?: ReactNode
+}
+
+/** R3 "Tap a head to see it fly": two toggle buttons (aria-pressed) with image, rank, score, example stock line. */
+export function HeadSelector({ options, selected, onSelect, shaft, rowToggle }: HeadSelectorProps) {
+  return (
+    <section aria-labelledby="head-selector" className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-4">
+        <Eyebrow as="h2" id="head-selector" className="m-0 text-grey-8f">
+          Tap a head to see it fly
+        </Eyebrow>
+        {rowToggle}
+      </div>
+      <div className="flex gap-3">
+        {options.map((o) => {
+          const on = o.head === selected
+          const first = o.rank === 'best'
+          const avail = exampleAvailability(o.head, shaft)
+          return (
+            <button
+              key={o.head}
+              type="button"
+              aria-pressed={on}
+              onClick={() => onSelect(o.head)}
+              className={cn(
+                'flex min-w-0 flex-1 cursor-pointer items-center gap-3.5 rounded-14 px-4 py-3 text-left font-sans text-washed-white transition-ui',
+                on ? 'border-2 border-tiger-orange bg-selected-dark' : 'border border-grey-3d bg-grey-12 hover:border-grey-8f',
+              )}
+            >
+              <ClubImage slug={o.head} className="h-[70px] w-auto flex-none" />
+              <span className="flex min-w-0 flex-col gap-[3px]">
+                <Eyebrow className={first ? 'text-orange-hover' : 'text-grey-8f'}>{RANK_LABEL[o.rank]}</Eyebrow>
+                <span className="font-display text-[22px] font-bold uppercase">
+                  {headName(o.head)}
+                  {o.row && (
+                    <span title="Fit score" className={cn('ml-1.5 tabular-nums', first ? 'text-orange-hover' : 'text-grey-a3')}>
+                      <span className="sr-only">, fit score </span>
+                      {num(o.row.score_total)}
+                    </span>
+                  )}
+                </span>
+                <span title={STATUS_TOOLTIP} className="inline-flex min-w-0 items-center gap-1.5 text-[13px] text-grey-a3">
+                  <span
+                    aria-hidden="true"
+                    className={cn('size-[7px] flex-none rounded-full', avail.tone === 'green' ? 'bg-status-green' : 'bg-status-amber')}
+                  />
+                  <span className="truncate">{avail.text}</span>
+                  <span className="sr-only"> (example)</span>
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
