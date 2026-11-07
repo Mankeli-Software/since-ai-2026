@@ -1,0 +1,73 @@
+{
+  "golfer_id": "DEMO-12",
+  "name": "Marja",
+  "age": 66,
+  "teaser": "Right-handed, shoots over 92, carries 7-iron 95 yd.",
+  "synthetic": true,
+  "profile": {
+    "age": {
+      "value": 66,
+      "source": "questionnaire"
+    },
+    "sex": {
+      "value": "female",
+      "source": "questionnaire"
+    },
+    "handedness": {
+      "value": "right",
+      "source": "questionnaire"
+    },
+    "rounds_per_year": {
+      "value": "Under 10",
+      "source": "questionnaire"
+    },
+    "score_bucket": {
+      "value": 5,
+      "source": "questionnaire"
+    },
+    "characteristics": {
+      "value": [
+        "forgiveness",
+        "distance control",
+        "distance"
+      ],
+      "source": "questionnaire"
+    },
+    "flight": {
+      "value": "mid",
+      "source": "questionnaire"
+    },
+    "tempo": {
+      "value": "quick",
+      "source": "questionnaire"
+    },
+    "height_cm": {
+      "value": 160.0,
+      "source": "questionnaire"
+    },
+    "wrist_to_floor_cm": {
+      "value": 82.6,
+      "source": "questionnaire"
+    },
+    "glove": {
+      "value": "S",
+      "source": "questionnaire"
+    },
+    "glove_was_guessed": {
+      "value": false,
+      "source": "questionnaire"
+    },
+    "reported_7i_carry_yd": {
+      "value": 95.0,
+      "source": "questionnaire"
+    }
+  },
+  "sample_imports": [
+    {
+      "sample_id": "own_7i",
+      "kind": "trackman_csv",
+      "club": "own_7i",
+      "label": "Own 7-iron TrackMan CSV"
+    }
+  ]
+}

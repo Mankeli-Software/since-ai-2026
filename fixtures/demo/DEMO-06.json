@@ -1,0 +1,65 @@
+{
+  "golfer_id": "DEMO-06",
+  "name": "Jari",
+  "age": 52,
+  "teaser": "Right-handed, shoots 85-92, carries 7-iron 135 yd.",
+  "synthetic": true,
+  "profile": {
+    "age": {
+      "value": 52,
+      "source": "questionnaire"
+    },
+    "sex": {
+      "value": "male",
+      "source": "questionnaire"
+    },
+    "handedness": {
+      "value": "right",
+      "source": "questionnaire"
+    },
+    "rounds_per_year": {
+      "value": "31-50",
+      "source": "questionnaire"
+    },
+    "score_bucket": {
+      "value": 4,
+      "source": "questionnaire"
+    },
+    "characteristics": {
+      "value": [
+        "forgiveness",
+        "more offset"
+      ],
+      "source": "questionnaire"
+    },
+    "flight": {
+      "value": "mid",
+      "source": "questionnaire"
+    },
+    "tempo": {
+      "value": "moderate",
+      "source": "questionnaire"
+    },
+    "height_cm": {
+      "value": 184.0,
+      "source": "questionnaire"
+    },
+    "wrist_to_floor_cm": {
+      "value": 91.5,
+      "source": "questionnaire"
+    },
+    "glove": {
+      "value": "XL",
+      "source": "questionnaire"
+    },
+    "glove_was_guessed": {
+      "value": false,
+      "source": "questionnaire"
+    },
+    "reported_7i_carry_yd": {
+      "value": 135.0,
+      "source": "questionnaire"
+    }
+  },
+  "sample_imports": []
+}

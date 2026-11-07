@@ -1,0 +1,8 @@
+Shot,Club,Club Speed,Attack Angle,Dynamic Loft,Club Path,Face Angle,Face To Path,Ball Speed,Smash Factor,Launch Angle,Launch Direction,Spin Rate,Spin Axis,Carry,Total,Side,Height,Landing Angle,Impact Offset,Impact Height,Dynamic Lie
+,,mph,deg,deg,deg,deg,deg,mph,,deg,deg,rpm,deg,yds,yds,yds,yds,deg,mm,mm,deg
+1,takomo_101-mkii_kbs-tour-lite-regular_std,67.0,-1.8,26.5,-2.8,4.4,7.2,62.3,0.93,21.5,2.6,5746.0,22.4,61.4,70.6,7.9,7.6,29.6,-41.0,5.0,60.6
+2,takomo_101-mkii_kbs-tour-lite-regular_std,68.8,-1.2,26.0,-8.4,-13.2,-4.8,82.9,1.2,20.7,-12.0,6621.0,-14.3,102.7,110.6,-31.4,15.2,36.6,21.0,-7.0,60.8
+3,takomo_101-mkii_kbs-tour-lite-regular_std,66.9,-0.8,25.2,-9.7,-10.5,-0.8,83.9,1.25,20.0,-10.3,6019.0,-4.6,105.3,116.2,-23.0,15.3,36.3,15.0,-8.0,59.9
+4,takomo_101-mkii_kbs-tour-lite-regular_std,70.0,-1.5,26.3,-0.8,4.1,4.9,87.3,1.25,20.6,2.9,6171.0,7.0,113.4,119.7,11.4,18.3,39.6,18.0,1.0,61.7
+5,takomo_101-mkii_kbs-tour-lite-regular_std,67.1,-1.7,25.9,-12.8,-10.2,2.6,85.2,1.27,20.6,-10.9,6556.0,7.5,108.7,117.7,-16.8,16.9,38.6,-10.0,-8.0,61.8
+6,takomo_101-mkii_kbs-tour-lite-regular_std,65.5,-1.8,28.3,-8.1,-4.0,4.1,82.1,1.25,21.9,-5.0,7110.0,9.2,100.7,107.4,-3.7,16.9,39.9,-6.0,-8.0,61.2
