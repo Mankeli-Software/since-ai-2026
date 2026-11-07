@@ -68,7 +68,7 @@ export function ChatShell() {
         style={{ opacity: ghostOpacity(state?.confidence) }}
       />
       <div className="hidden max-[1023px]:block border-b border-border-card bg-midnight px-4 py-2 text-center text-[13px] text-grey-c8">
-        Best on a laptop for this demo; the mobile layout is next.
+        Best on a laptop for this demo.
       </div>
       <StudioHeader variant="chat" step={view.step} />
       <main
