@@ -3,9 +3,17 @@ against the REAL tools. No LLM, no API key. The cursor lives in `FitSession.scri
 is committed atomically with the turn. A `ui` step with an input component ends the turn.
 
 Any string value of the exact form `$<root>.<key>.<index>...` in a step is a reference, resolved
-when the step runs: `$state...` reads the session's FittingState, `$<tool>...` reads the output
-of that tool from an earlier `tool_call` step in the same turn. Display blocks then show the
-real tools' numbers instead of copies in the YAML."""
+when the step runs: `$state...` reads the session's FittingState, `$profile.<field>` a saved
+profile value, `$answer...` the golfer's reply to the card that ended the last turn (a dict for
+most cards, a plain string when they typed instead), and `$<tool>...` the output of that tool from
+an earlier `tool_call` step in the same turn. Display blocks then show the real tools' numbers
+instead of copies in the YAML. `$answer.age ?? 31` falls back to the YAML value when the path is
+missing or null; an `$answer`/`$profile` ref without a fallback that does not resolve drops its
+key, so `update_profile` saves only what the golfer gave.
+
+`{by: <ref>, cases: {<value>: ...}, default: ...}` picks a case by the resolved value (compared as
+strings), anywhere a value goes, including a `text` step. That is how the fitter's line matches the
+answer although the script never branches."""
 
 import asyncio
 import re
@@ -28,7 +36,9 @@ SCRIPTS = Path(__file__).resolve().parent.parent / "mock" / "scripts"
 PERSONAS = {"DEMO-01": "mikko", "DEMO-09": "hannu", "DEMO-04": "lars", "DEMO-13": "anders"}
 CHUNK_WORDS = 3
 CHUNK_DELAY_S = 0.02
-REF = re.compile(r"^\$[a-z_]+(\.\w+)*$")
+REF = re.compile(r"^\$[a-z_]+(\.\w+)*( \?\? .+)?$")
+SOFT_ROOTS = {"answer", "profile"}  # unresolved without a fallback: drop the key, don't fail
+MISSING = object()
 
 
 def load_script(demo_golfer_id: str | None) -> list[dict[str, Any]]:
@@ -40,18 +50,44 @@ def load_script(demo_golfer_id: str | None) -> list[dict[str, Any]]:
     return yaml.safe_load(path.read_text())["steps"]
 
 
-def resolve_refs(value: Any, roots: dict[str, Any]) -> Any:
-    """Replace `$root.path` strings (see module docstring) in a step, recursively."""
-    if isinstance(value, dict):
-        return {k: resolve_refs(v, roots) for k, v in value.items()}
-    if isinstance(value, list):
-        return [resolve_refs(v, roots) for v in value]
-    if isinstance(value, str) and REF.match(value):
-        root, *path = value[1:].split(".")
+def _lookup(ref: str, roots: dict[str, Any]) -> Any:
+    expr, _, fallback = ref.partition(" ?? ")
+    root, *path = expr[1:].split(".")
+    try:
         cur = roots[root]
         for key in path:
             cur = cur[int(key)] if isinstance(cur, list) else cur[key]
-        return cur
+    except (KeyError, IndexError, TypeError, ValueError):
+        if not fallback and root not in SOFT_ROOTS:
+            raise
+        cur = None
+    if cur is None and fallback:
+        return yaml.safe_load(fallback)
+    if cur is None and root in SOFT_ROOTS:
+        return MISSING
+    return cur
+
+
+def resolve_refs(value: Any, roots: dict[str, Any]) -> Any:
+    """Replace `$root.path` strings and `{by, cases}` picks (see module docstring) in a step,
+    recursively. A dict key or list item that resolves to nothing is left out."""
+    if (
+        isinstance(value, dict)
+        and "by" in value
+        and "cases" in value
+        and value.keys() <= {"by", "cases", "default"}
+    ):
+        key = resolve_refs(value["by"], roots)
+        cases = {str(k): v for k, v in value["cases"].items()}
+        picked = cases.get(str(key), value.get("default", MISSING))
+        return MISSING if picked is MISSING else resolve_refs(picked, roots)
+    if isinstance(value, dict):
+        out = {k: resolve_refs(v, roots) for k, v in value.items()}
+        return {k: v for k, v in out.items() if v is not MISSING}
+    if isinstance(value, list):
+        return [v for v in (resolve_refs(v, roots) for v in value) if v is not MISSING]
+    if isinstance(value, str) and REF.match(value):
+        return _lookup(value, roots)
     return value
 
 
@@ -95,8 +131,17 @@ class ScriptedEngine:
         n = 0
         outputs: dict[str, Any] = {}  # tool name -> JSON output, for `$<tool>` refs this turn
 
+        roots: dict[str, Any] = {"profile": {k: v.value for k, v in s.profile.items()}}
+        if answer is not None and not replay_free_text:
+            roots["answer"] = answer[0]
+
         def refs(value: Any) -> Any:
-            return resolve_refs(value, {**outputs, "state": s.state.model_dump(mode="json")})
+            roots["profile"] = {
+                k: v.value for k, v in s.profile.items()
+            }  # update_profile changes it
+            return resolve_refs(
+                value, {**outputs, **roots, "state": s.state.model_dump(mode="json")}
+            )
 
         async def say(text: str) -> None:
             nonlocal n
@@ -121,7 +166,9 @@ class ScriptedEngine:
             step = steps[s.script_cursor]
             s.script_cursor += 1
             if "text" in step:
-                await say(step["text"])
+                text = refs(step["text"])
+                if text is not MISSING:
+                    await say(text)
             elif "tool_call" in step:
                 call = step["tool_call"]
                 spec = get_tool(call["name"])
