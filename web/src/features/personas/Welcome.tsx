@@ -1,4 +1,4 @@
-import { Button, EnterKbd, Eyebrow, LogoMark, Wordmark, useEnterKey } from '@/components/studio'
+import { Button, ClubImage, EnterKbd, Eyebrow, LogoMark, Wordmark, useEnterKey } from '@/components/studio'
 import { ClubModel } from '@/features/stage3d/ClubModel'
 import { cn } from '@/lib/utils'
 import { ownFittingHrefV3, PERSONAS, personaHrefV3 } from './personas'
