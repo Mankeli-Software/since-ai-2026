@@ -34,7 +34,7 @@ export function FitterLine({ messages }: { messages: ChatMessage[] }) {
 export function Thinking() {
   return (
     <p role="status" className="m-0 ml-[60px] flex max-md:ml-[42px] items-center gap-1.5 text-grey-a3">
-      <span className="sr-only">Thinking…</span>
+      <span className="sr-only">Running the numbers…</span>
       {[0, 160, 320].map((d) => (
         <span
           key={d}

@@ -6,6 +6,12 @@ type P = Extract<UIBlock, { type: 'why_panel' }>
 type Item = P['items'][number]
 type Depth = P['depth']
 
+const DEPTH_LABELS: Record<Depth, string> = {
+  beginner: 'Summary',
+  standard: 'Detailed',
+  numbers: 'Spec Sheet',
+}
+
 const label = (s: string) => s.replace(/_/g, ' ')
 
 function sourceText(s: NonNullable<Item['sources']>[number]) {
@@ -27,7 +33,7 @@ export function WhyPanelView({ items, depth: initial }: { items: Item[]; depth: 
               onClick={() => setDepth(d)}
               className={`${chipCls(d === depth)} h-7 px-3 font-display text-xs font-semibold uppercase tracking-[0.1em]`}
             >
-              {d}
+              {DEPTH_LABELS[d]}
             </button>
           ))}
         </div>
@@ -53,7 +59,7 @@ export function WhyPanelView({ items, depth: initial }: { items: Item[]; depth: 
             {it.close_call && (
               <p className={calloutCls}>
                 <strong className="font-display uppercase tracking-[0.1em] text-orange-ink">Close call</strong>{' '} {String(it.close_call.ours)}
-                {it.close_call.alt != null && <> vs {String(it.close_call.alt)}</>}, {Math.round(it.close_call.share * 100)}% for ours.
+                {it.close_call.alt != null && <> vs {String(it.close_call.alt)}</>}, {Math.round(it.close_call.share * 100)}% for our pick.
                 {it.close_call.next_step && <> {it.close_call.next_step}</>}
               </p>
             )}

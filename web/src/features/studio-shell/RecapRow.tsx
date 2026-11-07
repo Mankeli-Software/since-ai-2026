@@ -35,7 +35,7 @@ export function RecapRow({ items }: { items: UiItem[] }) {
         onClick={() => setOpen((o) => !o)}
         className="inline-flex min-h-11 max-w-full cursor-pointer items-center gap-2 self-start rounded-full border border-grey-2a bg-grey-14 px-3.5 font-sans text-[14px] font-medium text-grey-c8 md:hidden"
       >
-        <span className="flex-none text-grey-8f">You told me</span>
+        <span className="flex-none text-grey-8f">Logged so far</span>
         <span className="truncate text-washed-white">{latest.answer?.displayText ?? ''}</span>
         {more > 0 && (
           <span className="inline-flex h-[22px] min-w-[22px] flex-none items-center justify-center rounded-full bg-grey-2a px-1 text-[12px] font-semibold">
@@ -58,7 +58,7 @@ export function RecapRow({ items }: { items: UiItem[] }) {
         </svg>
       </button>
       <div className={cn('flex flex-wrap items-center gap-2', !open && 'max-md:hidden')}>
-        <Eyebrow className="mr-1.5 text-grey-5f max-md:hidden">You told me</Eyebrow>
+        <Eyebrow className="mr-1.5 text-grey-5f max-md:hidden">Logged so far</Eyebrow>
         {items.map((u) => (
           <RecapChip key={u.id} label={u.answer?.displayText ?? ''} title={promptOf(u)} measured={isMeasured(u)} />
         ))}

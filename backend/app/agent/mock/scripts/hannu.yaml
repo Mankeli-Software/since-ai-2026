@@ -1,8 +1,8 @@
 persona: hannu
 steps:
   # Turn 1: Questionnaire review and ball-line test prompt
-  - text: "Hi Hannu, welcome to Takomo Fitter Studio. Let's find the best irons for your game."
-  - text: "From your questionnaire, you carry your 7-iron 125 yards. The static sizing chart suggests a standard lie, but dynamic delivery on turf often tells a different story."
+  - text: "Moi Hannu. Let's get your irons sorted."
+  - text: "From your answers, you carry your 7-iron 125 yards. Static sizing charts say standard lie, but turf contact at impact usually tells the real truth."
   - tool_call:
       name: run_fit
       args: {}
@@ -17,8 +17,8 @@ steps:
       reason_code: lie_ball_line
 
   # Turn 2: Ball-line results, honest close call explanation and simulator recommendation
-  - text: "We received your 5 marker-line readings."
-  - text: "Here is our honest assessment: the marker-line test on a range mat is approximate (sigma ~1.5°). When fused with your sizing chart, your lie angle remains a genuine close call between Standard and 1° Upright. In addition, without measured club speed, your flex is on the boundary."
+  - text: "Got your 5 ball-line marks."
+  - text: "Here's our straight-up Finnish honesty: a sharpie line off a range mat is noisy data. Fusing it with your static chart leaves lie angle right on the razor's edge between Standard and 1° Upright—and your flex is right on the line without measured speed."
   - tool_call:
       name: run_fit
       args: {}
@@ -47,11 +47,11 @@ steps:
           sources:
             - source: questionnaire
             - source: ball_line
-  - text: "Rather than locking in a non-returnable custom order on rough mat data, we honestly recommend testing a Takomo 7-iron on a simulator first."
+  - text: "Rather than nudging you into a non-returnable custom order based on a mat test, we'd rather you hit 10 balls with a Takomo test club on a simulator first."
   - ui:
       type: simulator_map
       simulator_ids:
         - helsinki_indoor
         - espoo_fitting
         - turku_fitting
-  - text: "Hitting 5 to 10 shots on a TrackMan near you will turn this provisional fit into a confident specification."
+  - text: "Hitting 5 to 10 shots on a TrackMan near you will turn this educated guess into dead certainty."

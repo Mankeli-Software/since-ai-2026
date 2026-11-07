@@ -139,7 +139,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
             ) : null}
             {state?.gate && (
               <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-c8 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
-                {state.gate === 'provisional' ? 'Provisional' : 'Confident'}
+                {state.gate === 'provisional' ? 'Working fit' : 'Dialed in'}
               </Eyebrow>
             )}
           </>

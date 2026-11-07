@@ -38,8 +38,8 @@ import { isFixtureFlag, seedFixtureHeader, useResultsData, type ResultsData } fr
  * `?ff=v3,results-fixture` for the same thing.
  */
 
-const SUMMARY_FALLBACK = "That's your fit. The short version is above. Every detail is one tap away when you want it."
-const DETAIL_FALLBACK = 'Every detail of your fit is here. Ask me anything about it.'
+const SUMMARY_FALLBACK = "Here's your build. The TL;DR is right above, and every number is open for inspection below."
+const DETAIL_FALLBACK = "All the raw numbers and specs are right here. Ask me anything—or poke holes in what looks off."
 
 /** Default suggestion chips (spec R1), built from the fit so they never ask about the wrong flex or head. */
 function defaultChips(data: ResultsData): string[] {

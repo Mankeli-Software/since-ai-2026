@@ -1,8 +1,8 @@
 persona: anders
 steps:
   # Turn 1: welcome, then his test-club shots (Takomo 201 MKII on a simulator)
-  - text: "Hello Anders, welcome to Takomo Fitter Studio."
-  - text: "Your answers put you close to a stock set. Your test-club shots decide the one part that could change that: the lie."
+  - text: "Hej Anders. Your numbers put you right on the doorstep of a stock set."
+  - text: "Let's see your test-club shots to settle the one spec that could change that: your lie angle."
   - ui:
       type: data_import
       prompt: "Import your Takomo 201 MKII test-club shots."
@@ -43,7 +43,7 @@ steps:
             - source: questionnaire
   - ui:
       type: stock_vs_custom
-      question: "A +1° upright lie straightens ~3 yards of push miss, but custom builds cannot be returned. Standard stock lie includes a 30-day trial return policy. Which do you prefer?"
+      question: "A +1° upright bend straightens out about 3 yards of push miss. But custom builds are non-returnable, whereas stock gives you 30 days to play them risk-free. Which way do you want to go?"
       reasons:
         - "Dynamic lie is +1° upright (custom build, non-returnable)"
         - "Standard stock lie is 0° (includes 30-day return policy)"
@@ -51,8 +51,13 @@ steps:
       custom_returnable: false
 
   # Turn 3: Confirmation
-  - text: "That is an honest trade-off. A stock set gives you a 30-day return policy to test your lie on the course."
+  - text:
+      by: $answer
+      cases:
+        stock: "Fair trade-off. Stock keeps the 30-day safety net, so you can test the lie on the course first."
+        custom: "Custom it is. Your lie gets built in, just remember custom clubs can't be returned."
+      default: "Choice noted. Stock keeps the 30-day return, custom gets your lie built in."
   - tool_call:
       name: simulate_flight
       args: {heads: [$state.best.head]}
-  - text: "Your configuration is ready. Test different lie settings in the Tinker panel or save your build."
+  - text: "Your build is dialled in. Test other lies in the Tinker panel or hit Save in the top bar."

@@ -1,11 +1,11 @@
 persona: lars
 steps:
   # Turn 1: Tour player evaluation and 301 CB vs 301 MB close call
-  - text: "Welcome Lars. With an 88 mph 7-iron club speed, you can play either of Takomo's tour forged irons."
+  - text: "Welcome Lars. At 88 mph 7-iron speed, you can play either of our tour forged irons."
   - tool_call:
       name: run_fit
       args: {}
-  - text: "Your fitting reveals an honest close call between the Takomo 301 CB and 301 MB. Rather than pretending certainty, here are the measured trade-offs."
+  - text: "We're looking at a dead heat between the 301 CB and 301 MB. No sales BS—here's the raw trade-off between the two."
   - tool_call:
       name: simulate_flight
       args: {heads: [$state.best.head, $state.runner_up.head]}
@@ -48,7 +48,7 @@ steps:
       items: [$why_head.why, $why_shaft.why]
   - ui:
       type: choice_chips
-      prompt: "Which trade-off fits your game: the perimeter forgiveness of the 301 CB or the pure workability of the 301 MB?"
+      prompt: "Which matters more to your scoring: the slight toe-strike forgiveness of the CB, or the surgical shot-shaping of the MB blade?"
       field: head_choice
       options:
         - id: 301-cb
@@ -57,8 +57,8 @@ steps:
           label: "Takomo 301 MB (Muscle Back)"
 
   # Turn 2: Selected build confirmation and flight view
-  - text: "Both models give you forged feel and workability."
+  - text: "Both heads give you forged feel and workability."
   - tool_call:
       name: simulate_flight
       args: {heads: [$state.best.head, $state.runner_up.head]}
-  - text: "Your dispersion comparison is ready on the 3D Stage. You can inspect specs in the Tinker panel or save your fit."
+  - text: "Dispersion is mapped on the stage. Tweak in Tinker or hit Save in the top bar."

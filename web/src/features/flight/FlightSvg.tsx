@@ -287,8 +287,8 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
         <>
           <text x={ML} y={topY0 - 8} className="mut">
             {ownShots.length > 0 && recItem
-              ? `TOP VIEW (yd) · your shots vs the ${recItem.name} · right of target is down`
-              : "TOP VIEW (yd) · right of target is down"}
+              ? `OVERHEAD DISPERSION (yd) · your shots vs the ${recItem.name} · right of target is down`
+              : "OVERHEAD DISPERSION (yd) · right of target is down"}
           </text>
           {ticks(xMax, 25).filter((v) => v >= xMin).map((v) => (
             <g key={`tx${v}`}>
@@ -386,8 +386,8 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
 
           <text x={ML + PW} y={H - 6} textAnchor="end" className="mut">
             {caption ?? (guessed
-              ? "dashed = guessed carry · 1σ / 2σ · Estimated by Takomo's physics model, yards"
-              : "solid = 1σ · dashed = 2σ · Estimated by Takomo's physics model, yards")}
+              ? "dashed = guessed carry · 68% / 95% dispersion · Estimated by Takomo's physics model, yards"
+              : "solid = 68% dispersion · dashed = 95% dispersion · Estimated by Takomo's physics model, yards")}
           </text>
         </>
       )}

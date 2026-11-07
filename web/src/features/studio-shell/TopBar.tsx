@@ -4,10 +4,10 @@ import { Mascot } from '../mascot/Mascot'
 import { useSession } from '@/store/session'
 
 const GATE: Record<string, string> = {
-  needs_info: 'Needs info',
-  no_result: 'No result yet',
-  provisional: 'Provisional',
-  confident: 'Confident',
+  needs_info: 'Dialing in',
+  no_result: 'Not yet',
+  provisional: 'Working fit',
+  confident: 'Dialed in',
 }
 
 /** Always visible; driven only by FittingState (highest version wins, see store/session.ts). */
@@ -42,7 +42,7 @@ export function TopBar() {
           <span className="font-semibold text-ink-300">Confidence</span>
           <span className="font-semibold">
             {pct == null ? '-' : `${pct}%`} · {gate}
-            {state?.strength === 'low' && ' (low)'}
+            {state?.strength === 'low' && ' (rough)'}
           </span>
         </div>
         <div className="mt-1 h-1.5 bg-surface-dark-3" role="progressbar" aria-valuenow={pct ?? undefined} aria-valuemin={0} aria-valuemax={100}>
@@ -54,7 +54,7 @@ export function TopBar() {
         <span className="font-display text-lg font-semibold uppercase tracking-wide">{best ? best.head : 'not yet'}</span>
         {state?.runner_up && <span className="text-ink-300"> (then {state.runner_up.head})</span>}
       </div>
-      {missing > 0 && <span className="text-sm text-ink-300">{missing} missing</span>}
+      {missing > 0 && <span className="text-sm text-ink-300">{missing} specs to dial in</span>}
       <div className="ml-auto flex items-center gap-3">
         {demo && <span className="border border-orange-300 px-2 py-0.5 font-display text-xs font-semibold uppercase tracking-wider text-orange-300">Simulated golfer</span>}
         <Button
@@ -73,7 +73,7 @@ export function TopBar() {
           disabled={busy || !state}
           onClick={() => void say('I want to add data')}
         >
-          Add data
+          Add shot data
         </Button>
         <div className="flex items-center gap-1.5">
           <input
@@ -109,7 +109,7 @@ export function TopBar() {
                 )}
               </>
             ) : (
-              'Save is not available yet'
+              'Save pending'
             )}
           </div>
         )}

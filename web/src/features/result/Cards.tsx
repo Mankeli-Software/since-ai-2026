@@ -10,8 +10,8 @@ export function DriverTeaserView() {
   return (
     <section className="flex flex-col gap-1.5 rounded-lg bg-surface-dark px-5 py-4 text-washed-white">
       <span className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-orange-300">Coming next</span>
-      <h3 className="font-display text-3xl uppercase leading-none">Driver fitting is next</h3>
-      <p className="text-sm text-ink-300">Irons first. Drivers follow.</p>
+      <h3 className="font-display text-3xl uppercase leading-none">Driver fitting is coming next</h3>
+      <p className="text-sm text-ink-300">Scoring irons first. Takomo Ignis driver fittings follow soon.</p>
     </section>
   )
 }
@@ -24,7 +24,7 @@ export function ForgeCtaView({ topic }: { topic: string }) {
       <span className={eyebrowCls}>Takomo Forge</span>
       <h3 className="font-display text-2xl uppercase leading-tight">{t.title}</h3>
       <p className="text-sm text-ink-700">{t.blurb}</p>
-      <Button variant="outline" className={`mt-1 self-start ${btnCls}`}>Go deeper in Forge</Button>
+      <Button variant="outline" className={`mt-1 self-start ${btnCls}`}>Read equipment breakdown →</Button>
     </section>
   )
 }

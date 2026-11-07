@@ -121,28 +121,28 @@ export function StagePanel() {
       {/* Main Stage: 3D Club or Ball Flight */}
       <div className="min-h-0 flex-1 relative flex flex-col">
         <div className="min-h-0 flex-1 relative">
-          <Suspense fallback={<p className="p-4 text-ink-300">Loading stage...</p>}>
+          <Suspense fallback={<p className="p-4 text-ink-300">Setting up the bay...</p>}>
             {stage.view === 'flight' ? (
               flightData ? (
                 <div className="p-4 h-full flex flex-col">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-ink-300">
-                      Tinker Flight Comparison
+                      Simulated Flight Compare
                     </p>
                     <span className="text-[11px] text-tiger-orange font-semibold">
-                      Orange = Rec · White = Tinker
+                      Orange = Fitter's pick · White = Tinkered
                     </span>
                   </div>
                   <FlightSvg data={flightData} recommendedSlug={tinker.baseline.head} />
                 </div>
               ) : hasFlag('flight-fixture') ? (
                 <div className="p-4">
-                  <p className="mb-2 text-xs text-ink-300">Example flight</p>
+                  <p className="mb-2 text-xs text-ink-300">Simulated flight preview</p>
                   <FlightSvg data={flightTwoHeads} recommendedSlug={activeSpec?.head} />
                 </div>
               ) : (
                 <p className="m-4 rounded border border-border-dark bg-surface-dark-2 p-4 text-sm text-ink-300">
-                  Ball flight shows here after the fit.
+                  Your 3D ball flight and dispersion will map out here once we dial in your specs.
                 </p>
               )
             ) : stage.view === 'row' ? (

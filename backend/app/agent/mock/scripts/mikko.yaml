@@ -1,8 +1,8 @@
 persona: mikko
 steps:
   # Turn 1: Onboarding greeting, questionnaire review, initial fit and request for TrackMan CSV
-  - text: "Hi Mikko, welcome to Takomo Fitter Studio. Let's find your perfect irons."
-  - text: "From your answers alone, this fit is provisional. Measured shots will firm it up."
+  - text: "Terve Mikko. Let's get your irons dialled in."
+  - text: "From your answers alone, this fit is a working estimate. Measured shots will lock it down."
   - tool_call:
       name: run_fit
       args: {}
@@ -20,7 +20,7 @@ steps:
   - tool_call:
       name: get_import_report
       args: {}
-  - text: "Thanks, your shots are in. Your measured carry and the carry you told me do not match. Please check it below."
+  - text: "Shots are in. Here's the candid truth: your measured carry and the carry you told me do not match. Check the numbers below."
   - ui:
       type: outlier_review
       import_id: $get_import_report.import_id
@@ -34,8 +34,8 @@ steps:
   - tool_call:
       name: run_fit
       args: {}
-  - text: "With your measured speed in, watch the confidence meter rise."
-  - text: "Your lie still comes from a static chart. Shots with a Takomo test club on a launch monitor show your lie at impact."
+  - text: "Measured speed locked down your flex."
+  - text: "Your lie still comes from a static chart. Shots with a Takomo test club on a launch monitor show your true lie at impact."
   - ui:
       type: data_import
       prompt: "Import your Takomo 201 MKII test-club shots to firm up your lie."
@@ -106,13 +106,18 @@ steps:
           score_total: $run_fit.ranking.1.total
   - ui:
       type: stock_vs_custom
-      question: "Your fitted build is a custom order. Custom clubs cannot be returned. A stock set has a 30-day return. Which do you prefer?"
+      question: "Your strike pattern calls for a custom lie. Custom clubs cannot be returned, while stock sets have 30-day returns. Which way do you want to go?"
       reasons: []
       stock_return_days: 30
       custom_returnable: false
 
   # Turn 5: Confirmation and save
-  - text: "Thanks, your choice is noted."
-  - text: "Use Save at the top to keep a link to your fit."
+  - text:
+      by: $answer
+      cases:
+        stock: "Stock it is. You keep the 30-day return."
+        custom: "Custom it is. Your build is ready, just remember custom clubs can't be returned."
+      default: "Choice noted. Your build is ready."
+  - text: "Hit Save in the top bar to keep a direct link to your build."
   - ui:
       type: driver_teaser
