@@ -2,13 +2,15 @@
 
 Challenge summary
 ```
-Climate change is not a distant forecast for the food industry. It is already reshaping growing conditions,
-supply chains, water availability and the decisions companies need to make today. But the evidence is scattered
-across emissions reports, farming data, weather projections and environmental indicators. What if AI could turn that
-complexity into a clear picture of what matters next? Together with Apetit, explore how intelligent decision support
-could connect climate and nature insights to meaningful action. Imagine a tool that helps people understand environmental
-risks, explore future scenarios, identify promising interventions and see the reasoning behind every recommendation.
-The opportunity spans AI, geospatial analysis, forecasting, sustainability and responsible product design. This is about
-more than displaying another carbon dashboard. It is about helping a real food business navigate uncertainty and make decisions
-that could shape more resilient agriculture, smarter sourcing and measurable progress for both climate and nature.
+Buying golf clubs online should not mean choosing blindly. In a fitting studio, a skilled professional asks the
+right questions, interprets a player's swing and explains why a particular setup makes sense. Online, that
+experience can disappear into a questionnaire and a recommendation that feels like a black box. Takomo Golf
+challenges you to make expert-level fitting guidance feel personal, understandable and accessible wherever a
+golfer happens to be. Could an intelligent digital fitter interpret a player's needs, explain trade-offs between
+equipment choices and give confidence without pretending every answer is certain? This is a chance to combine
+recommendation systems, conversational AI, explainability, sporting data and genuinely thoughtful consumer
+experience design. The opportunity is global: help golfers navigate complex equipment decisions without requiring
+a physical showroom in every country. If you love building products where AI meets human intuition,
+personalisation and a passionate community, this challenge lets you turn technical intelligence into an experience
+people can trust.
 ```
