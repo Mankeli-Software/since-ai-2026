@@ -36,8 +36,10 @@ def evidence_of(session: FitSession) -> FitEvidence:
             ball_line_readings = [float(x) for x in ball_line.value]
         elif isinstance(ball_line.value, (int, float)):
             ball_line_readings = [float(ball_line.value)]
+    shots = list(session.state.shots) if session.state and session.state.shots else []
     return FitEvidence(
         phone=PhoneMeasurements.model_validate(phone) if phone else None,
+        shots=shots,
         ball_line_tilt_deg=ball_line_readings,
         flags=list(session.flags),
     )
