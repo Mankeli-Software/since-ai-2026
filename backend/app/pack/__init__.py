@@ -376,19 +376,3 @@ def physics_shot(
 
 def lie_face_effect_deg(lie_error_deg: Any, dynamic_loft_deg: Any) -> float:
     return _f(_ph.lie_face_effect_deg(lie_error_deg, dynamic_loft_deg))
-
-
-def shot_carry_yd(
-    club_speed_mph: float,
-    dynamic_loft_deg: float,
-    attack_deg: float = -3.0,
-    forgiveness: float = 3.0,
-) -> float:
-    """Carry distance in yards from takomo_fit.physics.shot."""
-    res = _ph.shot(
-        club_speed_mph=float(club_speed_mph),
-        dynamic_loft_deg=float(dynamic_loft_deg),
-        attack_deg=float(attack_deg),
-        forgiveness=float(forgiveness),
-    )
-    return _f(res["carry_yd"])

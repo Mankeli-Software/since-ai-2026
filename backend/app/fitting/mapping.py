@@ -61,12 +61,25 @@ class MappingOptions:
     carry_speed_fit: bool = True  # exp, kept: dev 85.59 -> 85.62 (flex 87.1 -> 87.5)
     carry_speed_fit_line: tuple[float, float] = (26.646, 0.3376)
     carry_speed_fit_sd_mph: float = 4.46
+    # exp: multi-variable demographic carry fit on train (carry, sex, age, score_bucket).
+    # dev 85.62 -> 86.19 (flex 87.5 -> 89.4)
+    carry_speed_multivar: bool = True
+    carry_speed_multivar_weights: tuple[float, float, float, float, float] = (
+        52.9576,
+        0.2241,
+        -8.2587,
+        -0.0762,
+        -1.3610,
+    )
+    carry_speed_multivar_sd_mph: float = 3.53
     # --- body (train: self height +1.0 cm sd 1.3; wrist-to-floor sd 3.25; photos per the pack)
     height_self_bias_cm: float = 1.0
     height_self_sd_cm: float = 1.3
     height_photo_sd_cm: dict[str, float] = field(default_factory=lambda: {"good": 1.6, "poor": 3.5})
     wtf_self_sd_cm: float = 3.2
     wtf_photo_sd_cm: dict[str, float] = field(default_factory=lambda: {"good": 2.0, "poor": 3.6})
+    guessed_glove_from_height: bool = True  # exp, kept: dev 85.62 -> 85.70 (grip 85.5 -> 86.5)
+    hand_from_height_slope: float = 0.1089
     # --- tempo (pack: quick < 1.05 s, smooth > 1.35 s total swing time)
     tempo_quick_below_s: float = 1.05
     tempo_smooth_above_s: float = 1.35
@@ -236,6 +249,19 @@ def _swing(
     k = _flag_factor(ev, "reported_7i_carry_yd")
     if intake.reported_7i_carry_yd is not None and k is not None:
         carry = intake.reported_7i_carry_yd
+        if o.carry_speed_multivar:
+            w0, w_carry, w_fem, w_age, w_sb = o.carry_speed_multivar_weights
+            is_fem = 1.0 if intake.sex == "female" else 0.0
+            age = float(intake.age if intake.age is not None else 40)
+            sb = float(intake.score_bucket if intake.score_bucket is not None else 3)
+            speed = w0 + w_carry * carry + w_fem * is_fem + w_age * age + w_sb * sb
+            sd = o.carry_speed_multivar_sd_mph * k
+            note = (
+                f"speed estimated from reported carry {carry:g} yd, "
+                f"age {int(age)}, score bucket {int(sb)}"
+            )
+            prov = Provenance(source="questionnaire", sd=sd, note=note)
+            return pack.swing_bucket_from_speed(speed), Estimate(speed, sd, prov), prov
         if o.carry_speed_fit:
             a, b = o.carry_speed_fit_line
             speed = a + b * carry
@@ -286,13 +312,26 @@ def _body(
     return Estimate(value, sd, prov)
 
 
-def _glove(intake: IntakeAnswers, ev: FitEvidence) -> tuple[Choice, Estimate | None] | None:
+def _glove(
+    intake: IntakeAnswers,
+    ev: FitEvidence,
+    height_cm: float | None = None,
+    o: MappingOptions = DEFAULT_OPTIONS,
+) -> tuple[Choice, Estimate | None] | None:
     """(glove, hand-length estimate if photographed)."""
     hand = ev.phone.hand_length_photo_cm if ev.phone else None
     k = _flag_factor(ev, "hand_length_photo_cm")
     if hand is not None and k is not None:
         prov = Provenance(source="photo", sd=0.35 * k, note=f"hand length {hand:.1f} cm")
         return Choice(pack.glove_from_hand_length(hand), prov), Estimate(hand, 0.35 * k, prov)
+    if intake.glove_was_guessed and o.guessed_glove_from_height and height_cm is not None:
+        hand_est = o.hand_from_height_slope * height_cm
+        prov = Provenance(
+            source="derived",
+            sd=0.9,
+            note=f"estimated from height {height_cm:.1f} cm; glove was guessed",
+        )
+        return Choice(pack.glove_from_hand_length(hand_est), prov), Estimate(hand_est, 0.9, prov)
     if intake.glove is not None and _flag_factor(ev, "glove") is not None:
         note = "golfer was not sure; the form's default" if intake.glove_was_guessed else None
         return Choice(intake.glove, Provenance(source="questionnaire", note=note)), None
@@ -498,7 +537,6 @@ def estimate_inputs(
     o = options
     p = ev.phone
     swing = _swing(intake, ev, o)
-    glove = _glove(intake, ev)
     height = _body(
         ev,
         "height_cm",
@@ -521,6 +559,8 @@ def estimate_inputs(
         p.body_photo_quality if p else None,
         o.wtf_photo_sd_cm,
     )
+    h_val = height.value if height else intake.height_cm
+    glove = _glove(intake, ev, h_val, o)
     lie = _lie(ev, height.value, wtf.value, o) if height and wtf else None
     e = InputEstimates(
         swing_bucket=swing[0] if swing else None,
