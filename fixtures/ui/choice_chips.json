@@ -1,0 +1,1 @@
+{"type":"choice_chips","prompt":"What matters most in your irons?","options":[{"id":"forgiveness","label":"Forgiveness","hint":"Mishits fly closer to the target"},{"id":"distance","label":"Distance"},{"id":"feel","label":"Forged feel"}],"multi":false,"allow_free_text":false,"field":"characteristics"}

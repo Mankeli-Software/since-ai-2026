@@ -37,9 +37,10 @@ export default defineConfig(({ command }) => {
   const apiPort = command === 'serve' ? devApiPort() : undefined
   return {
     plugins: [react(), tailwindcss(), repoClubAssets()],
-    resolve: { alias: { '@': resolve(here, 'src') } },
+    resolve: { alias: { '@': resolve(here, 'src'), '@fixtures': resolve(repo, 'fixtures') } },
     server: apiPort
       ? {
+          fs: { allow: [repo] }, // dev.html reads ../fixtures
           // --strictPort and --port come from `just dev`; the fallback keeps `pnpm dev` working alone.
           port: Number(apiPort) + 1,
           proxy: { '/api': { target: `http://localhost:${apiPort}`, changeOrigin: true } },
