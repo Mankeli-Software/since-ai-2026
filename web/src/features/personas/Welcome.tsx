@@ -1,4 +1,4 @@
-import { Button, ClubImage, Eyebrow, LogoMark, Wordmark } from '@/components/studio'
+import { Button, ClubImage, EnterKbd, Eyebrow, LogoMark, Wordmark, useEnterKey } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import { ownFittingHrefV3, PERSONAS, personaHrefV3 } from './personas'
 
@@ -9,8 +9,9 @@ const STEPS = [
   { n: '04', title: 'Decide', text: 'Every reason shown, close calls included.' },
 ]
 
-/** v3 C1 welcome (mockup V3-C1-Welcome), with the "Try as" simulated golfers under the CTA (L16). */
+/** v3 C1 welcome (mockup V3-C1-Welcome), with the "Try as" simulated golfers under the CTA (L16). Enter starts. */
 export function Welcome() {
+  useEnterKey(() => window.location.assign(ownFittingHrefV3()), true)
   return (
     <div className="bg-bay relative flex min-h-screen w-full flex-col overflow-hidden font-sans antialiased">
       <div
@@ -42,11 +43,12 @@ export function Welcome() {
         </p>
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-[22px]">
-            <Button href={ownFittingHrefV3()} variant="primary" size="xl">
+            <Button href={ownFittingHrefV3()} variant="primary" size="xl" aria-keyshortcuts="Enter" className="pr-5">
               I'm ready. Let's start
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
+              <EnterKbd tone="primary" />
             </Button>
             <span className="text-[16px] text-grey-a3">About 4 minutes. Save any time.</span>
           </div>

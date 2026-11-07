@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { Button, Kbd, OptTile, useNumberKeys } from '@/components/studio'
+import { Fragment, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { Button, EnterKbd, OptTile, useEnterKey, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockOf, BlockProps } from '../types'
 
@@ -61,26 +61,6 @@ function StaggerIn({ delay, children }: { delay: number; children: ReactNode }) 
       {children}
     </div>
   )
-}
-
-/** Enter submits while the sentence is complete (not while typing, and not on a focused button, which Enter clicks). */
-function useEnterKey(onEnter: () => void, enabled: boolean) {
-  const enter = useRef(onEnter)
-  useEffect(() => {
-    enter.current = onEnter
-  })
-  useEffect(() => {
-    if (!enabled) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Enter' || e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
-      const t = e.target
-      if (t instanceof Element && t.closest('input, textarea, select, button, a, [contenteditable="true"]')) return
-      e.preventDefault()
-      enter.current()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [enabled])
 }
 
 const pillBase =
@@ -216,9 +196,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         <div className="flex justify-end">
           <Button variant="dark" disabled={busy} aria-keyshortcuts="Enter" onClick={submit} className="pr-3">
             That's me
-            <Kbd onDark className="ml-1.5 normal-case tracking-normal">
-              Enter ↵
-            </Kbd>
+            <EnterKbd />
           </Button>
         </div>
       )}
