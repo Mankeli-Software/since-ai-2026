@@ -287,3 +287,21 @@ class BuildCheck(BaseModel):
     buildable: bool
     reasons: list[str] = Field(default_factory=list)
     purchase: Purchase | None = None
+
+
+class StockAdvice(BaseModel):
+    """Nearest stock build vs the fitted build (plan §3.6, c14 stock-lean rule).
+
+    FIT, deterministic.
+    """
+
+    lean: Literal["stock", "custom", "either"]
+    fitted: Spec
+    stock: Spec | None = Field(default=None, description="Nearest stock build; None if none exists")
+    lie_change_deg: int = 0  # fitted.lie_deg - 0
+    length_change_in: float = 0.0  # fitted.length_in - 0
+    p_stock: float | None = Field(default=None, ge=0, le=1)
+    carry_delta_yd: float | None = None  # stock minus fitted, flight model
+    side_delta_yd: float | None = None  # stock minus fitted, mean side (start line)
+    reasons: list[str] = Field(default_factory=list)  # plain, club-only wording (L18)
+    stock_return_days: int = 30
