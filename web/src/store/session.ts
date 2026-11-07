@@ -37,8 +37,10 @@ let seqCounter = 0
 const nextSeq = () => ++seqCounter
 
 /** The in-flight `start()`. React StrictMode runs the Studio mount effect twice in dev; without this the second
- *  session replaced `sessionId` while the opening turn's cards belonged to the first, so answers got 422 (#162). */
-let starting: Promise<void> | null = null
+ *  session replaced `sessionId` while the opening turn's cards belonged to the first, so answers got 422 (#162).
+ *  Only a start with the same arguments shares it; one with other arguments aborts it and starts afresh, so a
+ *  quick switch of persona or engine ends on the last one asked for (#196). */
+let starting: { key: string; promise: Promise<void>; abort: AbortController } | null = null
 /** An own fitting's `start()` while it runs: its opening card is on screen before the session exists, so an
  *  early answer waits for the session and the opening turn. */
 let opening: Promise<void> | null = null
@@ -122,7 +124,7 @@ export const useSession = create<SessionStore>()((set, get) => {
     }
   }
 
-  const turn = async (body: Parameters<typeof streamTurn>[1]) => {
+  const turn = async (body: Parameters<typeof streamTurn>[1], signal?: AbortSignal) => {
     if (get().busy) return
     set({ busy: true, error: null })
     try {
@@ -133,9 +135,12 @@ export const useSession = create<SessionStore>()((set, get) => {
       if (msg.kind === 'ui_response' && msg.component_id === OPENING_ID && openingId) {
         body = { message: { ...msg, component_id: openingId } }
       }
-      for await (const ev of streamTurn(sessionId, body)) apply(ev)
+      for await (const ev of streamTurn(sessionId, body, signal)) {
+        if (signal?.aborted) break
+        apply(ev)
+      }
     } catch (e) {
-      set({ error: String(e) })
+      if (!signal?.aborted) set({ error: String(e) })
     } finally {
       set({ busy: false })
     }
@@ -143,35 +148,49 @@ export const useSession = create<SessionStore>()((set, get) => {
 
   /** The own fitting's opening turn. Its greeting is already on screen, and its card is the local one, so it only
    *  shows lines that are not the greeting (a notice). With no card from the server, the local one goes too. */
-  const openingTurn = async (sessionId: string) => {
+  const openingTurn = async (sessionId: string, signal: AbortSignal) => {
     const said = new Map<string, string>()
     try {
-      for await (const ev of streamTurn(sessionId, { message: { kind: 'text', text: 'Hi' } })) {
+      for await (const ev of streamTurn(sessionId, { message: { kind: 'text', text: 'Hi' } }, signal)) {
+        if (signal.aborted) return
         if (ev.type === 'text') said.set(ev.msg_id, (said.get(ev.msg_id) ?? '') + ev.delta)
         else if (ev.type === 'ui' && ev.block.type === 'sentence_builder' && !openingId) openingId = ev.id
         else apply(ev)
       }
     } catch (e) {
-      set({ error: String(e) })
+      if (!signal.aborted) set({ error: String(e) })
     }
+    if (signal.aborted) return
     for (const [msg_id, delta] of said) {
       if (!GREETING.includes(delta.trim())) apply({ type: 'text', seq: 0, msg_id, delta })
     }
     if (!openingId) set((s) => ({ ui: s.ui.filter((u) => u.id !== OPENING_ID) }))
   }
 
-  const startSession = async ({ engine, demo }: Parameters<SessionStore['start']>[0]) => {
+  /** A superseded start (`signal` aborted) leaves the store to the newer one. */
+  const startSession = async ({ engine, demo }: Parameters<SessionStore['start']>[0], signal: AbortSignal) => {
     openingId = null
-    if (!demo) {
+    if (demo) {
+      set({ messages: [], ui: [] }) // a superseded own fitting may have put its opening on screen
+    } else {
       // No model or tool is needed for the first step, so it shows at once (store/opening.ts).
       set({
         messages: GREETING.map((text, i) => ({ id: `opening-m${i}`, role: 'assistant', text, seq: nextSeq(), live: true })),
         ui: [{ id: OPENING_ID, block: OPENING_BLOCK, interactive: true, answered: false, seq: nextSeq() }],
       })
     }
-    const { data, error } = await api.POST('/api/sessions', {
-      body: { engine: engine ?? null, demo_golfer_id: demo ?? null, host: { platform: 'standalone' } },
-    })
+    let res
+    try {
+      res = await api.POST('/api/sessions', {
+        body: { engine: engine ?? null, demo_golfer_id: demo ?? null, host: { platform: 'standalone' } },
+        signal,
+      })
+    } catch (e) {
+      if (signal.aborted) return
+      throw e
+    }
+    if (signal.aborted) return
+    const { data, error } = res
     if (!data) {
       set({ error: `session failed: ${JSON.stringify(error)}` })
       return
@@ -182,8 +201,8 @@ export const useSession = create<SessionStore>()((set, get) => {
     }
     get().mergeState(data.state)
     // A turn needs a message: a hidden "Hi" opens the scripted/live conversation.
-    if (demo) await turn({ message: { kind: 'text', text: 'Hi' } })
-    else await openingTurn(data.session_id)
+    if (demo) await turn({ message: { kind: 'text', text: 'Hi' } }, signal)
+    else await openingTurn(data.session_id, signal)
   }
 
   return {
@@ -202,11 +221,16 @@ export const useSession = create<SessionStore>()((set, get) => {
     setMode: (mode) => set({ mode }),
     mergeState: (next) => set((s) => (!s.state || next.version > s.state.version ? { state: next } : {})),
     start(opts) {
-      starting ??= startSession(opts).finally(() => {
-        starting = opening = null
+      const key = `${opts.engine ?? ''}|${opts.demo ?? ''}`
+      if (starting?.key === key) return starting.promise
+      starting?.abort.abort()
+      const abort = new AbortController()
+      const promise: Promise<void> = startSession(opts, abort.signal).finally(() => {
+        if (starting?.abort === abort) starting = opening = null
       })
-      if (!opts.demo) opening = starting
-      return starting
+      starting = { key, promise, abort }
+      opening = opts.demo ? null : promise
+      return promise
     },
     async resume(token: string) {
       set({ busy: true, error: null })
