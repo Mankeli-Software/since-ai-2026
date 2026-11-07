@@ -75,6 +75,26 @@ PYTHONPATH=vendor:data/TakomoGolf_SinceAI2026_FINAL/TAKOMO_FITTING_LAB_2026 uv r
 
 Predictions file for competition scoring: `mankeli_takomo_test_predictions.csv` (5,000 buildable test rows).
 
+## Verification Against the Data
+
+`scripts/qa/` is a manual check harness. It runs the app against the organiser's data and the 16 synthetic demo golfers. It needs no API keys.
+
+```sh
+just qa                   # all layers
+just qa --layer data      # or: api, personas, trust
+```
+
+| Layer | What it checks |
+|---|---|
+| Data | Demo fixtures and TrackMan CSVs parse. Every spec is buildable. Dev score beats baseline B2. The predictions CSV has 5,000 buildable rows. Results are repeatable. |
+| API | Every route returns the expected shape. Bad input gives a clear error. |
+| Personas | Mikko, Hannu, Lars and Anders run end to end. For Mikko, the TrackMan import raises confidence and the best head is the 201T MKII. |
+| Trust | No email in sessions, no URLs or HTML in chat, raw CSVs are not stored, no forbidden imports. |
+
+Last run on `main`: **38 of 39 checks pass.** The one failure is real. `POST /api/tinker` takes about 150 ms on a warm request. The target is 100 ms. The check stays in the harness until this is fixed.
+
+You can also run it from GitHub: Actions tab, workflow **qa**, **Run workflow**. This workflow is manual only. It does not run on pull requests or merges. See [`scripts/qa/README.md`](scripts/qa/README.md) for details and the manual browser checklist.
+
 ## Known Limits
 
 - **Memory session store:** The demo uses an in-memory session store. A server restart clears active sessions.
