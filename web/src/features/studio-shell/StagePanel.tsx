@@ -92,7 +92,7 @@ export function StagePanel() {
   )
 
   return (
-    <div className="flex h-full flex-col">
+    <div data-surface="dark" className="flex h-full flex-col">
       {/* Top Bar with Stage Views & Tinker Toggle */}
       <div className="flex items-center justify-between border-b border-border-dark p-2">
         <div className="flex gap-1">

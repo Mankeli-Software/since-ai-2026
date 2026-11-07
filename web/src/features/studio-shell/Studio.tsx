@@ -57,7 +57,7 @@ export function Studio() {
         className="grid min-h-0 flex-1 transition-[grid-template-columns] duration-500"
         style={{ gridTemplateColumns: revealed ? '3fr 1fr' : '1fr 1fr' }}
       >
-        <section className="min-w-0 bg-[radial-gradient(ellipse_at_50%_40%,var(--color-surface-dark-3),var(--color-surface-dark)_70%)] text-washed-white">
+        <section data-surface="dark" className="min-w-0 bg-[radial-gradient(ellipse_at_50%_40%,var(--color-surface-dark-3),var(--color-surface-dark)_70%)] text-washed-white">
           <StageBoundary>
             <div className="h-full">
               <StagePanel />

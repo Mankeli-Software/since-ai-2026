@@ -1,3 +1,7 @@
+import { initTheme } from '@/lib/theme'
+
+initTheme()
+
 // Demo landing: index.html is a static mirror of the takomogolf.com home page (VISION §6.1, TASKS T6), built by
 // web/scripts/mirror-takomo-home.py. Every static link already points at the studio. This catches the rest:
 // forms, theme buttons (add to cart, newsletter, country picker) and links that the live reviews widget adds

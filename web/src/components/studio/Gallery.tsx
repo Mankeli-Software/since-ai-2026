@@ -48,7 +48,8 @@ function Showcase({ tone }: { tone: Tone }) {
   return (
     <section
       aria-label={dark ? 'On the dark bay' : 'On a light card'}
-      className={cn('flex flex-col gap-8 p-10', dark ? 'rounded-20 border border-grey-26 bg-bay' :'rounded-20 bg-washed-white text-midnight shadow-card')}
+      data-surface={dark ? 'dark' : undefined}
+      className={cn('flex flex-col gap-8 p-10', dark ? 'rounded-20 border border-grey-26 bg-bay' : 'rounded-20 bg-washed-white text-midnight shadow-card ring-1 ring-card-edge')}
     >
       <h2 className="m-0 font-display text-[26px] font-bold uppercase">{dark ? 'Dark (.bg-bay)' : 'Light (talk card)'}</h2>
 
@@ -179,9 +180,9 @@ export function Gallery() {
       <header className="flex items-center gap-5">
         <LogoMark />
         <Wordmark />
-        <Eyebrow className="text-washed-white">Primitives</Eyebrow>
-        <span className="h-px flex-1 bg-grey-3d" />
-        <span className="text-[14px] text-grey-a3">web/src/components/studio</span>
+        <Eyebrow className="text-on-page">Primitives</Eyebrow>
+        <span className="h-px flex-1 bg-page-line-2" />
+        <span className="text-[14px] text-on-page-2">web/src/components/studio</span>
       </header>
       <div className="grid gap-10 xl:grid-cols-2">
         <Showcase tone="light" />

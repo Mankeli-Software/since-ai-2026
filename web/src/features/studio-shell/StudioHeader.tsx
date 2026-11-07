@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ConfidenceSegments, Eyebrow, LogoMark, StepBars, UnitsToggle, Wordmark } from '@/components/studio'
+import { ConfidenceSegments, Eyebrow, LogoMark, StepBars, ThemeToggle, UnitsToggle, Wordmark } from '@/components/studio'
 import { shortHead } from '@/features/result/compare/pair'
 import { hasFlag } from '@/lib/flags'
 import { cn } from '@/lib/utils'
@@ -22,17 +22,17 @@ function ConfidenceRing({ pct }: { pct: number | null }) {
     <span
       role="img"
       aria-label={pct === null ? 'Fit confidence not known yet' : `Fit confidence ${pct} percent`}
-      className="inline-flex h-8 flex-none items-center gap-1.5 rounded-full bg-grey-1a pr-2.5 pl-1.5"
+      className="inline-flex h-8 flex-none items-center gap-1.5 rounded-full bg-panel-2 pr-2.5 pl-1.5"
     >
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" fill="none" stroke="#3D3D3D" strokeWidth="3" />
+        <circle cx="12" cy="12" r="9" fill="none" stroke="var(--color-page-line-2)" strokeWidth="3" />
         {v > 0 && (
           <circle
             cx="12"
             cy="12"
             r="9"
             fill="none"
-            stroke="#FF6E01"
+            stroke="var(--color-tiger-orange)"
             strokeWidth="3"
             strokeDasharray={c}
             strokeDashoffset={c * (1 - v / 100)}
@@ -41,7 +41,7 @@ function ConfidenceRing({ pct }: { pct: number | null }) {
           />
         )}
       </svg>
-      <span className="font-display text-[16px] font-bold tabular-nums">{pct === null ? '–' : `${pct}%`}</span>
+      <span className="font-display text-[16px] font-bold tabular-nums text-on-page">{pct === null ? '–' : `${pct}%`}</span>
     </span>
   )
 }
@@ -53,10 +53,10 @@ function PhoneSteps({ step, total = 4 }: { step: number; total?: number }) {
     <div className="flex items-center gap-2.5 px-4 pb-2 md:hidden">
       <span className="flex flex-1 gap-1" aria-hidden="true">
         {Array.from({ length: total }, (_, i) => (
-          <span key={i} className={cn('h-1 flex-1 rounded-[2px] transition-ui', i < n ? 'bg-tiger-orange' : 'bg-grey-2a')} />
+          <span key={i} className={cn('h-1 flex-1 rounded-[2px] transition-ui', i < n ? 'bg-tiger-orange' : 'bg-page-line')} />
         ))}
       </span>
-      <span className="text-[13px] text-grey-a3">
+      <span className="text-[13px] text-on-page-2">
         Step {n} of {total}
       </span>
     </div>
@@ -87,7 +87,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
     <>
       <header
         className={cn(
-          'flex shrink-0 items-center gap-5 px-14 pt-7 max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0',
+          'flex shrink-0 items-center gap-5 px-14 pt-7 text-on-page max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0',
           // All chips at 1280: tighten the spacing so nothing wraps or overflows.
           hdr && 'max-[1366px]:gap-4 max-[1366px]:px-10',
         )}
@@ -97,7 +97,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
             type="button"
             onClick={onBack}
             aria-label="Back to your fit"
-            className="-ml-2 inline-flex size-11 flex-none cursor-pointer items-center justify-center border-0 bg-transparent text-washed-white md:hidden"
+            className="-ml-2 inline-flex size-11 flex-none cursor-pointer items-center justify-center border-0 bg-transparent text-on-page md:hidden"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M15 5l-7 7 7 7" />
@@ -108,20 +108,20 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
           href={welcomeHref()}
           aria-label="Takomo Fitter Studio, start"
           className={cn(
-            'flex flex-none items-center gap-3.5 no-underline max-md:-ml-2 max-md:size-11 max-md:justify-center',
+            'flex flex-none items-center gap-3.5 text-on-page no-underline max-md:-ml-2 max-md:size-11 max-md:justify-center',
             onBack && 'max-md:hidden',
           )}
         >
           <LogoMark className="max-md:h-6 max-md:w-[26px]" />
           <Wordmark className="max-md:hidden" />
         </a>
-        <Eyebrow className="flex-none text-washed-white">{variant === 'chat' ? 'Fitter Studio' : 'Your fit'}</Eyebrow>
-        <div className="h-px flex-1 bg-grey-3d max-md:hidden" />
+        <Eyebrow className="flex-none text-on-page">{variant === 'chat' ? 'Fitter Studio' : 'Your fit'}</Eyebrow>
+        <div className="h-px flex-1 bg-page-line-2 max-md:hidden" />
         {demo && (
           <Eyebrow
             size={11}
             title="Simulated golfer"
-            className="flex-none rounded-4 px-2 py-1 text-orange-light shadow-[inset_0_0_0_1px_var(--color-orange-light)] max-md:ml-auto max-md:px-1.5"
+            className="flex-none rounded-4 px-2 py-1 text-orange-on-page shadow-[inset_0_0_0_1px_var(--color-orange-on-page)] max-md:ml-auto max-md:px-1.5"
           >
             <span className="max-md:hidden">Simulated golfer</span>
             <span className="md:hidden">Simulated</span>
@@ -131,7 +131,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
           <Eyebrow
             size={11}
             className={cn(
-              'flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-c8 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]',
+              'flex-none rounded-4 max-md:hidden px-2 py-1 text-on-page-2 shadow-[inset_0_0_0_1px_var(--color-page-line-2)]',
               hdr && 'max-[1366px]:hidden',
             )}
           >
@@ -141,16 +141,16 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
         {hdr && (
           <>
             {state?.best ? (
-              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-washed-white shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-on-page shadow-[inset_0_0_0_1px_var(--color-page-line-2)]">
                 Current best: {shortHead(state.best.head)}
               </Eyebrow>
             ) : missingCount > 0 ? (
-              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-a3 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-on-page-2 shadow-[inset_0_0_0_1px_var(--color-page-line-2)]">
                 {missingCount} {missingCount === 1 ? 'input missing' : 'inputs missing'}
               </Eyebrow>
             ) : null}
             {state?.gate && (
-              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-c8 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-on-page-2 shadow-[inset_0_0_0_1px_var(--color-page-line-2)]">
                 {state.gate === 'provisional' ? 'Working fit' : 'Dialed in'}
               </Eyebrow>
             )}
@@ -161,7 +161,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
           <StepBars step={step} className={cn('max-md:hidden', hdr && 'max-[1640px]:hidden')} />
         )}
         <span className="flex flex-none items-center gap-2.5 max-md:hidden">
-          <Eyebrow className="text-grey-a3">Fit confidence</Eyebrow>
+          <Eyebrow className="text-on-page-2">Fit confidence</Eyebrow>
           <ConfidenceSegments value={pct} showLabel={false} />
         </span>
         <span className={cn('md:hidden', !demo && 'ml-auto')}>
@@ -180,7 +180,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
                 append_to: null,
               })
             }}
-            className="flex h-9 flex-none max-md:hidden cursor-pointer items-center gap-1.5 rounded-6 bg-transparent px-3 text-washed-white shadow-[inset_0_0_0_1px_var(--color-grey-3d)] transition-ui hover:shadow-[inset_0_0_0_1px_var(--color-grey-8f)]"
+            className="flex h-9 flex-none max-md:hidden cursor-pointer items-center gap-1.5 rounded-6 bg-transparent px-3 text-on-page shadow-[inset_0_0_0_1px_var(--color-page-line-2)] transition-ui hover:shadow-[inset_0_0_0_1px_var(--color-on-page-3)]"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 5v14M5 12h14" />
@@ -189,25 +189,26 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
           </button>
         )}
         <UnitsToggle className="max-md:hidden" />
+        <ThemeToggle />
         <div className="relative flex-none">
         <button
           type="button"
           disabled={!state}
           onClick={() => void save()}
           aria-label={saved ? (saved.status === 'ok' ? 'Saved to myTakomo' : 'Save not ready') : 'Save to myTakomo'}
-          className="flex h-11 flex-none cursor-pointer items-center gap-2.5 rounded-6 bg-transparent px-3.5 text-washed-white shadow-[inset_0_0_0_1px_var(--color-grey-3d)] transition-ui hover:shadow-[inset_0_0_0_1px_var(--color-grey-8f)] disabled:cursor-default disabled:opacity-50 max-md:-mr-2 max-md:w-11 max-md:justify-center max-md:px-0 max-md:shadow-none"
+          className="flex h-11 flex-none cursor-pointer items-center gap-2.5 rounded-6 bg-transparent px-3.5 text-on-page shadow-[inset_0_0_0_1px_var(--color-page-line-2)] transition-ui hover:shadow-[inset_0_0_0_1px_var(--color-on-page-3)] disabled:cursor-default disabled:opacity-50 max-md:-mr-2 max-md:w-11 max-md:justify-center max-md:px-0 max-md:shadow-none"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="12" cy="8" r="4" />
             <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
           </svg>
           <span className="flex flex-col items-start gap-0.5 leading-none max-md:hidden">
-            <span className="text-[11px] font-medium text-grey-a3">{saved ? (saved.status === 'ok' ? 'Saved to' : 'Save not ready') : 'Save to'}</span>
+            <span className="text-[11px] font-medium text-on-page-2">{saved ? (saved.status === 'ok' ? 'Saved to' : 'Save not ready') : 'Save to'}</span>
             <span className="text-[15px] font-semibold">myTakomo</span>
           </span>
         </button>
           {hdr && saved?.status === 'ok' && saved.resumeUrl && (
-            <div className="absolute top-full right-0 mt-1 flex items-center gap-1.5 whitespace-nowrap text-[11px] text-grey-a3 max-md:hidden">
+            <div className="absolute top-full right-0 mt-1 flex items-center gap-1.5 whitespace-nowrap text-[11px] text-on-page-2 max-md:hidden">
               <span className="max-w-[140px] truncate" title={saved.resumeUrl}>{saved.resumeUrl}</span>
               <button
                 type="button"
@@ -221,7 +222,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
                     // ignore
                   }
                 }}
-                className="cursor-pointer text-orange-hover hover:underline"
+                className="cursor-pointer text-orange-on-page hover:underline"
               >
                 {copied ? 'Copied' : 'Copy'}
               </button>

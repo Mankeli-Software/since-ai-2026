@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { UnitsToggle } from '@/components/studio'
+import { ThemeToggle, UnitsToggle } from '@/components/studio'
 import { Button } from '@/components/ui/button'
 import { Mascot } from '../mascot/Mascot'
 import { useSession } from '@/store/session'
@@ -58,6 +58,9 @@ export function TopBar() {
       {missing > 0 && <span className="text-sm text-ink-300">{missing} specs to dial in</span>}
       <div className="ml-auto flex items-center gap-3">
         <UnitsToggle />
+        <div data-surface="dark">
+          <ThemeToggle />
+        </div>
         {demo && <span className="border border-orange-300 px-2 py-0.5 font-display text-xs font-semibold uppercase tracking-wider text-orange-300">Simulated golfer</span>}
         <Button
           variant="outline"

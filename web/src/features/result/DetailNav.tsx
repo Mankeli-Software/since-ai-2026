@@ -21,7 +21,7 @@ export function DetailNav({ view, head }: { view: ResultsView; head: string | nu
     <nav aria-label="Dig into your fit" className={cn('flex flex-none items-center gap-2 px-10 pt-4 max-md:px-4 max-md:pt-1 max-md:pb-1', swipeRow)}>
       <ViewLink
         view="summary"
-        className="mr-2 inline-flex h-10 items-center gap-2 rounded-full bg-grey-1a pr-3.5 pl-2.5 text-[15px] font-semibold whitespace-nowrap text-washed-white no-underline transition-ui hover:bg-grey-26 max-md:hidden"
+        className="mr-2 inline-flex h-10 items-center gap-2 rounded-full bg-panel-2 pr-3.5 pl-2.5 text-[15px] font-semibold whitespace-nowrap text-on-page no-underline transition-ui hover:bg-page-line max-md:hidden"
       >
         {head && <ClubImage slug={head} className="h-[30px] w-auto" />}← Your fit
       </ViewLink>
@@ -35,11 +35,11 @@ export function DetailNav({ view, head }: { view: ResultsView; head: string | nu
             className={cn(
               'flex h-10 flex-none items-center gap-2 rounded-full px-3.5 no-underline transition-ui max-md:h-11',
               active
-                ? 'bg-washed-white text-midnight hover:text-midnight'
-                : 'text-grey-a3 shadow-[inset_0_0_0_1px_var(--color-grey-26)] hover:text-washed-white hover:shadow-[inset_0_0_0_1px_var(--color-grey-3d)]',
+                ? 'bg-washed-white text-midnight ring-1 ring-card-edge hover:text-midnight'
+                : 'text-on-page-2 shadow-[inset_0_0_0_1px_var(--color-page-line)] hover:text-on-page hover:shadow-[inset_0_0_0_1px_var(--color-page-line-2)]',
             )}
           >
-            <span className={cn('font-display text-[16px] font-extrabold tabular-nums', active ? 'text-orange-text' : 'text-grey-5f')}>
+            <span className={cn('font-display text-[16px] font-extrabold tabular-nums', active ? 'text-orange-text' : 'text-on-page-3')}>
               {t.n}
             </span>
             <span className="text-[15px] font-semibold whitespace-nowrap max-md:hidden">{t.label}</span>

@@ -19,9 +19,9 @@ function label(s: State, lie: number) {
 function Sole({ tilt, yours }: { tilt: number; yours: boolean }) {
   return (
     <svg viewBox="0 0 120 60" className="w-[110px] max-w-full" aria-hidden="true">
-      <line x1="6" y1="50" x2="114" y2="50" stroke="#3D3D3D" strokeWidth="2" />
+      <line x1="6" y1="50" x2="114" y2="50" stroke="var(--color-page-line-2,#3D3D3D)" strokeWidth="2" />
       <g transform={`rotate(${tilt} 60 46)`}>
-        <path d="M18 42 Q18 30 36 28 L100 36 Q106 50 92 52 L26 52 Q16 52 18 42 Z" fill={yours ? '#F8F8F8' : '#8F8F8F'} />
+        <path d="M18 42 Q18 30 36 28 L100 36 Q106 50 92 52 L26 52 Q16 52 18 42 Z" fill={yours ? 'var(--color-on-page,#F8F8F8)' : 'var(--color-on-page-3,#8F8F8F)'} />
       </g>
     </svg>
   )
@@ -41,11 +41,11 @@ export function LieSoleDiagrams({ lie }: { lie: number }) {
               aria-current={on ? 'true' : undefined}
               className={cn(
                 'flex min-w-0 flex-1 flex-col items-center gap-2 rounded-12 px-2 py-3 text-center',
-                on ? 'bg-[rgba(255,110,1,0.12)] shadow-[inset_0_0_0_1.5px_#FF6E01]' : 'bg-grey-1a',
+                on ? 'bg-[rgba(255,110,1,0.12)] shadow-[inset_0_0_0_1.5px_var(--color-tiger-orange,#FF6E01)]' : 'bg-panel-2',
               )}
             >
               <Sole tilt={TILT[s]} yours={on} />
-              <span className={cn('font-display text-[18px] leading-tight font-bold max-[1400px]:text-[16px]', on ? 'text-orange-hover' : 'text-grey-c8')}>
+              <span className={cn('font-display text-[18px] leading-tight font-bold max-[1400px]:text-[16px]', on ? 'text-orange-on-page' : 'text-on-page-2')}>
                 {label(s, lie)}
                 {on && <span className="sr-only"> (yours)</span>}
               </span>

@@ -6,7 +6,7 @@ import { promptOf } from './RecapRow'
 
 /** The light conversation card surface (spec §2.1): #F8F8F8, radius 20, padding 26/30/28, gap 18. Phones (M-04c): radius 18, 18/16. */
 export const cardSurface =
-  'flex min-w-0 flex-col gap-[18px] rounded-20 bg-washed-white px-[30px] pt-[26px] pb-7 text-midnight shadow-card max-md:gap-3.5 max-md:rounded-18 max-md:px-4 max-md:py-[18px]'
+  'flex min-w-0 flex-col gap-[18px] rounded-20 bg-washed-white px-[30px] pt-[26px] pb-7 text-midnight shadow-card ring-1 ring-card-edge max-md:gap-3.5 max-md:rounded-18 max-md:px-4 max-md:py-[18px]'
 
 /** A display-only block (no input) on a light card, e.g. below the fitter line. */
 export function DisplayCard({ item, className }: { item: UiItem; className?: string }) {

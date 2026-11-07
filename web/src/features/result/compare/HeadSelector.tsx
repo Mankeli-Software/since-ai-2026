@@ -29,7 +29,7 @@ export function HeadSelector({ options, selected, onSelect, shaft, rowToggle }: 
   return (
     <section aria-labelledby="head-selector" className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-4">
-        <Eyebrow as="h2" id="head-selector" className="m-0 text-grey-8f">
+        <Eyebrow as="h2" id="head-selector" className="m-0 text-on-page-3">
           Tap a head to see it fly
         </Eyebrow>
         {rowToggle}
@@ -46,30 +46,30 @@ export function HeadSelector({ options, selected, onSelect, shaft, rowToggle }: 
               aria-pressed={on}
               onClick={() => onSelect(o.head)}
               className={cn(
-                'flex min-w-0 flex-1 cursor-pointer items-center gap-3.5 rounded-14 px-4 py-3 text-left font-sans text-washed-white transition-ui',
-                on ? 'border-2 border-tiger-orange bg-selected-dark' : 'border border-grey-3d bg-grey-12 hover:border-grey-8f',
+                'flex min-w-0 flex-1 cursor-pointer items-center gap-3.5 rounded-14 px-4 py-3 text-left font-sans text-on-page transition-ui',
+                on ? 'border-2 border-tiger-orange bg-selected-dark' : 'border border-page-line-2 bg-panel hover:border-page-line-2',
               )}
             >
               <ClubImage slug={o.head} className="h-[70px] w-auto flex-none max-md:h-14" />
               <span className="flex min-w-0 flex-col gap-[3px]">
-                <Eyebrow className={first ? 'text-orange-hover' : 'text-grey-8f'}>{RANK_LABEL[o.rank]}</Eyebrow>
+                <Eyebrow className={first ? 'text-orange-on-page' : 'text-on-page-3'}>{RANK_LABEL[o.rank]}</Eyebrow>
                 <span className="font-display text-[22px] font-bold uppercase">
                   {headName(o.head)}
                   {o.row && (
-                    <span title="Fit score" className={cn('ml-1.5 tabular-nums', first ? 'text-orange-hover' : 'text-grey-a3')}>
+                    <span title="Fit score" className={cn('ml-1.5 tabular-nums', first ? 'text-orange-on-page' : 'text-on-page-2')}>
                       <span className="sr-only">, fit score </span>
                       {num(o.row.score_total)}
                     </span>
                   )}
                 </span>
-                <span title={STATUS_TOOLTIP} className="inline-flex min-w-0 flex-wrap items-center gap-1.5 text-[13px] text-grey-a3">
+                <span title={STATUS_TOOLTIP} className="inline-flex min-w-0 flex-wrap items-center gap-1.5 text-[13px] text-on-page-2">
                   <span
                     aria-hidden="true"
                     className={cn('size-[7px] flex-none rounded-full', avail.tone === 'green' ? 'bg-status-green' : 'bg-status-amber')}
                   />
                   <span>{avail.text}</span>
                   <ExamplePill />
-                  <span className="text-[11px] text-grey-8f">example; real stock comes from Takomo&apos;s inventory</span>
+                  <span className="text-[11px] text-on-page-3">example; real stock comes from Takomo&apos;s inventory</span>
                 </span>
               </span>
             </button>

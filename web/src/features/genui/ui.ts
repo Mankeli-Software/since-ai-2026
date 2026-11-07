@@ -8,7 +8,7 @@ export const eyebrowCls = 'font-display text-xs font-semibold uppercase tracking
 /** Question text of an input block. */
 export const promptCls = 'text-[15px] font-medium leading-snug text-foreground'
 /** White spec-sheet card used by result blocks. */
-export const cardCls = 'flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgba(11,11,11,0.04)]'
+export const cardCls = 'flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgba(11,11,11,0.04)] ring-1 ring-card-edge'
 /** Button text style: condensed, uppercase. */
 export const btnCls = 'h-10 px-5 font-display text-sm font-semibold uppercase tracking-[0.1em]'
 /** Chip / option button. Selected = midnight black fill. */

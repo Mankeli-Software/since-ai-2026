@@ -98,15 +98,15 @@ function PartList({ contents, active, onPick }: { contents: PartContent[]; activ
                 className={cn(
                   'flex w-full cursor-pointer items-center gap-3 rounded-12 border-0 px-3 py-2.5 text-left transition-ui max-md:w-auto max-md:gap-2.5 max-md:py-2 max-md:pr-3.5 max-md:pl-2',
                   on
-                    ? 'bg-washed-white text-midnight'
-                    : 'bg-transparent text-washed-white hover:bg-grey-12 max-md:bg-grey-12 max-md:shadow-[inset_0_0_0_1px_var(--color-grey-26)]',
+                    ? 'bg-washed-white text-midnight ring-1 ring-card-edge'
+                    : 'bg-transparent text-on-page hover:bg-panel max-md:bg-panel max-md:shadow-[inset_0_0_0_1px_var(--color-page-line)]',
                 )}
               >
-                <span className={cn('inline-flex size-9 flex-none items-center justify-center rounded-[9px]', on ? 'bg-midnight' : 'bg-grey-1a')}>
+                <span className={cn('inline-flex size-9 flex-none items-center justify-center rounded-[9px]', on ? 'bg-midnight' : 'bg-panel-2')}>
                   <SpecPartIcon part={c.part} active={on} />
                 </span>
                 <span className="flex min-w-0 flex-col gap-px">
-                  <Eyebrow size={11} className={on ? 'text-grey-55' : 'text-grey-8f'}>
+                  <Eyebrow size={11} className={on ? 'text-grey-55' : 'text-on-page-3'}>
                     {c.label}
                   </Eyebrow>
                   <span className="truncate font-display text-[19px] font-bold uppercase max-md:text-[17px] max-md:whitespace-nowrap">{c.listValue}</span>
@@ -125,13 +125,13 @@ function PartList({ contents, active, onPick }: { contents: PartContent[]; activ
 function ProvenanceLine({ p, example }: { p: PartContent['provenance']; example: boolean }) {
   if (!p && !example) return null
   return (
-    <span className="inline-flex flex-wrap items-center gap-2 text-[14px] text-grey-a3">
+    <span className="inline-flex flex-wrap items-center gap-2 text-[14px] text-on-page-2">
       {p && (
         <>
           {p.kind === 'measured' ? (
             <span aria-hidden="true" className="inline-block size-2 flex-none rounded-full bg-tiger-orange" />
           ) : (
-            <span aria-hidden="true" className="inline-block size-[9px] flex-none rounded-full border-[1.5px] border-dashed border-grey-a3" />
+            <span aria-hidden="true" className="inline-block size-[9px] flex-none rounded-full border-[1.5px] border-dashed border-on-page-2" />
           )}
           <span>
             <span className="sr-only">{p.kind === 'measured' ? 'Measured. ' : 'From a chart, not measured. '}</span>
@@ -140,7 +140,7 @@ function ProvenanceLine({ p, example }: { p: PartContent['provenance']; example:
         </>
       )}
       {example && (
-        <span title="Example data from the design, not your fit" className="rounded-4 border border-grey-3d px-1.5 py-px font-display text-[11px] font-semibold tracking-[0.16em] text-grey-8f uppercase">
+        <span title="Example data from the design, not your fit" className="rounded-4 border border-page-line-2 px-1.5 py-px font-display text-[11px] font-semibold tracking-[0.16em] text-on-page-3 uppercase">
           Example
         </span>
       )}
@@ -166,9 +166,9 @@ function Callout({ c }: { c: NonNullable<PartContent['callout']> }) {
     )
   }
   return (
-    <div className="flex items-start gap-3 rounded-12 border border-grey-26 bg-grey-12 px-4 py-3 max-md:flex-col max-md:gap-1">
-      <span className="font-display text-[15px] font-bold tracking-[0.04em] whitespace-nowrap text-washed-white uppercase">{c.title}</span>
-      <span className="text-[15px] leading-[1.45] text-grey-c8">{c.body}</span>
+    <div className="flex items-start gap-3 rounded-12 border border-page-line bg-panel px-4 py-3 max-md:flex-col max-md:gap-1">
+      <span className="font-display text-[15px] font-bold tracking-[0.04em] whitespace-nowrap text-on-page uppercase">{c.title}</span>
+      <span className="text-[15px] leading-[1.45] text-on-page-2">{c.body}</span>
     </div>
   )
 }
@@ -188,11 +188,11 @@ function Reason({ c, example }: { c: PartContent; example: boolean }) {
   return (
     <div className="flex min-w-0 flex-col gap-4 max-md:order-3">
       <div className="flex flex-col gap-2">
-        <Eyebrow className="text-grey-8f">{c.label}</Eyebrow>
+        <Eyebrow className="text-on-page-3">{c.label}</Eyebrow>
         <h1 className="m-0 font-display text-[44px] leading-[.9] font-extrabold uppercase max-md:text-[36px]">{c.title}</h1>
         <ProvenanceLine p={c.provenance} example={example} />
       </div>
-      <p className="m-0 text-[19px] leading-[1.45] text-grey-c8 max-md:text-[17px]">{c.reason}</p>
+      <p className="m-0 text-[19px] leading-[1.45] text-on-page-2 max-md:text-[17px]">{c.reason}</p>
       {c.chart && <div className="min-w-0 max-md:overflow-x-auto">{c.chart}</div>}
       {n > 0 && (
         <div className={cn('grid gap-2.5', n >= 4 ? 'grid-cols-4 max-[1400px]:grid-cols-2' : 'grid-cols-3 max-md:grid-cols-2')}>
@@ -215,7 +215,7 @@ function Reason({ c, example }: { c: PartContent; example: boolean }) {
               target="_blank"
               rel="noopener noreferrer"
               title={c.forge.title}
-              className="inline-flex items-center gap-1.5 text-[15px] text-orange-hover transition-ui hover:text-washed-white max-md:min-h-11"
+              className="inline-flex items-center gap-1.5 text-[15px] text-orange-on-page transition-ui hover:text-on-page max-md:min-h-11"
             >
               {c.forge.label}
               <span className="sr-only"> (opens in a new tab)</span>
@@ -237,7 +237,7 @@ function FocusPanel({ best, stage }: { best: Spec; stage: PartContent['stage'] }
   )
   const caption = `${stage.caption}${gl && stage.drag ? ' Drag to rotate.' : ''}`
   return (
-    <figure className="relative m-0 min-h-[440px] overflow-hidden rounded-18 max-md:order-2 max-md:h-[170px] max-md:min-h-0 border border-grey-26 bg-[radial-gradient(ellipse_70%_50%_at_50%_55%,rgba(255,110,1,.14),#121212_72%)]">
+    <figure data-surface="dark" className="relative m-0 min-h-[440px] overflow-hidden rounded-18 max-md:order-2 max-md:h-[170px] max-md:min-h-0 border border-grey-26 bg-[radial-gradient(ellipse_70%_50%_at_50%_55%,rgba(255,110,1,.14),#121212_72%)]">
       <div className="absolute inset-0">
         {gl ? (
           <StageBoundary fallback={still}>
@@ -292,7 +292,7 @@ export function R2Why() {
   if (!best || !contents) {
     return (
       <>
-        <p className="m-0 text-[19px] text-grey-c8">Your fit isn't ready yet. Answer a few more questions and every part shows up here.</p>
+        <p className="m-0 text-[19px] text-on-page-2">Your fit isn't ready yet. Answer a few more questions and every part shows up here.</p>
         <ResultsNext label="Compare heads" to={{ view: 'compare' }} />
       </>
     )

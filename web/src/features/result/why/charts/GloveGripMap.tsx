@@ -67,11 +67,11 @@ export function GloveGripMap({ gloves, yours, grip }: GloveGripMapProps) {
                 key={g.id}
                 className={cn(
                   'flex flex-col items-center gap-0.5 rounded-10 py-2.5',
-                  on ? 'bg-washed-white text-midnight' : 'bg-grey-1f text-grey-c8',
+                  on ? 'bg-washed-white text-midnight ring-1 ring-card-edge' : 'bg-panel-2 text-on-page-2',
                 )}
               >
                 <span className="font-display text-[22px] font-extrabold">{g.label}</span>
-                {g.sub && <span className={cn('text-[11px]', on ? 'text-grey-55' : 'text-grey-8f')}>{g.sub}</span>}
+                {g.sub && <span className={cn('text-[11px]', on ? 'text-grey-55' : 'text-on-page-3')}>{g.sub}</span>}
               </div>
             )
           })}
@@ -84,8 +84,8 @@ export function GloveGripMap({ gloves, yours, grip }: GloveGripMapProps) {
               className={cn(
                 'flex h-[34px] items-center justify-center rounded-8 text-[14px]',
                 b.grip === grip
-                  ? 'bg-[rgba(255,110,1,0.2)] font-bold text-orange-hover shadow-[inset_0_0_0_1.5px_#FF6E01]'
-                  : 'bg-grey-1f font-semibold text-grey-8f',
+                  ? 'bg-[rgba(255,110,1,0.2)] font-bold text-orange-on-page shadow-[inset_0_0_0_1.5px_var(--color-tiger-orange,#FF6E01)]'
+                  : 'bg-panel-2 font-semibold text-on-page-3',
               )}
             >
               {GRIP_NAMES[b.grip]}

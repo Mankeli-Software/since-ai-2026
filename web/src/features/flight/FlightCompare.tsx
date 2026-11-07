@@ -69,8 +69,8 @@ export function FlightCompare({ arcs, selected, ariaLabel, className, guessed }:
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className={className} role="img" aria-label={ariaLabel}>
-      <line x1="20" y1={GROUND} x2={W - 20} y2={GROUND} stroke="#3D3D3D" />
-      <g fill="#8F8F8F" fontFamily="Barlow" fontSize="12">
+      <line x1="20" y1={GROUND} x2={W - 20} y2={GROUND} stroke="var(--color-page-line-2,#3d3d3d)" />
+      <g fill="var(--color-on-page-3,#8f8f8f)" fontFamily="Barlow" fontSize="12">
         {ticks.map((t, i) => (
           <text key={t} x={x(t) - 4} y="198">
             {t}
@@ -87,18 +87,18 @@ export function FlightCompare({ arcs, selected, ariaLabel, className, guessed }:
         const ly = top ? y(a.apex) - 10 : y(a.apex) + 30
         return (
           <g key={a.id}>
-            <path d={d} fill="none" stroke={on ? '#FF6E01' : '#C8C8C8'} strokeWidth={on ? 4 : 2} strokeLinecap="round" strokeDasharray={guessed ? (on ? '10 8' : '6 6') : undefined} />
-            <circle cx={x(a.carry)} cy={GROUND} r={on ? 6 : 5} fill={on ? '#FF6E01' : '#C8C8C8'} />
+            <path d={d} fill="none" stroke={on ? 'var(--color-tiger-orange,#ff6e01)' : 'var(--color-grey-c8,#c8c8c8)'} strokeWidth={on ? 4 : 2} strokeLinecap="round" strokeDasharray={guessed ? (on ? '10 8' : '6 6') : undefined} />
+            <circle cx={x(a.carry)} cy={GROUND} r={on ? 6 : 5} fill={on ? 'var(--color-tiger-orange,#ff6e01)' : 'var(--color-grey-c8,#c8c8c8)'} />
             <text
               x={x(c.apexX)}
               y={ly}
               textAnchor="middle"
-              fill={on ? '#FF8A33' : '#C8C8C8'}
+              fill={on ? 'var(--color-orange-on-page,#ff8a33)' : 'var(--color-grey-c8,#c8c8c8)'}
               fontFamily="Barlow Condensed"
               fontWeight="700"
               fontSize={on ? 16 : 15}
               style={{ paintOrder: 'stroke' }}
-              stroke="#121212"
+              stroke="var(--color-panel,#121212)"
               strokeWidth="4"
             >
               {a.label.toUpperCase()}: APEX {fmt(a.apex)} M, LANDS {fmt(a.land_angle)}°

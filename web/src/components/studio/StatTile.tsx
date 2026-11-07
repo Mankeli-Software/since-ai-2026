@@ -23,7 +23,7 @@ export function StatTile({ label, value, unit, compare, tone = 'light', classNam
     <div
       className={cn(
         'min-w-0 border',
-        dark ? 'rounded-12 border-grey-26 bg-grey-12 px-3.5 py-2.5 text-washed-white' : 'rounded-10 border-grey-e4 bg-white px-3.5 py-3 text-midnight',
+        dark ? 'rounded-12 border-grey-26 bg-grey-12 px-3.5 py-2.5 text-washed-white' : 'rounded-10 border-grey-e4 bg-white px-3.5 py-3 text-midnight ring-1 ring-card-edge',
         className,
       )}
     >

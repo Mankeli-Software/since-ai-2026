@@ -21,7 +21,7 @@ export function ConfidenceSegments({ value, showLabel = true, className }: Confi
       className={cn('inline-flex flex-none items-center gap-2.5', className)}
     >
       {showLabel && (
-        <span className="font-display text-[13px] font-semibold uppercase tracking-[0.16em] text-grey-a3">
+        <span className="font-display text-[13px] font-semibold uppercase tracking-[0.16em] text-on-page-2">
           Fit confidence
         </span>
       )}
@@ -29,11 +29,11 @@ export function ConfidenceSegments({ value, showLabel = true, className }: Confi
         {Array.from({ length: 10 }, (_, i) => (
           <span
             key={i}
-            className={cn('h-[5px] w-2.5 rounded-[1px] transition-ui', i < on ? 'bg-tiger-orange' : 'bg-grey-3d')}
+            className={cn('h-[5px] w-2.5 rounded-[1px] transition-ui', i < on ? 'bg-tiger-orange' : 'bg-page-line-2')}
           />
         ))}
       </span>
-      <span className="font-display text-[20px] font-bold tabular-nums">{pct === null ? '–' : `${pct}%`}</span>
+      <span className="font-display text-[20px] font-bold tabular-nums text-on-page">{pct === null ? '–' : `${pct}%`}</span>
     </span>
   )
 }

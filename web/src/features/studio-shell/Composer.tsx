@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 
 function MicIcon({ size }: { size: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#FF6E01" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--color-tiger-orange,#FF6E01)" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
       <rect x="9" y="3" width="6" height="11" rx="3" />
       <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
     </svg>
@@ -65,7 +65,7 @@ export function Composer({
         'flex items-center rounded-full',
         light
           ? 'h-16 gap-2.5 border border-grey-c8 bg-white pr-2.5 pl-[26px] focus-within:border-midnight max-md:h-14 max-md:gap-1.5 max-md:pr-1.5 max-md:pl-4'
-          : 'h-[60px] gap-2.5 border border-grey-2a bg-grey-14 pr-2 pl-[22px] focus-within:border-grey-5f max-md:h-12 max-md:gap-1 max-md:pr-0.5 max-md:pl-4',
+          : 'h-[60px] gap-2.5 border border-page-line bg-panel-2 pr-2 pl-[22px] focus-within:border-page-line-2 max-md:h-12 max-md:gap-1 max-md:pr-0.5 max-md:pl-4',
       )}
     >
       <label htmlFor={inputId} className="sr-only">
@@ -82,7 +82,7 @@ export function Composer({
           'h-full min-w-0 flex-1 border-0 bg-transparent font-sans font-normal outline-none focus-visible:outline-none',
           light
             ? 'text-[20px] text-midnight placeholder:text-grey-6b max-md:text-[16px]'
-            : 'text-[17px] text-washed-white placeholder:text-grey-8f max-md:text-[16px]',
+            : 'text-[17px] text-on-page placeholder:text-on-page-3 max-md:text-[16px]',
         )}
       />
       <button
@@ -96,8 +96,8 @@ export function Composer({
           'inline-flex flex-none cursor-pointer items-center rounded-full border-0 font-display font-bold uppercase text-washed-white transition-ui disabled:cursor-not-allowed disabled:opacity-50',
           light
             ? 'h-[52px] gap-2.5 bg-midnight pr-[22px] pl-[18px] text-[18px] tracking-[0.04em] max-md:size-11 max-md:justify-center max-md:p-0'
-            : 'h-11 gap-2 bg-grey-26 pr-4 pl-3 text-[15px] tracking-[0.05em] max-md:size-11 max-md:justify-center max-md:p-0',
-          listening && 'shadow-[inset_0_0_0_2px_#FF6E01]',
+            : 'h-11 gap-2 bg-page-line text-on-page pr-4 pl-3 text-[15px] tracking-[0.05em] max-md:size-11 max-md:justify-center max-md:p-0',
+          listening && 'shadow-[inset_0_0_0_2px_var(--color-tiger-orange,#FF6E01)]',
         )}
       >
         <MicIcon size={light ? 20 : 18} />
@@ -111,10 +111,10 @@ export function Composer({
           'inline-flex flex-none cursor-pointer items-center justify-center rounded-full border-0 transition-ui disabled:cursor-not-allowed',
           light
             ? 'size-[52px] bg-tiger-orange hover:bg-orange-hover disabled:opacity-60 max-md:size-11'
-            : 'size-11 bg-grey-3d enabled:hover:bg-grey-5f disabled:opacity-60',
+            : 'size-11 bg-page-line-2 enabled:hover:opacity-80 disabled:opacity-60',
         )}
       >
-        <ArrowIcon size={light ? 22 : 18} color={light ? '#0B0B0B' : '#F8F8F8'} />
+        <ArrowIcon size={light ? 22 : 18} color={light ? '#0B0B0B' : 'var(--color-on-page,#F8F8F8)'} />
       </button>
     </form>
   )

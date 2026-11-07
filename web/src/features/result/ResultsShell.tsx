@@ -143,7 +143,7 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
                     aria-haspopup="dialog"
                     aria-expanded={sheetOpen}
                     onClick={() => setSheetOpen(true)}
-                    className="absolute right-4 bottom-3 z-10 inline-flex h-[52px] cursor-pointer items-center gap-2.5 rounded-full border border-grey-2a bg-grey-1a pr-[18px] pl-2 text-[16px] font-semibold text-washed-white shadow-[0_12px_30px_rgba(0,0,0,.55)]"
+                    className="absolute right-4 bottom-3 z-10 inline-flex h-[52px] cursor-pointer items-center gap-2.5 rounded-full border border-page-line bg-panel-2 pr-[18px] pl-2 text-[16px] font-semibold text-on-page shadow-[0_12px_30px_rgba(0,0,0,.55)]"
                   >
                     <FitterAvatar size={36} />
                     Ask the fitter

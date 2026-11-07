@@ -182,7 +182,7 @@ export function ResultsAside(props: ResultsAsideProps) {
 /** Visible label for example (non-tool) data, L14. */
 export function ExamplePill({ title = 'Example data, not from Takomo' }: { title?: string }) {
   return (
-    <span title={title} className="rounded-4 border border-grey-3d px-1.5 py-px font-display text-[11px] font-semibold tracking-[0.16em] text-grey-8f uppercase">
+    <span title={title} className="rounded-4 border border-page-line-2 px-1.5 py-px font-display text-[11px] font-semibold tracking-[0.16em] text-on-page-3 uppercase">
       Example
     </span>
   )

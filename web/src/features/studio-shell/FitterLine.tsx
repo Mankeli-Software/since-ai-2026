@@ -11,7 +11,7 @@ export function FitterLine({ messages }: { messages: ChatMessage[] }) {
   const lines = messages.filter((m) => m.text.trim())
   if (lines.length === 0) return null
   const [first, ...rest] = lines
-  const p = 'text-[24px] font-medium leading-[1.45] text-washed-white [&_strong]:font-bold max-md:text-[18px] max-md:font-normal'
+  const p = 'text-[24px] font-medium leading-[1.45] text-on-page [&_strong]:font-bold max-md:text-[18px] max-md:font-normal'
   return (
     <div className="flex flex-col gap-2" aria-live="polite">
       <div className="flex items-start gap-4 max-md:gap-2.5">
@@ -33,13 +33,13 @@ export function FitterLine({ messages }: { messages: ChatMessage[] }) {
 /** Subtle "Thinking…" while a turn streams and no card is up yet. */
 export function Thinking() {
   return (
-    <p role="status" className="m-0 ml-[60px] flex max-md:ml-[42px] items-center gap-1.5 text-grey-a3">
+    <p role="status" className="m-0 ml-[60px] flex max-md:ml-[42px] items-center gap-1.5 text-on-page-2">
       <span className="sr-only">Running the numbers…</span>
       {[0, 160, 320].map((d) => (
         <span
           key={d}
           aria-hidden="true"
-          className="size-2 animate-pulse rounded-full bg-grey-8f"
+          className="size-2 animate-pulse rounded-full bg-on-page-3"
           style={{ animationDelay: `${d}ms` }}
         />
       ))}

@@ -14,13 +14,13 @@ export function PhoneNext({ label, to }: { label: string; to: { view: ResultsVie
     <button
       type="button"
       onClick={() => go(to.view, to.part)}
-      className="flex min-h-[60px] w-full flex-none cursor-pointer items-center gap-3 rounded-12 border border-grey-26 bg-grey-12 px-4 text-left text-washed-white md:hidden"
+      className="flex min-h-[60px] w-full flex-none cursor-pointer items-center gap-3 rounded-12 border border-page-line bg-panel px-4 text-left text-on-page md:hidden"
     >
       <span className="flex flex-col gap-0.5">
-        <span className="text-[13px] text-grey-a3">Next</span>
+        <span className="text-[13px] text-on-page-2">Next</span>
         <span className="font-display text-[18px] font-bold uppercase">{label}</span>
       </span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF8A33" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="ml-auto">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-orange-on-page,#FF8A33)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="ml-auto">
         <path d="M9 5l7 7-7 7" />
       </svg>
     </button>
@@ -30,9 +30,9 @@ export function PhoneNext({ label, to }: { label: string; to: { view: ResultsVie
 /** The fitter's one-line note, inline on the page (the sheet is closed by default on phones). */
 export function PhoneNote({ text }: { text: string }) {
   return (
-    <div className="flex flex-none items-start gap-3 rounded-12 border border-grey-26 bg-grey-12 p-4 md:hidden">
+    <div className="flex flex-none items-start gap-3 rounded-12 border border-page-line bg-panel p-4 md:hidden">
       <FitterAvatar size={28} className="mt-0.5" />
-      <p className="m-0 text-[16px] leading-[1.45] text-washed-white">
+      <p className="m-0 text-[16px] leading-[1.45] text-on-page">
         <Text text={text} />
       </p>
     </div>

@@ -33,12 +33,12 @@ export function RecapRow({ items }: { items: UiItem[] }) {
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex min-h-11 max-w-full cursor-pointer items-center gap-2 self-start rounded-full border border-grey-2a bg-grey-14 px-3.5 font-sans text-[14px] font-medium text-grey-c8 md:hidden"
+        className="inline-flex min-h-11 max-w-full cursor-pointer items-center gap-2 self-start rounded-full border border-page-line bg-panel-2 px-3.5 font-sans text-[14px] font-medium text-on-page-2 md:hidden"
       >
-        <span className="flex-none text-grey-8f">Logged so far</span>
-        <span className="truncate text-washed-white">{latest.answer?.displayText ?? ''}</span>
+        <span className="flex-none text-on-page-3">Logged so far</span>
+        <span className="truncate text-on-page">{latest.answer?.displayText ?? ''}</span>
         {more > 0 && (
-          <span className="inline-flex h-[22px] min-w-[22px] flex-none items-center justify-center rounded-full bg-grey-2a px-1 text-[12px] font-semibold">
+          <span className="inline-flex h-[22px] min-w-[22px] flex-none items-center justify-center rounded-full bg-page-line px-1 text-[12px] font-semibold">
             +{more}
           </span>
         )}
@@ -47,7 +47,7 @@ export function RecapRow({ items }: { items: UiItem[] }) {
           height="16"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#8F8F8F"
+          stroke="var(--color-on-page-3,#8f8f8f)"
           strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -58,7 +58,7 @@ export function RecapRow({ items }: { items: UiItem[] }) {
         </svg>
       </button>
       <div className={cn('flex flex-wrap items-center gap-2', !open && 'max-md:hidden')}>
-        <Eyebrow className="mr-1.5 text-grey-5f max-md:hidden">Logged so far</Eyebrow>
+        <Eyebrow className="mr-1.5 text-on-page-3 max-md:hidden">Logged so far</Eyebrow>
         {items.map((u) => (
           <RecapChip key={u.id} label={u.answer?.displayText ?? ''} title={promptOf(u)} measured={isMeasured(u)} />
         ))}

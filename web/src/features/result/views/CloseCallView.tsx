@@ -38,7 +38,7 @@ export function CloseCallView({ part, a, b, tradeoff, next_step, framed = true, 
       aria-label={`Close call: ${PART_LABEL[part]}`}
       className={cn(
         'flex flex-col gap-2.5 text-midnight',
-        framed && 'rounded-14 bg-washed-white p-4',
+        framed && 'rounded-14 bg-washed-white p-4 ring-1 ring-card-edge',
         className,
       )}
     >

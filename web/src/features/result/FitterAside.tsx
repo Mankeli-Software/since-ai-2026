@@ -200,6 +200,7 @@ export function FitterAside({ chips, slotRef, overridden, sheetOpen = false, onC
       {sheetOpen && <div aria-hidden="true" onClick={onCloseSheet} className="fixed inset-0 z-40 bg-black/60 md:hidden" />}
       <aside
         aria-label="Your fitter"
+        data-surface="dark"
         className={cn(
           'flex min-h-0 w-[380px] flex-none flex-col gap-4 border-l border-grey-1f bg-grey-0f p-6',
           'max-md:fixed max-md:inset-x-0 max-md:top-12 max-md:bottom-0 max-md:z-50 max-md:w-auto max-md:rounded-t-20 max-md:border-t max-md:border-l-0 max-md:px-4 max-md:pt-2 max-md:pb-[18px] max-md:shadow-[0_-20px_40px_rgba(0,0,0,.5)]',

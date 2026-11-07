@@ -47,7 +47,7 @@ export function SpecPartIcon({ part, active = false, size = 20, color, className
       height={size}
       viewBox="0 0 24 24"
       fill="none"
-      stroke={color ?? (active ? '#FF6E01' : '#C8C8C8')}
+      stroke={color ?? (active ? 'var(--color-tiger-orange,#FF6E01)' : 'var(--color-grey-c8,#C8C8C8)')}
       strokeWidth={1.6}
       strokeLinecap="round"
       strokeLinejoin="round"
