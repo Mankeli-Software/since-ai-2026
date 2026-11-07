@@ -1,27 +1,76 @@
+# Hannu (DEMO-09): ball-line readings, no TrackMan. Fused with the chart his lie stays a close call
+# (and flex too, from carry only), so the studio honestly sends him to a simulator (plan L8).
+# Every number in the chat comes from the state or a tool output of the same turn: `$ref` for a
+# whole value, `{$ref:fmt}` inside a sentence (scripted_engine). Never type a number in here.
 persona: hannu
 steps:
-  # Turn 1: Questionnaire review and ball-line test prompt
+  # Turn 1: the chart's lie, then the ball-line test
   - text: "Moi Hannu. Let's get your irons sorted."
-  - text: "From your answers, you carry your 7-iron 125 yards. Static sizing charts say standard lie, but turf contact at impact usually tells the real truth."
   - tool_call:
       name: run_fit
       args: {}
   - tool_call:
+      name: get_close_call
+      args: {part: lie}
+  - tool_call:
       name: stage_focus
       args: {part: lie}
+  - text:
+      by: $get_close_call.status
+      cases:
+        ok: "From your height and wrist-to-floor, the sizing chart puts your lie between {$get_close_call.ours_label} and {$get_close_call.alt_label}. That's a close call, so let's see how your own club sits at impact."
+      default: "From your height and wrist-to-floor, the sizing chart gives {$state.best.lie_deg:+d}° lie. Let's see how your own club sits at impact."
   - ui:
       type: data_import
-      prompt: "A quick 5-shot ball-line test on a mat shows which way your club leans at impact. Enter your marker-line readings below."
+      prompt: "A quick ball-line test on a mat shows which way your club leans at impact. Enter your marker-line readings below."
       sources: ["ball_line", "skip"]
       club_hint: own_7i
       reason_code: lie_ball_line
 
-  # Turn 2: Ball-line results, honest close call explanation and simulator recommendation
-  - text: "Got your 5 ball-line marks."
-  - text: "Here's our straight-up Finnish honesty: a sharpie line off a range mat is noisy data. Fusing it with your static chart leaves lie angle right on the razor's edge between Standard and 1° Upright—and your flex is right on the line without measured speed."
+  # Turn 2: the fused lie and flex, honestly still close; a simulator settles them
   - tool_call:
       name: run_fit
       args: {}
+  - tool_call:
+      name: explain_part
+      as: why_lie
+      args: {part: lie}
+  - tool_call:
+      name: explain_part
+      as: why_flex
+      args: {part: flex}
+  - tool_call:
+      name: get_close_call
+      as: lie_call
+      args: {part: lie}
+  - tool_call:
+      name: get_close_call
+      as: flex_call
+      args: {part: flex}
+  - tool_call:
+      name: stock_advice
+      args: {}
+  - text:
+      by: $why_lie.why.sources.0.source
+      cases:
+        ball_line: "Got your {$why_lie.why.sources.0.n} ball-line readings."
+      default: "No ball-line readings this time, so your lie stays on the sizing chart."
+  - text:
+      by: $why_lie.why.sources.0.source
+      cases:
+        ball_line:
+          by: $lie_call.status
+          cases:
+            ok: "Straight-up Finnish honesty: a marker line off a mat is rough data. Fused with the chart, your lie is a close call between {$lie_call.ours_label} and {$lie_call.alt_label}. We keep {$lie_call.ours_label} for now."
+          default: "Fused with the chart, your readings give {$state.best.lie_deg:+d}° lie."
+      default:
+        by: $lie_call.status
+        cases:
+          ok: "That leaves your lie a close call between {$lie_call.ours_label} and {$lie_call.alt_label}. We keep {$lie_call.ours_label} for now."
+  - text:
+      by: $flex_call.status
+      cases:
+        ok: "Flex is close too. Without measured shots we estimate {$why_flex.why.numbers.speed_mph:.1f} mph from your {$profile.reported_7i_carry_yd:.0f}-yard carry, which sits between {$flex_call.ours_label} and {$flex_call.alt_label}."
   - ui:
       type: recommendation_card
       # Bound to the live fit so the card always matches the buy bar and the header confidence.
@@ -34,24 +83,16 @@ steps:
   - ui:
       type: why_panel
       depth: standard
-      items:
-        - part: lie
-          plain:
-            by: $state.per_part.lie.alt
-            cases:
-              "1": "Lie is a close call: readings lean upright. A test-club session on a simulator gives the number."
-              "-1": "Lie is a close call: readings lean flat. A test-club session on a simulator gives the number."
-            default: "Lie is a close call: readings lean upright. A test-club session on a simulator gives the number."
-          numbers:
-            lie_deg: $state.best.lie_deg
-          sources:
-            - source: questionnaire
-            - source: ball_line
-  - text: "Rather than nudging you into a non-returnable custom order based on a mat test, we'd rather you hit 10 balls with a Takomo test club on a simulator first."
+      items: [$why_lie.why, $why_flex.why]
+  - text:
+      by: $state.best.purchase
+      cases:
+        stock: "As it stands your set is stock, so you keep the {$stock_advice.advice.stock_return_days}-day return. Still, we'd rather you hit a Takomo test club on a simulator before anyone settles your lie."
+        custom: "This build would be a custom order, and custom clubs can't be returned. We'd rather you hit a Takomo test club on a simulator before you commit to a lie from a mat test."
   - ui:
       type: simulator_map
       simulator_ids:
         - helsinki_indoor
         - espoo_fitting
         - turku_fitting
-  - text: "Hitting 5 to 10 shots on a TrackMan near you will turn this educated guess into dead certainty."
+  - text: "Test-club shots at one of these will turn this close call into a number. Hit Save in the top bar to keep your fit until then."
