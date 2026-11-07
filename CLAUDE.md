@@ -21,7 +21,6 @@ just check            # gen + lint: run before every PR
 just gen-data         # demo fixtures, priors.json, thresholds.json
 just score            # dev-split accuracy via takomo_fit.score (offline scoring, not a test)
 just preds            # mankeli_takomo_test_predictions.csv
-just record <persona> # scripted SSE run -> web/public/mock/<persona>.jsonl
 just smoke [url]      # deploy health check
 ```
 

@@ -338,10 +338,9 @@ def _glove(
     return None
 
 
-RADAR_TEMPO_NOTE = (
-    "from your answer: launch monitors don't measure tempo on full swings "
-    "(the radar sees the club only from about knee to knee)"
-)
+# Short on purpose: the why panel reads source notes as "From X and Y". `explain.py` keys the
+# full sentence (Issue #161) off this exact note.
+RADAR_TEMPO_NOTE = "your tempo answer (not measured on full swings)"
 
 
 def _tempo(intake: IntakeAnswers, ev: FitEvidence, o: MappingOptions) -> Choice | None:

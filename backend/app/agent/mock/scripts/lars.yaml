@@ -1,30 +1,30 @@
 persona: lars
 steps:
-  # Turn 1: Low-handicap evaluation and 301 CB vs 301 MB close call
-  - text: "Welcome Lars. At a 1.8 handicap and 88 mph 7-iron speed, you can strike anything in our forged lineup."
+  # Turn 1: Tour player evaluation and 301 CB vs 301 MB close call
+  - text: "Welcome Lars. At 88 mph 7-iron speed, you can play either of our tour forged irons."
   - tool_call:
       name: run_fit
       args: {}
   - text: "We're looking at a dead heat between the 301 CB and 301 MB. No sales BS—here's the raw trade-off between the two."
   - tool_call:
-      name: compare_specs
-      args: {heads: [301-cb, 301-mb]}
+      name: simulate_flight
+      args: {heads: [$state.best.head, $state.runner_up.head]}
   - ui:
       type: club_compare
-      highlight: 301-cb
+      highlight: $state.best.head
       heads:
-        - head: 301-cb
-          carry: 162.4
-          apex: 29.8
-          land_angle: 48.2
-          side_sd: 4.8
-          score_total: 18.2
-        - head: 301-mb
-          carry: 160.1
-          apex: 28.5
-          land_angle: 47.6
-          side_sd: 5.6
-          score_total: 17.6
+        - head: $simulate_flight.result.per_head.0.head
+          carry: $simulate_flight.result.per_head.0.summary.carry.mean
+          apex: $simulate_flight.result.per_head.0.summary.apex
+          land_angle: $simulate_flight.result.per_head.0.summary.land_angle
+          side_sd: $simulate_flight.result.per_head.0.summary.side.sd
+          score_total: $run_fit.ranking.0.total
+        - head: $simulate_flight.result.per_head.1.head
+          carry: $simulate_flight.result.per_head.1.summary.carry.mean
+          apex: $simulate_flight.result.per_head.1.summary.apex
+          land_angle: $simulate_flight.result.per_head.1.summary.land_angle
+          side_sd: $simulate_flight.result.per_head.1.summary.side.sd
+          score_total: $run_fit.ranking.1.total
   - ui:
       type: recommendation_card
       # Bound to the live fit so the card always matches the buy bar and the header confidence.
@@ -34,26 +34,18 @@ steps:
       gate: $state.gate
       strength: $state.strength
       runner_up: $state.runner_up
+  - tool_call:
+      name: explain_part
+      as: why_head
+      args: {part: head}
+  - tool_call:
+      name: explain_part
+      as: why_shaft
+      args: {part: shaft_model}
   - ui:
       type: why_panel
       depth: numbers
-      items:
-        - part: head
-          plain: "Close call: 301 CB (18.2) vs 301 MB (17.6). The 301 CB offers 2.3 yd more carry on slight mishits and a tighter dispersion ellipse, while the 301 MB offers ultimate workability."
-          numbers:
-            head_score: 18.2
-            runner_up_score: 17.6
-            carry_diff_yd: 2.3
-          sources:
-            - source: questionnaire
-            - source: trackman
-        - part: shaft_model
-          plain: "KBS Tour Stiff steel shaft matches your 88 mph club speed and moderate tempo for a penetrating ball flight."
-          numbers:
-            weight_g: 120.0
-            club_speed_mph: 88.0
-          sources:
-            - source: questionnaire
+      items: [$why_head.why, $why_shaft.why]
   - ui:
       type: choice_chips
       prompt: "Which matters more to your scoring: the slight toe-strike forgiveness of the CB, or the surgical shot-shaping of the MB blade?"
@@ -63,12 +55,10 @@ steps:
           label: "Takomo 301 CB (Cavity Back)"
         - id: 301-mb
           label: "Takomo 301 MB (Muscle Back)"
-        - id: combo
-          label: "Combo Set (4-6 CB / 7-PW MB)"
 
   # Turn 2: Selected build confirmation and flight view
-  - text: "Both heads are forged from identical S20C carbon steel, so feel and acoustics match whether you commit to one model or blend a combo set (CB long irons / MB scoring clubs)."
+  - text: "Both heads give you forged feel and workability."
   - tool_call:
       name: simulate_flight
-      args: {heads: [301-cb, 301-mb]}
+      args: {heads: [$state.best.head, $state.runner_up.head]}
   - text: "Dispersion is mapped on the stage. Tweak in Tinker or hit Save in the top bar."

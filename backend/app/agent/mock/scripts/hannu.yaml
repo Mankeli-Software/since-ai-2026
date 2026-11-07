@@ -2,7 +2,7 @@ persona: hannu
 steps:
   # Turn 1: Questionnaire review and ball-line test prompt
   - text: "Moi Hannu. Let's get your irons sorted."
-  - text: "From your answers, you carry your 7-iron 145 yards. Static sizing charts say standard lie, but turf contact at impact usually tells the real truth."
+  - text: "From your answers, you carry your 7-iron 125 yards. Static sizing charts say standard lie, but turf contact at impact usually tells the real truth."
   - tool_call:
       name: run_fit
       args: {}
@@ -20,9 +20,6 @@ steps:
   - text: "Got your 5 ball-line marks."
   - text: "Here's our straight-up Finnish honesty: a sharpie line off a range mat is noisy data. Fusing it with your static chart leaves lie angle right on the razor's edge between Standard and 1° Upright—and your flex is right on the line without measured speed."
   - tool_call:
-      name: update_profile
-      args: {lie_override_deg: 0.8}
-  - tool_call:
       name: run_fit
       args: {}
   - ui:
@@ -39,9 +36,14 @@ steps:
       depth: standard
       items:
         - part: lie
-          plain: "Lie is a close call: static chart suggests 0° Standard, while your ball-line readings lean +0.8° upright. Testing on a simulator is recommended before ordering custom."
+          plain:
+            by: $state.per_part.lie.alt
+            cases:
+              "1": "Lie is a close call: readings lean upright. A test-club session on a simulator gives the number."
+              "-1": "Lie is a close call: readings lean flat. A test-club session on a simulator gives the number."
+            default: "Lie is a close call: readings lean upright. A test-club session on a simulator gives the number."
           numbers:
-            lie_deg: 0.0
+            lie_deg: $state.best.lie_deg
           sources:
             - source: questionnaire
             - source: ball_line

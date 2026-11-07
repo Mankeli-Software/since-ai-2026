@@ -1,8 +1,15 @@
+import { useEffect, useRef, useState } from 'react'
+import { api } from '@/api/client'
+import type { components } from '@/api/schema.gen'
 import { Eyebrow } from '@/components/studio'
+import { hasFlag } from '@/lib/flags'
+import { useSession } from '@/store/session'
 import { ResultsAside, ViewLink, useResultsChrome } from './chrome'
 import { StockCustomCards, type Purchase } from './compare/StockCustomCards'
 import { customDelta } from './specLabel'
 import type { Spec } from './types'
+
+type StockAdvice = components['schemas']['StockAdvice']
 
 const ASIDE_FALLBACK = 'Custom pays off when your shots agree on it. Stock still plays fine if you would rather keep the returns.'
 const CHIPS = ['Show me the toe strikes', 'What if I buy stock?']
@@ -42,17 +49,52 @@ function NothingCustom({ best }: { best: Spec | null }) {
  */
 export function R5Stock() {
   const { data, buySpec, setBuySpec } = useResultsChrome()
+  const { sessionId } = useSession()
+  const [advice, setAdvice] = useState<StockAdvice | null>(null)
+  const [stayStock, setStayStock] = useState(false)
+  const prevBuySpecRef = useRef<Spec | null>(null)
+
   const block = data.latest('stock_vs_custom')
   const best = data.best
+  const ui = useSession((s) => s.ui)
+  const respond = useSession((s) => s.respond)
+  const pendingItem = [...ui].reverse().find((u) => u.block.type === 'stock_vs_custom' && u.interactive && !u.answered)
+
+  const stockadv = hasFlag('stockadv')
+
+  useEffect(() => {
+    if (!stockadv || !sessionId) return
+    let active = true
+    api
+      .GET('/api/sessions/{session_id}/stock-advice', {
+        params: { path: { session_id: sessionId } },
+      })
+      .then(({ data: resData, error }) => {
+        if (active && resData && !error) {
+          setAdvice(resData)
+        }
+      })
+      .catch(() => {
+        // on error fall back to current behaviour
+      })
+    return () => {
+      active = false
+    }
+  }, [stockadv, sessionId])
 
   if (!block || !best) {
     return <NothingCustom best={best} />
   }
 
   const b = builds(best)
+  if (stockadv && advice?.stock) {
+    b.stock = advice.stock as Spec
+  }
+
   const value: Purchase = buySpec?.purchase ?? best.purchase
   const delta = customDelta(b.custom)
   const lieDelta = best.lie_deg !== 0 && Math.abs(best.lie_deg) <= 5
+  const lean = stockadv && advice ? advice.lean : undefined
 
   return (
     <>
@@ -72,14 +114,71 @@ export function R5Stock() {
           ))}
         </ul>
       )}
+
+      {stockadv && advice && (advice.lean === 'stock' || advice.lean === 'either') && (
+        <div className="flex flex-col gap-1.5 rounded-12 border border-grey-3d bg-grey-12 p-4 text-[15px] text-grey-c8">
+          <p className="m-0 font-medium text-washed-white">
+            Stock is a fine choice: you keep the {advice.stock_return_days}-day return. Custom builds cannot be returned.
+          </p>
+          {advice.reasons && advice.reasons.length > 0 && (
+            <p className="m-0 text-grey-a3">{advice.reasons[0]}</p>
+          )}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-grey-8f">
+            {advice.lie_change_deg !== 0 && (
+              <span>Lie change: {advice.lie_change_deg > 0 ? `+${advice.lie_change_deg}°` : `${advice.lie_change_deg}°`}</span>
+            )}
+            {advice.carry_delta_yd != null && advice.carry_delta_yd !== 0 && (
+              <span>Carry difference: {advice.carry_delta_yd > 0 ? `+${advice.carry_delta_yd.toFixed(1)} yd` : `${advice.carry_delta_yd.toFixed(1)} yd`}</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {stockadv && advice && advice.stock && (
+        <div className="flex flex-col gap-2 rounded-12 border border-grey-26 bg-grey-12 p-3.5">
+          <label className="flex cursor-pointer items-center gap-2.5 text-[15px] font-semibold text-washed-white">
+            <input
+              type="checkbox"
+              checked={stayStock}
+              onChange={(e) => {
+                const checked = e.target.checked
+                setStayStock(checked)
+                if (checked) {
+                  prevBuySpecRef.current = buySpec
+                  setBuySpec(b.stock)
+                } else {
+                  setBuySpec(prevBuySpecRef.current)
+                }
+              }}
+              className="size-4 rounded accent-tiger-orange"
+            />
+            <span>What if I stay stock?</span>
+          </label>
+          {stayStock && advice.side_delta_yd != null && (
+            <p className="m-0 text-[14px] text-grey-c8">
+              {advice.side_delta_yd === 0
+                ? 'Your start line stays on target.'
+                : `With stock lie, your start line shifts about ${Math.abs(advice.side_delta_yd).toFixed(1)} yards to the ${advice.side_delta_yd > 0 ? 'right' : 'left'}.`}
+            </p>
+          )}
+        </div>
+      )}
+
       <StockCustomCards
         className="flex-[1_0_auto]"
         value={value}
-        onChange={(v) => setBuySpec(b[v])}
+        onChange={(v) => {
+          if (stayStock) setStayStock(false)
+          setBuySpec(b[v])
+          if (pendingItem) {
+            void respond(pendingItem.id, v, v === 'stock' ? 'Stock' : 'Custom')
+          }
+        }}
         stockTitle={lieDelta ? 'Stock, 0°' : 'Stock'}
         customTitle={delta.length ? `Custom, ${delta.join(', ')}` : 'Custom build'}
-        stockReturnDays={block.stock_return_days ?? 30}
+        stockReturnDays={advice?.stock_return_days ?? block.stock_return_days ?? 30}
         customReturnable={block.custom_returnable ?? false}
+        lean={lean}
       />
       <span className="text-[15px] text-grey-a3">
         Pick one. The buy bar below follows your choice. Not sure? Stock still plays fine for you.

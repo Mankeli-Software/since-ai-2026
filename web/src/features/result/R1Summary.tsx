@@ -76,8 +76,9 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
   )
 }
 
-function HeadCard({ spec, rank, score }: { spec: Spec; rank: 1 | 2; score: number | null }) {
+function HeadCard({ spec, rank, score, strength }: { spec: Spec; rank: 1 | 2; score: number | null; strength?: string | null }) {
   const first = rank === 1
+  const label = first ? (strength === 'low' ? 'Add data to firm this up' : '1st, your fit') : '2nd, close behind'
   return (
     <ViewLink
       view="compare"
@@ -88,7 +89,7 @@ function HeadCard({ spec, rank, score }: { spec: Spec; rank: 1 | 2; score: numbe
     >
       <ClubImage slug={spec.head} className="h-[62px] w-auto flex-none" />
       <span className="flex min-w-0 flex-col gap-[3px]">
-        <Eyebrow className={first ? 'text-orange-hover' : 'text-grey-8f'}>{first ? '1st, your fit' : '2nd, close behind'}</Eyebrow>
+        <Eyebrow className={first ? 'text-orange-hover' : 'text-grey-8f'}>{label}</Eyebrow>
         <span className="font-display text-[22px] font-bold uppercase">{headName(spec.head)}</span>
         <span className="truncate text-[14px] text-grey-c8">{headBlurb(spec.head)}</span>
       </span>
@@ -270,7 +271,7 @@ export function R1Summary() {
             {sameShaft ? 'Your two best heads, same shaft' : 'Your two best heads'}
           </Eyebrow>
           <div className="flex gap-3">
-            <HeadCard spec={best} rank={1} score={scoreOf(data, best.head)} />
+            <HeadCard spec={best} rank={1} score={scoreOf(data, best.head)} strength={data.state?.strength} />
             <HeadCard spec={runnerUp} rank={2} score={scoreOf(data, runnerUp.head)} />
           </div>
         </section>

@@ -11,5 +11,9 @@ class EvidenceSettings(BaseSettings):
     # (Mikko, Hannu, Lars, Anders) is unchanged. EVIDENCE_WAVE2=0 turns them off.
     wave2: bool = True
 
+    # EVIDENCE_ENABLE_G14=1 enables only the G14 rare-spec humour rule (issue #126) without
+    # enabling other Wave 2 rules.
+    enable_g14: bool = False
+
 
 settings = EvidenceSettings()

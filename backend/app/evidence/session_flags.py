@@ -67,9 +67,10 @@ def refresh_fit_flags(
     measured_bucket: int | None,
     measured_speed_mph: float | None = None,
 ) -> list[Flag]:
-    """Session flags after re-running G12 and G14 against the current fit (W2 only; without W2
-    the flags come back unchanged). Both are info, so the pending list does not change."""
-    if not settings.wave2:
+    """Session flags after re-running G12 and G14 against the current fit (W2 only, or G14 with
+    EVIDENCE_ENABLE_G14; otherwise the flags come back unchanged). Both are info, so the pending
+    list does not change."""
+    if not (settings.wave2 or settings.enable_g14):
         return list(session.flags)
     fresh = wave2_fit_flags(
         _values(session),

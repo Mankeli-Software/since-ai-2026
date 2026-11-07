@@ -90,6 +90,7 @@ export interface StockCustomCardsProps {
   /** From the block (tool output). */
   stockReturnDays: number
   customReturnable: boolean
+  lean?: 'stock' | 'custom' | 'either'
   className?: string
 }
 
@@ -97,7 +98,7 @@ export interface StockCustomCardsProps {
  * R5 stock vs custom on the dark stage: `role=radiogroup` of two `role=radio` cards (custom = recommended),
  * arrow keys move the choice. Delivery times are example copy (fixtures/commerce.ts PURCHASE_COPY).
  */
-export function StockCustomCards({ value, onChange, stockTitle, customTitle, stockReturnDays, customReturnable, className }: StockCustomCardsProps) {
+export function StockCustomCards({ value, onChange, stockTitle, customTitle, stockReturnDays, customReturnable, lean, className }: StockCustomCardsProps) {
   const refs = useRef<Record<Purchase, HTMLButtonElement | null>>({ stock: null, custom: null })
   const cards = [
     {
@@ -133,6 +134,7 @@ export function StockCustomCards({ value, onChange, stockTitle, customTitle, sto
       {cards.map((c) => {
         const on = value === c.id
         const custom = c.id === 'custom'
+        const isRecommended = lean !== undefined ? c.id === lean : custom
         return (
           <button
             key={c.id}
@@ -155,7 +157,7 @@ export function StockCustomCards({ value, onChange, stockTitle, customTitle, sto
                 className={cn('size-6 flex-none rounded-full', on ? 'border-[7px] border-tiger-orange bg-midnight' : 'border-2 border-grey-5f')}
               />
               <span className="font-display text-[26px] leading-none font-bold uppercase">{c.title}</span>
-              {custom && <Eyebrow className="ml-auto rounded-4 bg-tiger-orange px-2 py-[3px] text-midnight">Recommended</Eyebrow>}
+              {isRecommended && <Eyebrow className="ml-auto rounded-4 bg-tiger-orange px-2 py-[3px] text-midnight">Recommended</Eyebrow>}
             </span>
             <Eyebrow className="text-grey-8f">Your strikes</Eyebrow>
             <StrikeMap custom={custom} />

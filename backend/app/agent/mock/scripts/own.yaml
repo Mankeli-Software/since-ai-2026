@@ -108,7 +108,6 @@ steps:
         - {id: "18birdies", name: "18Birdies", hint: "Stats screenshot"}
         - {id: arccos, name: "Arccos", hint: "Connect your account"}
         - {id: garmin_golf, name: "Garmin Golf", hint: "Connect your account"}
-        - {id: handicap_id, name: "Handicap ID", hint: "GHIN or your federation number"}
       fallback: {id: by_hand, title: "I'll just tell you", body: "A few quick questions instead"}
 
   # ---- C3b: your game by hand
@@ -341,4 +340,5 @@ steps:
       b: {label: "201", share: 47}
       tradeoff: "The 201 gives you **+3 m** but lands flatter and runs out. For holding greens, the 201T wins."
       next_step: "Hit both in a bay"
-  - text: "That's your fit. The short version is above. Every detail is one tap away when you want it."
+  - text: "Here is your fitted build. Every spec comes straight from the fit."
+  - text: "Use Save at the top to keep a link to your fit."

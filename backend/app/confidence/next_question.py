@@ -29,6 +29,9 @@ from app.schemas.ui.data_import import DataImport
 from app.schemas.ui.slider import Slider
 
 BALL_LINE_OFFER = "ball_line_offer"
+SIMULATOR_QUESTION = "hit_on_simulator"
+SIMULATOR_IMPORT = "data_import"
+BEGINNER_SKIP_REASON = "Skipping this for now: it matters less for a newer golfer."
 HAPPY = ChoiceOption(id="happy", label="I'm happy with this")
 
 
@@ -52,7 +55,7 @@ INTAKE: tuple[tuple[str, str, ChoiceChips | Slider | BodyMeasure], ...] = (
     ("swing", "reported_7i_carry_yd", Slider(prompt="How far do you carry your 7-iron?",
         field="reported_7i_carry_yd", unit="yd", min=60, max=220, step=5, allow_unknown=True)),
     ("characteristics", "characteristics", _chips("characteristics",
-        "What matters most in your irons? Pick up to three.",
+        "What would you change about your current irons? Pick up to three.",
         [("forgiveness", "Forgiveness"), ("distance", "Distance"), ("forged feel", "Forged feel"),
          ("distance control", "Distance control"), ("more offset", "More offset"),
          ("less offset", "Less offset")], multi=True)),
@@ -86,6 +89,14 @@ def _has_lie_evidence(ev: FitEvidence) -> bool:
     )
 
 
+def _is_beginner(intake: IntakeAnswers, asked: set[str]) -> bool:
+    if intake.score_bucket == 5:
+        return True
+    if intake.rounds_per_year in ("Under 10", "new", "beginner"):
+        return True
+    return bool({"new", "beginner", "new_golfer"} & asked)
+
+
 def next_question(
     intake: IntakeAnswers,
     evidence: FitEvidence | None,
@@ -98,14 +109,73 @@ def next_question(
     (including "I don't know"); `offered`: parts already given a precision offer."""
     ev = evidence or FitEvidence()
     asked = set(answered)
+    is_beginner = _is_beginner(intake, asked)
+
+    if is_beginner:
+        if intake.flight is None:
+            intake.flight = "mid"
+        if intake.tempo is None:
+            intake.tempo = "moderate"
+        if not intake.characteristics:
+            intake.characteristics = ["forgiveness"]
+
     missing = set(missing_inputs(intake, ev))
+    swing_known = (
+        "swing" not in missing
+        or "reported_7i_carry_yd" in asked
+        or intake.reported_7i_carry_yd is not None
+        or intake.reported_7i_speed_mph is not None
+        or bool(ev.shots)
+    )
+
+    ask_sim = swing_known and not is_beginner and not ev.shots and "characteristics" not in asked
+
     for key, field, component in INTAKE:
+        if key == "characteristics" and ask_sim:
+            if SIMULATOR_QUESTION not in asked:
+                return NextQuestionResponse(
+                    kind="intake",
+                    field=SIMULATOR_QUESTION,
+                    component=_chips(
+                        SIMULATOR_QUESTION,
+                        "Have you hit on a simulator or launch monitor?",
+                        [("yes", "Yes"), ("no", "No")],
+                    ),
+                )
+            said_yes = (
+                isinstance(answered, dict)
+                and answered.get(SIMULATOR_QUESTION) in ("yes", True, "Yes")
+            ) or bool({f"{SIMULATOR_QUESTION}:yes", f"{SIMULATOR_QUESTION}_yes", "yes"} & asked)
+            if said_yes and SIMULATOR_IMPORT not in asked and not ev.shots:
+                return NextQuestionResponse(
+                    kind="intake",
+                    field=SIMULATOR_IMPORT,
+                    component=DataImport(
+                        prompt="Import your 7-iron launch-monitor session "
+                        "(TrackMan CSV or screenshot).",
+                        sources=["csv", "screenshot", "skip"],
+                        club_hint="own_7i",
+                        reason_code="swing_speed",
+                    ),
+                )
+
+        if is_beginner and key in ("characteristics", "flight", "tempo", "joint_pain"):
+            continue
+
+        if is_beginner and key == "glove" and "glove" not in asked:
+            component = _chips(
+                "glove",
+                f"{BEGINNER_SKIP_REASON} Which glove size do you wear?",
+                [(g, g) for g in ("XS", "S", "M", "M/L", "L", "XL")],
+            )
+
         known = (key in asked or field in asked) if key in OPTIONAL else key not in missing
         if not known and field not in asked:
             return NextQuestionResponse(kind="intake", field=field, component=component)
 
     done = set(offered)
-    if not _has_lie_evidence(ev) and BALL_LINE_OFFER not in asked and "lie" not in done:
+    no_lie = not is_beginner and not _has_lie_evidence(ev)
+    if no_lie and BALL_LINE_OFFER not in asked and "lie" not in done:
         return NextQuestionResponse(
             kind="ball_line_offer",
             field=BALL_LINE_OFFER,
@@ -136,10 +206,16 @@ def next_question(
     if offer is None:
         return NextQuestionResponse(kind="none")
     rung = offer.rung
-    options = [ChoiceOption(id=rung.code, label=rung.label)]
-    if rung.needs_simulator:
-        options.append(ChoiceOption(id="find_simulator", label="Find a simulator near me"))
-    options.append(HAPPY)
+    if rung.code == "lie_simulator":
+        options = [
+            ChoiceOption(id="find_simulator", label="Find a simulator near me"),
+            HAPPY,
+        ]
+    else:
+        options = [ChoiceOption(id=rung.code, label=rung.label)]
+        if rung.needs_simulator:
+            options.append(ChoiceOption(id="find_simulator", label="Find a simulator near me"))
+        options.append(HAPPY)
     return NextQuestionResponse(
         kind="precision_offer",
         field="precision_offer",

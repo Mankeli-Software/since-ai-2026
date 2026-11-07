@@ -35,6 +35,35 @@ from app.schemas.fit import (
 )
 from app.schemas.session import FitSession
 
+CURRENT_CLUBS_GAIN_THRESHOLD_YD: float = 3.0
+
+
+def own_shots_carry_gain(
+    shots: Sequence[Shot],
+    per_head: Sequence[HeadFlight],
+    lie_change_deg: int | float = 0,
+) -> float | None:
+    """Carry gain in yards when own 7-iron shots exist and no lie change is needed.
+
+    Returns None when there are no own shots, or when a lie change is needed.
+    """
+    if lie_change_deg != 0:
+        return None
+
+    own_carries = [
+        float(s.carry_yd)
+        for s in shots
+        if s.carry_yd is not None and (s.club == "own_7i" or not s.club.startswith("takomo_"))
+    ]
+    if not own_carries:
+        return None
+
+    rec_flight = next((h for h in per_head if h.recommended), per_head[0] if per_head else None)
+    if rec_flight is None:
+        return None
+
+    return round(float(rec_flight.summary.carry.mean) - float(np.mean(own_carries)), 1)
+
 
 def _club_loft(s: Shot, intake: IntakeAnswers) -> float:
     if s.club_loft_deg is not None:
@@ -57,6 +86,7 @@ def simulate_flight(
     *,
     recommended_head: HeadSlug | None = None,
     lie_error_deg: float | Sequence[float] = 0.0,
+    lie_change_deg: int | float = 0,
     n_samples: int = 200,
     session_id: str = "default",
     evidence_version: int = 0,
@@ -311,7 +341,26 @@ def simulate_flight(
         if s.carry_yd is not None and (s.club == "own_7i" or not s.club.startswith("takomo_"))
     ]
 
-    return FlightResult(per_head=per_head, own_shots=own_shots)
+    actual_lie_change = lie_change_deg
+    if actual_lie_change == 0:
+        with contextlib.suppress(Exception):
+            answers = build_answers(intake, ev)
+            lie_need = (
+                answers.lie_override_deg
+                if answers.lie_override_deg is not None
+                else pack.static_lie_deg(answers.height_cm, answers.wrist_to_floor_cm)
+            )
+            if round(lie_need) != 0:
+                actual_lie_change = round(lie_need)
+
+    gain = own_shots_carry_gain(shots, per_head, lie_change_deg=actual_lie_change)
+    verdict = gain if gain is not None and gain < CURRENT_CLUBS_GAIN_THRESHOLD_YD else None
+
+    return FlightResult(
+        per_head=per_head,
+        own_shots=own_shots,
+        current_clubs_verdict=verdict,
+    )
 
 
 def simulate_session_flight(
@@ -322,6 +371,7 @@ def simulate_session_flight(
     evidence = evidence_of(session)
     rec_head = session.state.best.head if session.state.best else None
     lie_error_deg = 0.0
+    rec_lie = session.state.best.lie_deg if session.state.best else 0
     with contextlib.suppress(Exception):
         answers = build_answers(intake, evidence)
         lie_need = (
@@ -329,14 +379,21 @@ def simulate_session_flight(
             if answers.lie_override_deg is not None
             else pack.static_lie_deg(answers.height_cm, answers.wrist_to_floor_cm)
         )
-        rec_lie = session.state.best.lie_deg if session.state.best else round(lie_need)
+        if session.state.best is None:
+            rec_lie = round(lie_need)
         lie_error_deg = float(rec_lie - lie_need)
-    return simulate_flight(
+    res = simulate_flight(
         intake,
         evidence,
         heads,
         recommended_head=rec_head,
         lie_error_deg=lie_error_deg,
+        lie_change_deg=rec_lie,
         session_id=session.id,
         evidence_version=session.evidence_version,
     )
+    if session.state is not None:
+        session.state = session.state.model_copy(
+            update={"current_clubs_verdict": res.current_clubs_verdict}
+        )
+    return res

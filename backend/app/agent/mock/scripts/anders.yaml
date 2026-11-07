@@ -32,7 +32,7 @@ steps:
           plain: "Your test-club shots average +1° upright. In standard lie, the face sits slightly open at impact, which causes a mild push to the right."
           numbers:
             dynamic_lie_deg: 63.0
-            lie_deg: 1.0
+            lie_deg: $state.best.lie_deg
           sources:
             - source: trackman
         - part: purchase
@@ -51,7 +51,7 @@ steps:
       custom_returnable: false
 
   # Turn 3: Confirmation
-  - text: "Smart move. A lot of golfers grab stock to keep the 30-day safety net, then have a local pro bend them 1° later if they want it."
+  - text: "Fair trade-off. Stock keeps the 30-day safety net, so you can test the lie on the course first."
   - tool_call:
       name: simulate_flight
       args: {heads: [$state.best.head]}
