@@ -74,7 +74,7 @@ INTAKE: tuple[tuple[str, str, ChoiceChips | Slider | BodyMeasure], ...] = (
     ("glove", "glove", _chips("glove", "Which glove size do you wear?",
         [(g, g) for g in ("XS", "S", "M", "M/L", "L", "XL")])),
     ("height_cm", "height_cm", BodyMeasure(field="height", diagram_id="height",
-        prompt="How tall are you, in golf shoes?")),
+        prompt="How tall are you when wearing your golf shoes?")),
     ("wrist_to_floor_cm", "wrist_to_floor_cm", BodyMeasure(field="wrist_to_floor",
         diagram_id="wrist_to_floor",
         prompt="Stand straight in golf shoes, arms relaxed. Measure from your wrist crease to "
