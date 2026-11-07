@@ -11,6 +11,14 @@ name: ci-deploy
 on:
   push:
     branches: [main]
+    # Docs-only merges skip the whole run (no deploy). Never ignore all *.md: the agent's system prompt
+    # (backend/app/agent/prompts/fitter_system.md) ships in the image.
+    paths-ignore:
+      - "docs/**"
+      - "*.md" # repo root only (README, AGENTS, CLAUDE)
+      - "**/CLAUDE.md"
+      - ".claude/**"
+      - ".agents/**"
   pull_request: {}
   workflow_dispatch: {}
 
