@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from 'react'
-import { hasFlag } from './flags'
 
 export type Theme = 'dark' | 'light'
 
@@ -8,8 +7,8 @@ const STORAGE_KEY = 'takomo-theme'
 let currentTheme: Theme = 'dark'
 const listeners = new Set<() => void>()
 
+// Keep in sync with the inline script in each web/*.html <head> (sets data-theme before first paint).
 export function resolveTheme(): Theme {
-  if (!hasFlag('light-mode')) return 'dark'
   if (typeof window === 'undefined') return 'dark'
   const params = new URLSearchParams(window.location.search)
   const queryTheme = params.get('theme')
