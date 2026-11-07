@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Button, Eyebrow } from '@/components/studio'
+import { Button, EnterKbd, Eyebrow, Kbd, useEnterKey, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
 import type { BlockProps } from '../types'
@@ -66,6 +66,7 @@ const boxCls =
 /**
  * C4c guided import. Working actions: TrackMan CSV upload, persona sample imports ("Simulated"),
  * ball-line readings, skip. The share-link field is shown disabled (link importer cut, plan L6).
+ * Keys: Enter opens the CSV upload, number keys run the sample imports, Enter in a ball-line reading sends them.
  * Payloads unchanged: `{import_id}` or `{skipped: true}`.
  */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'data_import'>) {
@@ -88,6 +89,12 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       .then((list) => setSamples(list.find((g) => g.golfer_id === demo)?.sample_imports ?? []))
       .catch(() => {}) // route may not exist yet
   }, [demo, live])
+
+  const has = (s: string) => block.sources.includes(s as (typeof block.sources)[number])
+  const guided = has('trackman_link') || has('csv')
+  // Keydown is a user gesture, so Enter may open the file picker. Samples run on 1-9 (persona sessions only).
+  useEnterKey(() => fileRef.current?.click(), guided && !off)
+  useNumberKeys(samples.length, (i) => void sendSample(samples[i]), !off)
 
   if (!live) return <Answered prompt={block.prompt} answer={answer} />
 
@@ -140,8 +147,6 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       return csvPost(await g.blob(), s.sample_id, block.club_hint ?? 'own_7i')
     })
 
-  const has = (s: string) => block.sources.includes(s as (typeof block.sources)[number])
-  const guided = has('trackman_link') || has('csv')
   const lineOnly = has('ball_line') && !guided
   const showLine = has('ball_line') && (lineOnly || lineOpen)
   const shots = has('screenshot') || has('round_stats_screenshot')
@@ -204,8 +209,9 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
                 if (f) void run(() => csvPost(f, f.name, club))
               }}
             />
-            <Button variant="primary" className="min-h-12" disabled={off} onClick={() => fileRef.current?.click()}>
+            <Button variant="primary" className="min-h-12 pr-3" disabled={off} aria-keyshortcuts="Enter" onClick={() => fileRef.current?.click()}>
               {working ? 'Bringing them in…' : 'Upload TrackMan CSV'}
+              <EnterKbd tone="primary" />
             </Button>
           </div>
         </>
@@ -214,8 +220,9 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       {samples.length > 0 && (
         <div className="flex flex-wrap items-center gap-2.5">
           <Eyebrow className="text-grey-55">Try a sample</Eyebrow>
-          {samples.map((s) => (
-            <Button key={s.sample_id} size="sm" variant="outline" disabled={off} onClick={() => void sendSample(s)}>
+          {samples.map((s, i) => (
+            <Button key={s.sample_id} size="sm" variant="outline" disabled={off} aria-keyshortcuts={i < 9 ? String(i + 1) : undefined} onClick={() => void sendSample(s)}>
+              {i < 9 && <Kbd className="h-[22px] min-w-[22px] text-[12px]">{i + 1}</Kbd>}
               {s.label ?? s.sample_id}
               <span className="rounded-4 bg-grey-ed px-1.5 py-0.5 font-sans text-[11px] font-semibold tracking-normal text-grey-44 normal-case">Simulated</span>
             </Button>
@@ -241,6 +248,9 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
                 key={i} type="number" step="0.5" aria-label={`Reading ${i + 1}`} placeholder={i < 3 ? 'deg' : 'optional'}
                 className={cn(boxCls, 'w-24 text-center font-display text-[20px] font-bold tabular-nums')} value={v} disabled={off}
                 onChange={(e) => setReadings((r) => r.map((x, j) => (j === i ? e.target.value : x)))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !off && readings.filter((x) => x !== '').length >= 3) void sendLine()
+                }}
               />
             ))}
             <Button variant="dark" className="ml-auto" disabled={off || readings.filter((x) => x !== '').length < 3} onClick={() => void sendLine()}>
