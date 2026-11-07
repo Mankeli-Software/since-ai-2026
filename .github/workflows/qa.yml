@@ -1,0 +1,55 @@
+name: qa
+
+on:
+  workflow_dispatch:
+    inputs:
+      layer:
+        description: "QA layer to run"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - data
+          - api
+          - personas
+          - trust
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.13.x"
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: uv sync --locked --project backend
+
+      - name: Run QA harness
+        id: run_qa
+        env:
+          LLM_MODE: mock
+          PYTHONPATH: vendor:backend
+        run: |
+          mkdir -p output
+          uv run --project backend python scripts/qa/run_all.py --layer "${{ inputs.layer }}" | tee output/qa-results.txt
+          { echo '```'; cat output/qa-results.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload QA results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-results-${{ inputs.layer }}
+          path: output/qa-results.txt
+          if-no-files-found: warn
