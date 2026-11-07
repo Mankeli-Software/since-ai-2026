@@ -27,32 +27,13 @@ steps:
       args: {}
   - ui:
       type: recommendation_card
-      spec:
-        head: 101-mkii
-        shaft: kbs-tour-lite-regular
-        shaft_model: "KBS Tour Lite"
-        flex: regular
-        material: steel
-        length_in: 0.0
-        lie_deg: 0
-        grip: standard
-        handedness: right
-        purchase: stock
-      purchase: stock
-      confidence: 0.58
-      gate: provisional
-      strength: low
-      runner_up:
-        head: 201-mkii
-        shaft: kbs-tour-lite-regular
-        shaft_model: "KBS Tour Lite"
-        flex: regular
-        material: steel
-        length_in: 0.0
-        lie_deg: 1
-        grip: standard
-        handedness: right
-        purchase: custom
+      # Bound to the live fit so the card always matches the buy bar and the header confidence.
+      spec: $state.best
+      purchase: $state.best.purchase
+      confidence: $state.confidence
+      gate: $state.gate
+      strength: $state.strength
+      runner_up: $state.runner_up
   - ui:
       type: why_panel
       depth: standard
