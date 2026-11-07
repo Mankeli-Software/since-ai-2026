@@ -74,11 +74,11 @@ Check which lane your task belongs to and **only touch its owned paths**:
 
 ---
 
-## 3. Locked Decisions (`L1`–`L22`) — Do Not Reopen
+## 3. Locked Decisions (`L1`–`L28`) — Do Not Reopen
 
 1. **L1 — 3D Stack:** `three@0.187.0` via React Three Fiber (`@react-three/fiber@9.8.2`) + `@react-three/drei@10.7.9`. Build `FlightSvg.tsx` (2D SVG flight + dispersion) **first** as the default view, then the 3D club stage.
 2. **L2 — Shopify Last:** Zero Shopify work (`embed.js`, iframe overlay, `postMessage` bridge, mock cart, dev store, App Proxy) until the **Final phase** (Sun 04:00 gate). Use `StandaloneAdapter` stub until then.
-3. **L3 — Desktop First, Mobile Last:** Design and verify at **`1440×900` and `1280×800` only**. Desktop layout = 3D/flight stage on the left, chat + gen-UI on the right (shrinking to side panel on reveal). Use clean flex/grid CSS without fixed pixel widths, but add zero mobile-specific layouts/touch paths before Final phase.
+3. **L3 — Desktop First, Mobile Last:** Design and verify at **`1440×900` and `1280×800` only**. Desktop layout = Flow v3 (L23): chat phase, then results phase R1–R5. The old stage-left layout lives only under `?ff=legacy`. Use clean flex/grid CSS without fixed pixel widths, but add zero mobile-specific layouts/touch paths before Final phase.
 4. **L4 / L5 — Delivery Format:** Pitch is slides + recorded walkthrough video + hosted Cloud Run URL (no live stage demo). Code freeze Sun 06:00; done Sun 08:00.
 5. **L6 — 100% Synthetic Data:** No real TrackMan shots were captured. Generate TrackMan CSV fixtures from `shots.csv` with `event_kit/trackman_column_map.csv` headers/units and **label them synthetic**. The shared-report-link importer is **cut to a slide**. Never claim synthetic golfer data is real customer data.
 6. **L7 — 3D Asset Contract (Issue #3):**
@@ -86,7 +86,7 @@ Check which lane your task belongs to and **only touch its owned paths**:
    - Coordinate frame: metres; origin at sole ground-contact point at standard 7-iron address (62° lie); `+Y` up, `+Z` target line, `+X` toe; named `HoselSocket` node at top of hosel bore (`+Y` along shaft). Left-handed = `scale.x = -1`.
    - `PlaceholderHead` uses the exact same origin, axes, and `HoselSocket` so swapping real GLBs is a file drop. Read camera presets from `manifest.json`.
 7. **L8 — 4 Demo Personas Only:**
-   - **Mikko (`DEMO-01`, the core spine):** Claims 160 yd carry; own-7-iron TrackMan CSV (10 shots, 124.7 yd average) → `G11` carry flag fires → measured 72 mph = bucket 3 (regular flex, not stiff) → confidence rises → **precision follow-up** → second import of his test-club shots (lie chart +2 → evidence +3) → 201T MKII (201 MKII runner-up) → flight + lie tinker + stock-vs-custom + Save.
+   - **Mikko (`DEMO-01`, the core spine):** Claims 160 yd carry; own-7-iron TrackMan CSV (10 shots, 124.7 yd average) → `G11` carry flag fires → measured 72 mph = bucket 3 (regular flex, not stiff) → confidence rises → **precision follow-up** → second import of his test-club shots (lie chart +2 → evidence +3) → 201T MKII (201 MKII runner-up, same shaft) → R3 flight + dispersion → R5 stock-vs-custom with the stock toggle → Save.
    - **Hannu (`DEMO-09`):** Types his 5 ball-line readings (`data_import` → `ball_line`); **no TrackMan fixture**. The test is rough, so fused with the chart his lie stays a close call (and flex too, from carry only), and the studio honestly sends him to a simulator for test-club shots. This and Anders are the "honest at a cost to the sale" moments.
    - **Lars (`DEMO-04`):** Close call between `301-cb` and `301-mb` shown honestly with trade-offs.
    - **Anders (`DEMO-13`):** Stock (30-day return) vs Custom (non-returnable) decision on a +1° lie change from his test-club shots.
@@ -104,6 +104,12 @@ Check which lane your task belongs to and **only touch its owned paths**:
 14. **L20 — Timeline:** Saturday times shifted +1.5 h at 14:25 (skeleton 15:00–15:45); Sunday unchanged.
 15. **L21 — AR:** Assume issue #3 delivers `ar/<slug>.{glb,usdz}` (GLB for Android, USDZ for iOS).
 16. **L22 — GitHub issues:** small, one lane each.
+17. **L23 — Flow v3 is the default studio** (Sat ~20:20, PR #106; `docs/ui-v3/design-spec.md`). Build for v3; `?ff=legacy` is reference only. Plan's v3.2 addendum lists where each dropped item went.
+18. **L24 — No free configuration:** show a 1st and 2nd choice that swap **only the head, same shaft**. No free tinker panel in the default path; the only "what if" is the R5 stock toggle.
+19. **L25 — Stock-lean rule:** sell what fits. Newer golfers close to stock lean stock (keep the 30-day return); bigger spec changes and better players lean custom. Numbers come from the FIT advisor. Never tell a golfer to fix their swing (L18), whatever the English c14 summary says.
+20. **L26 — Beginner skips:** new golfers skip flight, tempo and characteristics with "Not sure" defaults (8 questions or fewer); typed-everything golfers skip ahead (C2b).
+21. **L27 — "Your clubs are fine":** only from the deterministic `current_clubs_verdict` (measured gain in yards); mention wear and grooves; never "in a year". Otherwise it is a slide and the agent must not claim it.
+22. **L28 — Submission:** private repo shared with the Takomo contact's GitHub user + ZIP (no `data/`, no `generated/`) + 2–3 min unlisted video. Lead confirms against the organiser rules.
 
 ---
 
@@ -198,16 +204,16 @@ just record <persona>   # Record scripted SSE run to web/public/mock/<persona>.j
 *(Remember §1.2: Do **not** run or add `just test` / `pytest` / `pnpm test`.)*
 
 ### 6.2 Feature Priority: What Never Gets Cut vs. What Cuts First
-- **NEVER CUT (The Core Spine):**
+- **NEVER CUT (The Core Spine, v3.2):**
   0. The "Try as" persona picker with sample imports (L16): it is how judges use the hosted link
-  1. Conversational intake (`choice_chips`, `slider`, `body_measure`) + deterministic `next_question` + form fallback
+  1. Conversational intake (`choice_chips`, `slider`, `body_measure`) + deterministic `next_question` + the form fallback **inside ChatShell** (v3 cards when keyless or capped)
   2. Synthetic TrackMan CSV import (`data_import`) + v1 outlier flags (`S1, S3, S7, S8, S10, S14, G1, G2, G3, G11-carry, G15, V6`) + `outlier_review` + the precision follow-up
-  3. `recommend()` (`recommendation_card`) + provenance-backed `why_panel`
-  4. Monte Carlo confidence meter + gate in `TopBar` (visibly rising after Mikko's TrackMan import)
-  5. 2D `FlightSvg` with carry/apex + dispersion ellipses
-  6. Deterministic tinker mode (`POST /api/tinker`, 3D club stage + flight diff)
-  7. `stock_vs_custom` honesty (30-day return vs non-returnable custom) + confidence-gated honest ending
-  8. Save / resume fitting + `mankeli_takomo_test_predictions.csv` (beating B2 `83.58` on `dev`)
+  3. `recommend()` + provenance-backed why (R1 summary with best and runner-up head, R2 why each part)
+  4. Monte Carlo confidence + gate in the **v3 header**, with current best / missing-N and Add data (visibly rising after Mikko's TrackMan import)
+  5. 2D `FlightSvg` with carry/apex + dispersion ellipses **in R3**, from `POST /api/flight`, labelled Estimated
+  6. `stock_vs_custom` honesty in R5 (30-day return vs non-returnable custom) with the stock-lean rule (L25) and the "What if I stay stock?" toggle + confidence-gated honest ending
+  7. Save / resume fitting + `mankeli_takomo_test_predictions.csv` (beating B2 `83.58` on `dev`)
+- **No longer never-cut (plan v3.2 addendum):** the free tinker panel (narrowed to the R5 stock toggle, L24); the stage-left layout and `TopBar` (only under `?ff=legacy`); the mascot (cut, no slot in v3).
 - **CUT FIRST IF BEHIND SCHEDULE (in order):**
   1. Shopify embed + mobile layout (Final phase) → keep on slides
   2. AR (#20), Rive mascot (keep SVG), Voice (#18)
