@@ -47,7 +47,7 @@ jobs:
             echo "importlinter=false" >> "$GITHUB_OUTPUT"
           fi
       - if: steps.has.outputs.backend == 'true'
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.3.3 # no floating v10 tag upstream
         with: { version: "0.13.x", enable-cache: true, python-version: "3.12" }
       - if: steps.has.outputs.backend == 'true'
         working-directory: backend
@@ -78,7 +78,7 @@ jobs:
             echo "::notice::web/package.json or backend/pyproject.toml not on this ref yet (#35 / L0); skipping frontend checks"
           fi
       - if: steps.has.outputs.web == 'true'
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.3.3 # no floating v10 tag upstream
         with: { version: "0.13.x", enable-cache: true, python-version: "3.12" }
       - if: steps.has.outputs.web == 'true'
         name: Export contracts (openapi.json + schemas) to generated/
