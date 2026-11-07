@@ -104,7 +104,7 @@ def make_ai() -> Genkit:
 
 if GOOGLE:  # same settings as ai.py
     CHAT = GoogleAI.gemini(
-        os.environ.get("AGENT_MODEL_CHAT", "gemini-3.1-pro-preview"),
+        os.environ.get("SPIKE_GEMINI_MODEL") or "gemini-3.1-pro-preview",
         config=GeminiConfig(
             thinking_level=os.environ.get("SPIKE_EFFORT", "LOW").upper(),  # type: ignore[arg-type]
             include_thoughts=True,
@@ -272,7 +272,8 @@ async def check6(ai: Genkit) -> str:
     )
     r1 = await ai.generate(
         model=CHAT,
-        prompt="Call ui_ask to ask the user their favourite colour. Do nothing else.",
+        # "Do nothing else" made Gemini return empty text after the resume, so ask for a reply.
+        prompt="Call ui_ask to ask the user their favourite colour. After the answer, repeat it in one sentence.",
         tools=[ask],
     )
     assert r1.interrupts, f"no interrupt, text={r1.text!r}"
@@ -283,7 +284,10 @@ async def check6(ai: Genkit) -> str:
         tools=[ask],
         resume_respond=[i.respond({"answer": "blue"})],
     )
-    assert "blue" in r2.text.lower(), r2.text
+    assert "blue" in r2.text.lower(), (
+        f"text={r2.text!r} finish={r2.finish_reason} last parts="
+        f"{[next(iter(p.model_dump(exclude_none=True, exclude={'metadata'})), '?') for p in r2.messages[-1].content]}"
+    )
     name = i.tool_request.name
     return f"interrupted on {name}, resumed with tool_result, model said {r2.text.strip()[:40]!r}"
 

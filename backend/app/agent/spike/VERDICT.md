@@ -87,18 +87,31 @@ Verified offline (no keys): `app.agent.ai` imports with both providers and no ke
 `googleai/gemini-3.1-pro-preview` and `googleai/gemini-3.8-flash`; `GeminiConfig` validates. Anthropic re-run after the
 change: checks 1-6 PASS, check 7 PASS with `SPIKE_EFFORT=high` (cache_read 13611).
 
+Live run on `gemini-3.1-pro-preview` (paid key), 2026-11-07:
+
 | # | Check (Gemini) | Status |
 |---|---|---|
-| 1 | Model registration | SKIP (Anthropic-only) |
-| 2-7 | Stream, tool, structured output, image, interrupt, 2-tool turn | SKIP(no key): no `GEMINI_API_KEY` in `.env` yet |
+| 1 | Model registration | SKIP (Anthropic-only; all Gemini entries are already constrained=ALL) |
+| 2 | Streamed text through FastAPI SSE | **PASS** |
+| 3 | Tool round trip, Pydantic in, JSON string out | **PASS** |
+| 4 | Structured output, real `ExtractedSession` | **PASS** (4 cells) |
+| 5 | Image input | **PASS** |
+| 6 | Interrupt + resume | **PASS** (after the prompt fix below; 2 of 2 runs) |
+| 7 | 2-tool turn + 2nd turn, thought signatures, cache | **PASS**: 2 thought parts at `LOW`, 3 signed parts kept in history, `cached_content_tokens` = 17331 |
 
-Check 7 on Gemini asserts that a `thoughtSignature` survives in history if the model produced thoughts, and only reports
-`cached_content_tokens` (implicit caching is not guaranteed). Not yet verified live: `LOW` thinking on `gemini-3.8-flash`,
-thought signature round trip, tool turns on 3.1-pro-preview.
+**Verdict: Gemini works as a switchable provider.** Findings:
+- **A free-tier key cannot use Pro.** Free tier has a quota of 0 for `gemini-3.1-pro` (`RESOURCE_EXHAUSTED`, limit 0).
+  Use a paid key, or set `AGENT_MODEL_CHAT=gemini-3.8-flash` on free tier.
+- **Gemini follows "do nothing else" literally after a resume.** With the prompt "Call ui_ask ... Do nothing else.",
+  Gemini returned empty text (`finish=stop`) after the `ui_response`; Claude still answered. The system prompt must say
+  what to do after an input component returns (e.g. acknowledge the answer and continue).
+- Unlike Claude at `effort=low`, Gemini at `thinking_level=LOW` did think on the 2-tool turn, and implicit caching hit.
+- A `.env` copied from the old `.env.example` has `AGENT_MODEL_CHAT=claude-sonnet-5-5`; with `AGENT_LLM_PROVIDER=google`
+  that sends a Claude id to Gemini (404). Comment those lines out.
 
-Run once a key is in `.env`:
+Run:
 ```
 set -a; . ./.env; set +a
-SPIKE_PROVIDER=google uv run backend/app/agent/spike/genkit_spike.py
-SPIKE_PROVIDER=google SPIKE_EFFORT=high uv run backend/app/agent/spike/genkit_spike.py 7
+SPIKE_PROVIDER=google uv run backend/app/agent/spike/genkit_spike.py            # 2-7
+SPIKE_GEMINI_MODEL=gemini-3.8-flash SPIKE_PROVIDER=google uv run ...             # other Gemini model
 ```

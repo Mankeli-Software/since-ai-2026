@@ -52,6 +52,10 @@ reasoning parts are not interchangeable across a provider switch.
 
 ## Gemini rules (from genkit-google-genai 0.13.0 source)
 
+- Spike: all Gemini checks pass live on `gemini-3.1-pro-preview` (see spike/VERDICT.md). A free-tier key has 0 quota
+  for Pro; use a paid key or `AGENT_MODEL_CHAT=gemini-3.8-flash`.
+- After an input component resumes, Gemini can return empty text if the prompt says "do nothing else". The system
+  prompt must say to acknowledge the answer and continue.
 - `GoogleAI.gemini(id, config=GeminiConfig(...))`. Config is flat, unknown fields raise.
 - Thinking: `thinking_level` (`MINIMAL|LOW|MEDIUM|HIGH`, Gemini 3+) or `thinking_budget` (2.5). Never both.
   Some Flash ids reject `MINIMAL`, so `FAST` uses `LOW`.
