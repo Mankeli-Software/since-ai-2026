@@ -63,3 +63,6 @@ class Shot(BaseModel):
     impact_offset_mm: float | None = None
     impact_height_mm: float | None = None
     impact_toe_up_deg: float | None = None
+    import_id: str | None = Field(
+        default=None, description="The import this shot came from (set when it is confirmed)"
+    )

@@ -58,6 +58,29 @@ class FlagsReport(BaseModel):
     state: FittingState | None = None
 
 
+ResolveAction = Literal["keep", "exclude", "confirm_value"]
+
+
+class ResolveFlagsRequest(BaseModel):
+    """The golfer's answer to an `outlier_review` (#31): what to do with the pending flags of
+    `codes` (all pending flags when empty), optionally only those of one import."""
+
+    action: ResolveAction
+    codes: list[FlagCode] = Field(default_factory=list)
+    import_id: str | None = Field(default=None, max_length=64)
+
+
+class ResolveFlagsResponse(BaseModel):
+    resolved: list[Flag] = Field(default_factory=list, description="The flags this answer closed")
+    changed_fields: list[str] = Field(
+        default_factory=list, description="Profile fields set or cleared by the answer"
+    )
+    shots_removed: int = 0
+    shots_converted: int = 0
+    pending_flags: list[Flag] = Field(default_factory=list)
+    state: FittingState | None = None
+
+
 class Cell(BaseModel):
     """One cell read by vision. Every field required; an unreadable cell is absent (§5.1)."""
 
@@ -87,6 +110,9 @@ __all__ = [
     "ImportKind",
     "ImportReport",
     "ImportStatus",
+    "ResolveAction",
+    "ResolveFlagsRequest",
+    "ResolveFlagsResponse",
     "Shot",
     "ShotField",
     "ShotQualityReport",
