@@ -107,7 +107,7 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
   const kindBadgeClass = (kind: VideoKind) => {
     switch (kind) {
       case 'official':
-        return 'bg-tiger-orange/15 text-tiger-orange border-tiger-orange/30'
+        return 'bg-tiger-orange/15 text-orange-ink border-tiger-orange/30'
       case 'influencer_witb':
         return 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
       case 'independent_review':
@@ -126,7 +126,7 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
       {/* Header with Head Info */}
       <div className="flex flex-col gap-1 border-b border-border/70 pb-3">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-display text-xs font-bold tracking-wider uppercase text-tiger-orange">
+          <span className="font-display text-xs font-bold tracking-wider uppercase text-orange-ink">
             Takomo Video Showcase
           </span>
           <span className="text-xs font-mono font-medium text-muted-foreground uppercase">
@@ -245,7 +245,7 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
       <div className="flex flex-col gap-1.5 rounded-lg border border-border/60 bg-secondary/30 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           {isPlayingMp4 ? (
-            <span className="inline-flex items-center gap-1 rounded-sm border border-tiger-orange/30 bg-tiger-orange/15 px-2 py-0.5 text-[11px] font-semibold text-tiger-orange uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1 rounded-sm border border-tiger-orange/30 bg-tiger-orange/15 px-2 py-0.5 text-[11px] font-semibold text-orange-ink uppercase tracking-wider">
               <Film className="size-3" /> Official 4K Studio Reel
             </span>
           ) : activeVideo ? (
@@ -374,7 +374,7 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
                       className={cn(
                         'text-[10px] font-semibold uppercase tracking-wider',
                         video.kind === 'official'
-                          ? 'text-tiger-orange'
+                          ? 'text-orange-ink'
                           : video.kind === 'influencer_witb'
                           ? 'text-amber-600 dark:text-amber-400'
                           : 'text-blue-600 dark:text-blue-400'
@@ -382,7 +382,7 @@ export function ProductVideo({ head, className }: ProductVideoProps) {
                     >
                       {kindLabel(video.kind)}
                     </span>
-                    <p className="line-clamp-2 text-xs font-semibold leading-snug text-foreground group-hover:text-tiger-orange transition-colors">
+                    <p className="line-clamp-2 text-xs font-semibold leading-snug text-foreground group-hover:text-orange-ink transition-colors">
                       {video.title}
                     </p>
                   </div>

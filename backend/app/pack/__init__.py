@@ -251,3 +251,22 @@ def gloves_from_hand_lengths(cm: np.ndarray) -> list[str]:
 def swing_buckets_from_speeds(mph: np.ndarray) -> list[int]:
     """`swing_bucket_from_speed` over an array of speeds."""
     return [int(_bl.swing_bucket_from_speed(float(x))) for x in np.asarray(mph, float)]
+
+
+@lru_cache(maxsize=1)
+def grip_for_glove() -> dict[str, str]:
+    """The rules' glove -> grip table (`current_tool_rules.grip_by_glove_size`)."""
+    return dict(_products()["current_tool_rules"]["grip_by_glove_size"])
+
+
+@lru_cache(maxsize=1)
+def grip_change_edges_cm() -> tuple[tuple[float, str, str], ...]:
+    """Hand-length edges where the *grip* changes: (edge_cm, grip below, grip above). Only some
+    glove edges matter (plan §3.5: 18.59 M -> M/L and 20.22 L -> XL)."""
+    table = grip_for_glove()
+    out = []
+    for i, edge in enumerate(GLOVE_EDGES_CM):
+        below, above = table[GLOVE_ORDER[i]], table[GLOVE_ORDER[i + 1]]
+        if below != above:
+            out.append((edge, below, above))
+    return tuple(out)

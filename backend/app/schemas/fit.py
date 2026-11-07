@@ -73,6 +73,10 @@ class IntakeAnswers(BaseModel):
     glove: Glove | None = None
     glove_was_guessed: bool = False
     own_7i_loft_deg: float | None = None
+    joint_pain: list[Literal["hands", "wrists", "elbows", "shoulders", "none"]] | None = Field(
+        default=None,
+        description="Asked, never changes the spec (C3): a why-panel note and a graphite tinker",
+    )
 
 
 class PhoneMeasurements(BaseModel):

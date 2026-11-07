@@ -6,7 +6,7 @@ Anthropic -> ANTHROPIC_API_KEY, Google -> GEMINI_API_KEY (the name the plugin re
 
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Per-provider defaults for AGENT_MODEL_CHAT / AGENT_MODEL_FAST.
@@ -22,6 +22,21 @@ class AgentSettings(BaseSettings):
     llm_provider: Literal["anthropic", "google"] = "anthropic"  # AGENT_LLM_PROVIDER
     model_chat: str = ""  # AGENT_MODEL_CHAT, empty = provider default
     model_fast: str = ""  # AGENT_MODEL_FAST, empty = provider default
+
+    # Cost and abuse guard (plan 4.2, #18). In-memory: one Cloud Run instance, STORE=memory.
+    turns_per_minute: int = 10  # AGENT_TURNS_PER_MINUTE, per session_id
+    sessions_per_minute: int = 60  # AGENT_SESSIONS_PER_MINUTE, global bucket on POST /api/sessions
+    daily_model_call_cap: int = (
+        2000  # AGENT_DAILY_MODEL_CALL_CAP; past it new sessions are scripted
+    )
+    session_max_model_calls: int = 60  # AGENT_SESSION_MAX_MODEL_CALLS, per-session UX guard
+    session_max_tokens: int = 300_000  # AGENT_SESSION_MAX_TOKENS, input + output per session
+    max_tool_turns: int = 10  # AGENT_MAX_TOOL_TURNS, Genkit tool-loop cap per turn (default 50)
+    # Comma-separated X-Demo-Key values that skip the limits. DEMO_KEY is the plan's name.
+    demo_keys: str = Field(default="", validation_alias=AliasChoices("AGENT_DEMO_KEYS", "DEMO_KEY"))
+    # Rough USD per million tokens, only for the estimated cost in the model_call log line.
+    price_in_per_mtok: float = 3.0  # AGENT_PRICE_IN_PER_MTOK
+    price_out_per_mtok: float = 15.0  # AGENT_PRICE_OUT_PER_MTOK
 
     @model_validator(mode="after")
     def _fill_defaults(self) -> "AgentSettings":

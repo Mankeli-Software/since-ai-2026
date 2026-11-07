@@ -1,0 +1,6 @@
+{
+  "regular_flex": {"text": "Example: 9 of 10 golfers in this speed range chose regular flex.", "example": true},
+  "lie_check": {"text": "Example: 6 of 10 golfers moved their lie angle after a test-club check.", "example": true},
+  "close_call": {"text": "Example: 1 in 4 fittings ends as a close call between two heads.", "example": true},
+  "more_data": {"text": "Example: confidence rises by 15 points on average after a test-club import.", "example": true}
+}

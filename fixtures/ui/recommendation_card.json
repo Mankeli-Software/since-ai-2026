@@ -1,0 +1,10 @@
+{
+  "type": "recommendation_card",
+  "spec": {"head": "201t-mkii", "shaft": "kbs-tour-regular", "shaft_model": "KBS Tour", "flex": "regular", "material": "steel", "length_in": 37.0, "lie_deg": 3, "grip": "standard", "handedness": "right", "purchase": "custom"},
+  "purchase": "custom",
+  "confidence": 0.82,
+  "gate": "confident",
+  "strength": null,
+  "runner_up": {"head": "201-mkii", "shaft": "kbs-tour-regular", "shaft_model": "KBS Tour", "flex": "regular", "material": "steel", "length_in": 37.0, "lie_deg": 3, "grip": "standard", "handedness": "right", "purchase": "custom"},
+  "social_proof_id": "regular_flex"
+}

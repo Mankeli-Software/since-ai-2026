@@ -1,0 +1,1 @@
+{"type":"slider","prompt":"How far do you carry your 7-iron?","field":"reported_7i_carry_yd","unit":"yd","min":80,"max":220,"step":5,"value":150,"allow_unknown":true,"measured_or_guessed_toggle":true}

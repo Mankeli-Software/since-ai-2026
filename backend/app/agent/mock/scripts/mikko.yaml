@@ -11,4 +11,6 @@ steps:
       options:
         - {id: right, label: Right-handed}
         - {id: left, label: Left-handed}
+  - tool_call: {name: stage_focus, args: {part: lie}}
+  - text: "Let me show you the lie angle first. "
   - text: "Got it, noted. That is all for this short demo script."
