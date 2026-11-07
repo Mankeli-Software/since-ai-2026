@@ -130,7 +130,7 @@ export function StagePanel() {
                       Tinker Flight Comparison
                     </p>
                     <span className="text-[11px] text-tiger-orange font-semibold">
-                      Orange = Rec · Blue = Tinker
+                      Orange = Rec · White = Tinker
                     </span>
                   </div>
                   <FlightSvg data={flightData} recommendedSlug={tinker.baseline.head} />

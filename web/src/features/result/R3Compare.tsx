@@ -41,7 +41,7 @@ function CompareTiles({ sel, other }: { sel: CompareRow; other: CompareRow | nul
   )
 }
 
-function FlightPanel({ sel, other }: { sel: HeadOption; other: HeadOption | null }) {
+function FlightPanel({ sel, other, guessed }: { sel: HeadOption; other: HeadOption | null; guessed: boolean }) {
   if (!sel.row) {
     return (
       <div className="flex flex-1 flex-col justify-center gap-2 rounded-16 border border-grey-26 bg-grey-12 px-[18px] py-4">
@@ -56,12 +56,13 @@ function FlightPanel({ sel, other }: { sel: HeadOption; other: HeadOption | null
       <div className="rounded-16 border border-grey-26 bg-grey-12 px-[18px] pt-3 pb-1">
         <div className="flex items-baseline justify-between gap-4">
           <Eyebrow className="text-grey-a3">Your swing, side view</Eyebrow>
-          <span title="Arcs drawn from carry, apex and landing angle, not a simulated flight" className="text-[12px] text-grey-8f">
-            Estimate
+          <span title={guessed ? 'Dashed: your carry is a guess. Import shots to measure it.' : 'Arcs drawn from carry, apex and landing angle, not a simulated flight'} className="text-[12px] text-grey-8f">
+            {guessed ? 'Estimate · dashed = guessed carry' : 'Estimate'}
           </span>
         </div>
         <FlightCompare
           className="block w-full"
+          guessed={guessed}
           selected={sel.head}
           arcs={rows.map((r) => ({ id: r.head, label: shortHead(r.head), carry: r.carry, apex: r.apex, land_angle: r.land_angle }))}
           ariaLabel={flightSummary(sel.row, other?.row ?? null)}
@@ -75,6 +76,7 @@ function FlightPanel({ sel, other }: { sel: HeadOption; other: HeadOption | null
 /** R3 "Compare heads, see it fly" (V3-R3-Compare): same shaft, two heads, the selected one's flight in orange. */
 export function R3Compare() {
   const { data } = useResultsChrome()
+  const guessed = (data.state?.shots ?? []).length === 0
   const options = comparePair(data)
   const [picked, setPicked] = useState<string | null>(null)
   const [showRow, setShowRow] = useState(false)
@@ -141,7 +143,7 @@ export function R3Compare() {
       <div className="grid flex-[1_0_auto] grid-cols-[230px_minmax(0,1fr)] gap-4">
         <HeadStage selected={sel.head} other={other?.head ?? null} />
         <div className="flex min-w-0 flex-col gap-3">
-          <FlightPanel sel={sel} other={other} />
+          <FlightPanel sel={sel} other={other} guessed={guessed} />
         </div>
       </div>
 
