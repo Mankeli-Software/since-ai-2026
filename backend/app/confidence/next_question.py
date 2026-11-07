@@ -19,6 +19,7 @@ from collections.abc import Iterable
 
 from app.confidence.analysis import Analysis
 from app.confidence.precision import best_offer
+from app.fitting.beginner import BEGINNER_SKIPS, is_beginner, with_beginner_defaults
 from app.fitting.mapping import missing_inputs
 from app.schemas.common import Part
 from app.schemas.confidence import NextQuestionResponse
@@ -29,9 +30,11 @@ from app.schemas.ui.data_import import DataImport
 from app.schemas.ui.slider import Slider
 
 BALL_LINE_OFFER = "ball_line_offer"
-SIMULATOR_QUESTION = "hit_on_simulator"
-SIMULATOR_IMPORT = "data_import"
-BEGINNER_SKIP_REASON = "Skipping this for now: it matters less for a newer golfer."
+SIMULATOR_QUESTION = "hit_on_simulator"  # an IntakeAnswers field: "yes" | "no" | "skip"
+BEGINNER_SKIP_REASON = (
+    "I'll skip ball flight, tempo and what you'd change for now: they matter less when you're "
+    "newer to the game."
+)
 HAPPY = ChoiceOption(id="happy", label="I'm happy with this")
 
 
@@ -89,14 +92,6 @@ def _has_lie_evidence(ev: FitEvidence) -> bool:
     )
 
 
-def _is_beginner(intake: IntakeAnswers, asked: set[str]) -> bool:
-    if intake.score_bucket == 5:
-        return True
-    if intake.rounds_per_year in ("Under 10", "new", "beginner"):
-        return True
-    return bool({"new", "beginner", "new_golfer"} & asked)
-
-
 def next_question(
     intake: IntakeAnswers,
     evidence: FitEvidence | None,
@@ -109,15 +104,9 @@ def next_question(
     (including "I don't know"); `offered`: parts already given a precision offer."""
     ev = evidence or FitEvidence()
     asked = set(answered)
-    is_beginner = _is_beginner(intake, asked)
-
-    if is_beginner:
-        if intake.flight is None:
-            intake.flight = "mid"
-        if intake.tempo is None:
-            intake.tempo = "moderate"
-        if not intake.characteristics:
-            intake.characteristics = ["forgiveness"]
+    # `session_inputs.intake_of` already applies these; a copy, so a caller's intake is untouched.
+    intake = with_beginner_defaults(intake)
+    beginner = is_beginner(intake)
 
     missing = set(missing_inputs(intake, ev))
     swing_known = (
@@ -128,7 +117,7 @@ def next_question(
         or bool(ev.shots)
     )
 
-    ask_sim = swing_known and not is_beginner and not ev.shots and "characteristics" not in asked
+    ask_sim = swing_known and not beginner and not ev.shots and "characteristics" not in asked
 
     for key, field, component in INTAKE:
         if key == "characteristics" and ask_sim:
@@ -142,14 +131,11 @@ def next_question(
                         [("yes", "Yes"), ("no", "No")],
                     ),
                 )
-            said_yes = (
-                isinstance(answered, dict)
-                and answered.get(SIMULATOR_QUESTION) in ("yes", True, "Yes")
-            ) or bool({f"{SIMULATOR_QUESTION}:yes", f"{SIMULATOR_QUESTION}_yes", "yes"} & asked)
-            if said_yes and SIMULATOR_IMPORT not in asked and not ev.shots:
+            # "yes" offers the import until shots arrive or the golfer skips it ("skip").
+            if intake.hit_on_simulator == "yes":
                 return NextQuestionResponse(
                     kind="intake",
-                    field=SIMULATOR_IMPORT,
+                    field=SIMULATOR_QUESTION,
                     component=DataImport(
                         prompt="Import your 7-iron launch-monitor session "
                         "(TrackMan CSV or screenshot).",
@@ -159,10 +145,10 @@ def next_question(
                     ),
                 )
 
-        if is_beginner and key in ("characteristics", "flight", "tempo", "joint_pain"):
+        if beginner and key in BEGINNER_SKIPS:
             continue
 
-        if is_beginner and key == "glove" and "glove" not in asked:
+        if beginner and key == "glove":
             component = _chips(
                 "glove",
                 f"{BEGINNER_SKIP_REASON} Which glove size do you wear?",
@@ -174,7 +160,7 @@ def next_question(
             return NextQuestionResponse(kind="intake", field=field, component=component)
 
     done = set(offered)
-    no_lie = not is_beginner and not _has_lie_evidence(ev)
+    no_lie = not beginner and not _has_lie_evidence(ev)
     if no_lie and BALL_LINE_OFFER not in asked and "lie" not in done:
         return NextQuestionResponse(
             kind="ball_line_offer",

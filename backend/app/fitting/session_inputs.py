@@ -7,6 +7,7 @@ None means the golfer answered "I don't know": it counts as asked, not as known.
 
 from __future__ import annotations
 
+from app.fitting.beginner import with_beginner_defaults
 from app.schemas.fit import FitEvidence, IntakeAnswers, PhoneMeasurements
 from app.schemas.session import FitSession
 
@@ -23,7 +24,8 @@ def _values(session: FitSession, names: frozenset[str]) -> dict[str, object]:
 
 
 def intake_of(session: FitSession) -> IntakeAnswers:
-    return IntakeAnswers.model_validate(_values(session, INTAKE_FIELDS))
+    """The golfer's answers, with the beginner defaults (L26) filled in for a new golfer."""
+    return with_beginner_defaults(IntakeAnswers.model_validate(_values(session, INTAKE_FIELDS)))
 
 
 def evidence_of(session: FitSession) -> FitEvidence:
