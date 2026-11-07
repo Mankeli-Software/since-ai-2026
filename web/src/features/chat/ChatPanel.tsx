@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { GenUiBlock } from '@/features/genui/GenUiBlock'
 import { useSession } from '@/store/session'
+import { VoiceControls } from '@/features/voice/VoiceControls'
 import { Text } from './Text'
 
 export function ChatPanel() {
@@ -68,6 +69,7 @@ export function ChatPanel() {
         className="flex gap-2 border-t border-border bg-card px-6 py-4"
         onSubmit={(e) => { e.preventDefault(); send() }}
       >
+        <VoiceControls disabled={busy || !sessionId} onTranscript={(t) => setDraft((d) => (d.trim() ? `${d.trim()} ${t}` : t))} />
         <input
           className="h-10 min-w-0 flex-1 rounded-md border border-input bg-background px-3 text-[15px] placeholder:text-ink-400 disabled:opacity-60"
           placeholder="Type a message"
