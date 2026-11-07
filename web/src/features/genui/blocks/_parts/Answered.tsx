@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 /** Label text of a v3 input card: Barlow 600 18px (C3b "7-iron carry", C6a "Your height"). */
@@ -15,6 +16,25 @@ export function BigNumber({ value, unit, size = 88 }: { value: string | number; 
     </span>
   )
 }
+
+/**
+ * Full read-only state of an answered input card in the conversation history (#216): the block renders its real
+ * layout with the golfer's pick shown, inside this frame. `inert` keeps every control out of focus and clicks.
+ */
+export function ReadOnly({ answer, children }: { answer: { displayText: string }; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div inert className="flex flex-col gap-[18px] opacity-90 select-none">{children}</div>
+      <span className="inline-flex items-center gap-2 self-start rounded-full border border-grey-d9 bg-white py-1 pr-3.5 pl-3 text-[15px] font-semibold text-midnight">
+        <span className="font-display text-[12px] tracking-[0.14em] text-grey-55 uppercase">Your answer</span>
+        {answer.displayText}
+      </span>
+    </div>
+  )
+}
+
+/** True when a block should render its full read-only view: shown in the history with the golfer's answer. */
+export const isReadOnly = (interactive: boolean, answer?: { displayText: string }) => !interactive && !!answer
 
 /**
  * Compact read-only state of an answered (or superseded) input card: the question and what was sent.
