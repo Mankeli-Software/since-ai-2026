@@ -8,3 +8,19 @@ scripts/clubs/ref_images/
 scripts/clubs/textures/
 
 
+
+# Pack build artefacts (data/ itself is read-only, plan §10.1)
+data/**/__pycache__/
+data/**/build/
+data/**/*.egg-info
+
+# Generated contracts: never committed, run `just gen` (plan §10.3)
+generated/
+web/src/api/schema.gen.ts
+web/public/mock/
+
+# Local, per worktree
+.port
+.env
+.claude/worktrees/
+node_modules/
