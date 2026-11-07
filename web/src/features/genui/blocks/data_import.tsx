@@ -92,8 +92,13 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   if (!live) return <Answered prompt={block.prompt} answer={answer} />
 
   const done = (r: Response, n?: string) =>
-    r.json().then((j: { import_id?: string; report?: { n_shots?: number } }) => {
+    r.json().then(async (j: { import_id?: string; status?: string; report?: { n_shots?: number } }) => {
       if (!j.import_id) throw new Error('no id')
+      // The golfer chose the file and tapped Import: that is the confirm. Shots reach the fit only once confirmed.
+      if (j.status === 'pending') {
+        const c = await fetch(`/api/sessions/${sessionId}/imports/${j.import_id}/confirm`, { method: 'POST' })
+        if (!c.ok) throw new Error(String(c.status))
+      }
       const shots = j.report?.n_shots
       respond({ import_id: j.import_id }, n ?? (shots ? `Imported ${shots} shots` : 'Imported my shots'))
     })

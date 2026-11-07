@@ -25,6 +25,12 @@ from typing import Any, TypedDict
 
 from pydantic import ValidationError
 
+from app.evidence.plausibility.thresholds import (
+    S1_BOUNDS,
+    S3_SMASH_TOL,
+    S6_TOTAL_BELOW_CARRY_YD,
+    S13_F2P_TOL_DEG,
+)
 from app.schemas.evidence import Cell, ExtractedSession, Flag, Shot, ShotField
 
 ShotRule = Callable[[list[Shot]], list[Flag]]
@@ -32,36 +38,20 @@ ShotRule = Callable[[list[Shot]], list[Flag]]
 `shot_index` is the position in the list it was given; V3 maps that back to the screen row."""
 
 # --------------------------------------------------------------------------- thresholds
-# Plan §5.2. Rule definitions, not train statistics, so they are constants here rather than
-# thresholds.json values (that file comes from scripts/gen_thresholds.py, #33).
+# Plan §5.2. Rule definitions live in `thresholds.py` (one copy, shared with the shot rules).
 
 V4_MIN_CONFIDENCE = 0.8  # V4: cell confidence < 0.8 -> confirm
 
-# Cell-level parity bits for V4 (plan §5.2 V3: "the checksums work like parity bits"). These are
-# the S1 hard 7-iron bounds and the S3 / S6 / S13 tolerances, applied to single read cells so a
-# misread is highlighted even before the full shot rules run. A value outside them on a screenshot
-# is far more likely a misread digit than a real shot, hence confirm (not reject).
-S1_CELL_BOUNDS: dict[str, tuple[float, float]] = {
-    "club_speed_mph": (25.0, 115.0),
-    "ball_speed_mph": (20.0, 150.0),
-    "smash_factor": (0.5, 1.53),
-    "launch_angle_deg": (2.0, 40.0),
-    "spin_rate_rpm": (1000.0, 13000.0),
-    "carry_yd": (5.0, 230.0),
-    "apex_yd": (0.5, 55.0),
-    "landing_angle_deg": (5.0, 65.0),
-    "impact_offset_mm": (-75.0, 75.0),
-    "impact_height_mm": (-40.0, 40.0),
-    "impact_toe_up_deg": (-12.0, 12.0),
-}
+# Cell-level parity bits for V4 (plan §5.2 V3: "the checksums work like parity bits"): the S1 hard
+# 7-iron bounds and the S3 / S6 / S13 tolerances, applied to single read cells so a misread is
+# highlighted even before the full shot rules run. A value outside them on a screenshot is far
+# more likely a misread digit than a real shot, hence confirm (not reject).
+S1_CELL_BOUNDS = S1_BOUNDS
 # A screen showing TrackMan's absolute Dynamic Lie (about 58-66 deg) is converted by the parser
 # (dynamicLie - club_lie, plan §5.1), so it is not a misread.
 ABSOLUTE_DYNAMIC_LIE_DEG = (45.0, 80.0)
 # Decimal-point slips tried, in order, to suggest a corrected value ("1520" read for "152.0").
 DECIMAL_SLIPS = (0.1, 0.01, 10.0)
-S3_SMASH_TOL = 0.02  # |smash - ball/club| > 0.02
-S13_F2P_TOL_DEG = 0.2  # |f2p - (face - path)| > 0.2
-S6_TOTAL_BELOW_CARRY_YD = 3.0  # total < carry - 3 yd
 
 # Rule hits that point at a misread cell (plan §5.2 V4: "hit by S3 or S5"), and which cells.
 _RULE_HIT_FIELDS: dict[str, tuple[ShotField, ...]] = {
