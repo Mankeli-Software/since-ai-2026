@@ -1,0 +1,11 @@
+
+  .jdgm-trust-badge-mount-host { container-type: inline-size; }
+  .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 51.2px; }
+  @media (max-width: 600px) { .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 44px; } }
+  @media (max-width: 400px) { .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 38px; } }
+  @media (max-width: 352px) { .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 32px; } }
+  @media (max-width: 301px) { .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 24px; } }
+  @container (max-width: 600px) { .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 44px; } }
+  @container (max-width: 400px) { .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 38px; } }
+  @container (max-width: 352px) { .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 32px; } }
+  @container (max-width: 301px) { .jdgm-trust-badge-widget:not([data-mounted]) { min-height: 24px; } }

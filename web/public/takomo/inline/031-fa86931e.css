@@ -1,0 +1,16 @@
+.section-template--18621259579589__logo_list_nqGVTn-padding {
+    padding-top: 28px;
+    padding-bottom: 40px;
+  }
+  #LogoList-template--18621259579589__logo_list_nqGVTn .logo-list__heading {
+    font-size: 16px;
+  }
+  @media screen and (min-width: 750px) {
+    .section-template--18621259579589__logo_list_nqGVTn-padding {
+      padding-top: 32px;
+      padding-bottom: 64px;
+    }
+    #LogoList-template--18621259579589__logo_list_nqGVTn .logo-list__heading {
+      font-size: 18px;
+    }
+  }

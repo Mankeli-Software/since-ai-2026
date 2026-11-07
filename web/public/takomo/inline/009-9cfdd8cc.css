@@ -1,0 +1,16 @@
+.section-template--18621259579589__featured_collection_overlay_custom_ppXzap-padding {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  @media screen and (min-width: 750px) {
+    .section-template--18621259579589__featured_collection_overlay_custom_ppXzap-padding {
+      padding-top: 40px;
+      padding-bottom: 40px;
+    }
+  }
+  @media screen and (min-width: 990px) {
+    .section-template--18621259579589__featured_collection_overlay_custom_ppXzap-padding .fcoc__card {
+      --card-min-height: 560px;
+      --card-height-unitless: 560;
+    }
+  }

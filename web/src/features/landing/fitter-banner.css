@@ -1,0 +1,132 @@
+/* Fitter Studio entry banner and chat bubble on the mirrored takomogolf.com home page (index.html).
+   Plain CSS on purpose: Tailwind's preflight would restyle the mirrored theme. The inner width and
+   gutters copy the header's .l-header__container (1400px, 72px from 1024px up, 16px below), so the
+   banner lines up with the logo and the cart. */
+
+/* Sticky: sits under the site header on load, then pins under the theme's fixed header bar
+   (main.ts sets `top` to that bar's bottom edge while it is fixed). */
+.fs-banner {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: block;
+  background: #0b0b0b;
+  color: #f8f8f8;
+  text-decoration: none;
+}
+
+.fs-banner__inner {
+  max-width: 1400px;
+  min-height: 60px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+}
+
+@media screen and (min-width: 1024px) {
+  .fs-banner__inner {
+    padding-left: 72px;
+    padding-right: 72px;
+  }
+}
+
+.fs-banner__tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  background: #ff6e01;
+  color: #0b0b0b;
+  font: 600 13px/1 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+.fs-banner__title {
+  font: 700 20px/1 'Barlow Condensed', 'Barlow', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fs-banner__text {
+  font: 400 15px/1.3 'Barlow', sans-serif;
+  color: #c8c8c8;
+}
+
+.fs-banner__cta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.fs-banner__segs {
+  display: flex;
+  gap: 2px;
+}
+
+.fs-banner__segs i {
+  width: 10px;
+  height: 5px;
+  border-radius: 1px;
+  background: #3d3d3d;
+}
+
+.fs-banner__segs i.on {
+  background: #ff6e01;
+}
+
+.fs-banner__go {
+  font: 700 18px/1 'Barlow Condensed', 'Barlow', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ff8a33;
+  transition: color 240ms ease-out;
+}
+
+.fs-banner:hover .fs-banner__go,
+.fs-banner:focus-visible .fs-banner__go {
+  color: #ffb078;
+}
+
+.fs-banner:focus-visible {
+  outline: 2px solid #ff8a33;
+  outline-offset: -2px;
+}
+
+/* Stands in for the site's chat launcher; on the demo it opens the fitter. */
+.fs-chat {
+  position: fixed;
+  right: 25px;
+  bottom: 97px;
+  z-index: 50;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fbefe6;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fs-chat__dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ff6e01;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.fs-chat__dot i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+}

@@ -1,0 +1,22 @@
+.product .app-block:has(.jdgm-widget.jdgm--done-setup:not([style="display: none;"])){
+    --block-space-desktop: 12px
+}
+
+.jdgm-star.jdgm-star.jdgm-star,
+.jdgm-prev-badge__stars
+{
+    display: inline-flex !important;
+}
+.jdgm-widget.jdgm-preview-badge *{
+    line-height: 1 !important;
+}
+.jdgm-prev-badge__stars, .jdgm-prev-badge__text{
+    vertical-align: middle !important;
+}
+.jdgm-preview-badge .jdgm-prev-badge__text.jdgm-prev-badge__text{
+    color: var(--color-gray-600);
+    font-weight: 500;
+    font-size: var(--fs-body-sm);
+    line-height: 150%;
+    letter-spacing: 0%;
+}

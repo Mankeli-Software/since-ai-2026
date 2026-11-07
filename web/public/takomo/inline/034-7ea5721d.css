@@ -1,0 +1,14 @@
+
+  .section-template--18621259579589__rich_text_izteie-padding # {
+    scroll-margin-top: var(--header-height);
+  }
+  .section-template--18621259579589__rich_text_izteie-padding {
+    padding-top: 28px;
+    padding-bottom: 120px;
+  }
+  @media screen and (min-width: 750px) {
+    .section-template--18621259579589__rich_text_izteie-padding {
+      padding-top: 40px;
+      padding-bottom: 168px;
+    }
+  }

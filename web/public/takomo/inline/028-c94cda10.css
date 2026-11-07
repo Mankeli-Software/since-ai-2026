@@ -1,0 +1,10 @@
+.section-template--18621259579589__mission_features_i7KKkd-padding {
+    padding-top: 40px;
+    padding-bottom: 8px;
+  }
+  @media screen and (min-width: 750px) {
+    .section-template--18621259579589__mission_features_i7KKkd-padding {
+      padding-top: 64px;
+      padding-bottom: 16px;
+    }
+  }
