@@ -46,6 +46,7 @@ function head(
       carry: { mean: carry, p10: carry - 1.28 * sdCarry, p90: carry + 1.28 * sdCarry },
       side: { mean: side, sd: sdSide },
       apex,
+      land_angle: 45,
     },
   };
 }
@@ -54,6 +55,18 @@ export const flightTwoHeads: FlightResult = {
   per_head: [
     head("201-mkii", 11, 127, 27, 3, 5.5, 7.5),
     head("201t-mkii", 7, 131, 29, 2, 5, 6.5, true),
+  ],
+  own_shots: [
+    [128.0, 28.0],
+    [108.9, 16.9],
+    [124.2, 30.9],
+    [126.6, 22.5],
+    [129.3, 27.5],
+    [125.9, 14.1],
+    [130.2, 9.7],
+    [124.0, 5.6],
+    [126.8, 8.3],
+    [122.7, 13.5],
   ],
 };
 
