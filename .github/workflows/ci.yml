@@ -194,9 +194,9 @@ jobs:
           image: ${{ env.IMAGE }}:${{ github.sha }}
           no_traffic: ${{ steps.tag.outputs.exists == 'true' }}
           tag: ${{ steps.tag.outputs.tag }}
-          secrets: ANTHROPIC_API_KEY=anthropic-api-key:latest # add ,ELEVENLABS_API_KEY=elevenlabs-api-key:latest only if voice ships
+          secrets: ANTHROPIC_API_KEY=anthropic-api-key:latest,GEMINI_API_KEY=gemini-api-key:latest # add ,ELEVENLABS_API_KEY=elevenlabs-api-key:latest only if voice ships
           # ALLOWED_FRAME_ANCESTORS is space-separated: env_vars splits on commas (§6.5).
-          env_vars: STORE=memory,LLM_MODE=${{ vars.PROD_LLM_MODE || 'mock' }},ALLOWED_FRAME_ANCESTORS=${{ vars.ALLOWED_FRAME_ANCESTORS || '''self''' }}
+          env_vars: STORE=memory,LLM_MODE=${{ vars.PROD_LLM_MODE || 'mock' }},ALLOWED_FRAME_ANCESTORS=${{ vars.ALLOWED_FRAME_ANCESTORS || '''self''' }},AGENT_LLM_PROVIDER=${{ vars.PROD_AGENT_LLM_PROVIDER || 'anthropic' }}
           flags: >-
             --min-instances=1 --max-instances=1 --cpu=1 --memory=1Gi --cpu-boost --timeout=3600 --concurrency=40
             --service-account=${{ vars.GCP_RUNTIME_SA }} --allow-unauthenticated
