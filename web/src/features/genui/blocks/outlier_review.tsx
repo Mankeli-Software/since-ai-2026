@@ -1,4 +1,4 @@
-import { Button, StatTile } from '@/components/studio'
+import { Button, Kbd, StatTile, useNumberKeys } from '@/components/studio'
 import type { BlockProps } from '../types'
 import { Answered } from './_parts/Answered'
 
@@ -39,16 +39,13 @@ function headline(f: Flag) {
 const detail = (f: Flag) => (f.expected ? `Expected ${f.expected}.` : 'That is far outside the rest of your shots.')
 
 /**
- * C5 / K4 odd-shot check: orange-tint callout, Keep it / Drop it, "N other shots stay in".
+ * C5 / K4 odd-shot check: orange-tint callout, Keep it / Drop it (number keys 1-3), "N other shots stay in".
  * Payload unchanged: `{action, codes}` with action keep | exclude | confirm_value.
  */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'outlier_review'>) {
   const flags = block.flags
   const shotLevel = flags.some((f) => f.shot_index != null)
   const prompt = flags[0] ? headline(flags[0]) : 'Odd shot check'
-  if (!interactive || answer) return <Answered prompt={prompt} answer={answer} />
-
-  const codes = flags.map((f) => f.code)
   const suggested = flags.find((f) => f.suggested_value != null)?.suggested_value
   const unit = unitOf(flags.find((f) => f.suggested_value != null)?.field)
   const label = (a: Action) =>
@@ -57,10 +54,17 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       : a === 'keep' ? (shotLevel ? 'Keep it' : 'Keep my number')
       : shotLevel ? 'Drop it'
       : flags.every((f) => f.code.startsWith('S')) ? 'Drop these shots' : "Don't use my number"
-  // Keep = outline; the "do it" action = dark (confirm_value when offered, else exclude). No orange in a callout.
-  const dark: Action = block.actions.includes('confirm_value') ? 'confirm_value' : 'exclude'
   const order: Action[] = ['keep', 'exclude', 'confirm_value']
   const actions = order.filter((a) => block.actions.includes(a))
+  const codes = flags.map((f) => f.code)
+  const live = interactive && !answer
+  const choose = (a: Action) => respond({ action: a, codes }, label(a))
+  // No Enter: keep and drop are equal choices, so neither is the default.
+  useNumberKeys(actions.length, (i) => choose(actions[i]), live && !busy)
+  if (!live) return <Answered prompt={prompt} answer={answer} />
+
+  // Keep = outline; the "do it" action = dark (confirm_value when offered, else exclude). No orange in a callout.
+  const dark: Action = block.actions.includes('confirm_value') ? 'confirm_value' : 'exclude'
 
   const n = block.shots_summary?.n
   const dropped = new Set(flags.filter((f) => f.shot_index != null).map((f) => f.shot_index)).size
@@ -83,15 +87,18 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
             </p>
           ))}
         </div>
-        {actions.map((a) => (
+        {actions.map((a, i) => (
           <Button
             key={a}
             size="sm"
             variant={a === dark ? 'dark' : 'outline'}
             disabled={busy}
-            onClick={() => respond({ action: a, codes }, label(a))}
+            aria-keyshortcuts={String(i + 1)}
+            onClick={() => choose(a)}
+            className="pr-2.5"
           >
             {label(a)}
+            <Kbd onDark={a === dark} className="h-[22px] min-w-[22px] text-[12px]">{i + 1}</Kbd>
           </Button>
         ))}
       </div>

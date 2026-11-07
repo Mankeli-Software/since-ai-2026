@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react'
-import { Button, Eyebrow } from '@/components/studio'
+import { useState } from 'react'
+import { Button, EnterKbd, Eyebrow, useEnterKey } from '@/components/studio'
 import type { BlockOf, BlockProps } from '../types'
 
 export const type = 'heard_summary'
@@ -55,6 +55,15 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   const live = interactive && !answer
   const { missing } = block
 
+  const send = () => {
+    if (busy) return
+    const n = Number(raw.trim().replace(',', '.'))
+    const missing_value = raw.trim() !== '' && Number.isFinite(n) ? n : undefined
+    respond({ missing_value }, 'Show my fit')
+  }
+  // Enter in the number field submits the form natively; this covers Enter anywhere else.
+  useEnterKey(send, live && !busy)
+
   if (!live) {
     const v = (answer?.value as { missing_value?: number } | undefined)?.missing_value
     return (
@@ -73,17 +82,15 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     )
   }
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    if (busy) return
-    const n = Number(raw.trim().replace(',', '.'))
-    const missing_value = raw.trim() !== '' && Number.isFinite(n) ? n : undefined
-    respond({ missing_value }, 'Show my fit')
-  }
-
   const skipped = block.skipped_count
   return (
-    <form onSubmit={submit} className="flex flex-col gap-[18px]">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        send()
+      }}
+      className="flex flex-col gap-[18px]"
+    >
       <Eyebrow className="text-grey-55">Here's what I heard</Eyebrow>
       <FactChips facts={block.facts} />
       {missing && (
@@ -107,8 +114,9 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         <span className="text-[15px] text-grey-55">
           {skipped > 0 && `I skipped ${skipped} ${skipped === 1 ? 'question' : 'questions'} you already answered.`}
         </span>
-        <Button type="submit" size="xl" disabled={busy} className="min-h-[58px] px-7 text-[22px]">
+        <Button type="submit" size="xl" disabled={busy} aria-keyshortcuts="Enter" className="min-h-[58px] pr-4 pl-7 text-[22px]">
           Show my fit →
+          <EnterKbd tone="primary" />
         </Button>
       </div>
     </form>

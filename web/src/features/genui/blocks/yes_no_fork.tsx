@@ -1,4 +1,4 @@
-import { useNumberKeys } from '@/components/studio'
+import { Kbd, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockOf, BlockProps } from '../types'
 
@@ -84,7 +84,10 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
             >
               <Art kind={o.illustration} />
               <span className="flex flex-col gap-1">
-                <span className="font-display text-[26px] font-bold uppercase">{o.title}</span>
+                <span className="flex items-center justify-between gap-3">
+                  <span className="font-display text-[26px] font-bold uppercase">{o.title}</span>
+                  <Kbd>{i + 1}</Kbd>
+                </span>
                 <span className="text-[15px] leading-[1.45] text-grey-55">{o.body}</span>
               </span>
             </button>

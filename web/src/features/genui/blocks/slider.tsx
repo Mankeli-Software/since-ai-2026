@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { Button, ProvenancePill } from '@/components/studio'
+import { Button, EnterKbd, ProvenancePill, useEnterKey } from '@/components/studio'
 import type { BlockProps } from '../types'
 import { Answered, BigNumber, cardLabelCls } from './_parts/Answered'
 import { Range } from './_parts/Range'
@@ -11,20 +11,22 @@ const fmt = (n: number) => String(Math.round(n * 100) / 100)
 
 /**
  * C3b `slider_guess`: label + provenance pill, big number, range, scale, guess/measured toggle,
- * Not sure / That's it. Payload unchanged: `value`, or `{value, measured}` with the toggle; unknown = null.
+ * Not sure / That's it (Enter). Payload unchanged: `value`, or `{value, measured}` with the toggle; unknown = null.
  */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'slider'>) {
   const [value, setValue] = useState(block.value ?? Math.round((block.min + block.max) / 2 / block.step) * block.step)
   const [measured, setMeasured] = useState(false)
   const inputId = useId()
 
-  if (!interactive || answer) return <Answered prompt={block.prompt} answer={answer} />
-
   const send = () => {
     const text = `${fmt(value)} ${block.unit}`
     if (block.measured_or_guessed_toggle) respond({ value, measured }, `${text} (${measured ? 'measured' : 'guess'})`)
     else respond(value, text)
   }
+  useEnterKey(send, interactive && !answer && !busy)
+
+  if (!interactive || answer) return <Answered prompt={block.prompt} answer={answer} />
+
   const mid = Math.round((block.min + block.max) / 2 / block.step) * block.step
 
   return (
@@ -64,7 +66,10 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         {block.allow_unknown && (
           <Button variant="outline" disabled={busy} onClick={() => respond(null, 'Not sure')}>Not sure</Button>
         )}
-        <Button variant="dark" disabled={busy} onClick={send}>That's it</Button>
+        <Button variant="dark" disabled={busy} aria-keyshortcuts="Enter" onClick={send} className="pr-3">
+          That's it
+          <EnterKbd />
+        </Button>
       </div>
     </div>
   )
