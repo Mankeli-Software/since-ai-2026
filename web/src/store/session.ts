@@ -58,6 +58,7 @@ interface SessionStore {
   respond(componentId: string, value: unknown, displayText: string): Promise<void>
   /** Keeps the FittingState with the highest `version`: call it for SSE `state` events and REST responses. */
   mergeState(next: FittingState): void
+  addUi(block: UIBlock, interactive?: boolean): void
 }
 
 export const useSession = create<SessionStore>()((set, get) => {
@@ -217,6 +218,10 @@ export const useSession = create<SessionStore>()((set, get) => {
         messages: [...s.messages, { id: `u-${s.messages.length}`, role: 'user', text: displayText, seq: nextSeq() }],
       }))
       return turn({ message: { kind: 'ui_response', component_id: componentId, value, display_text: displayText } })
+    },
+    addUi(block, interactive = true) {
+      const id = `local-ui-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+      set((s) => ({ ui: [...s.ui, { id, block, interactive, answered: false, seq: nextSeq() }] }))
     },
   }
 })
