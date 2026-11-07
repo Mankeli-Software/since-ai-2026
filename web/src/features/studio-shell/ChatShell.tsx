@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { ClubImage } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
+import { VoiceBar } from '@/features/voice/VoiceConversation'
 import { Composer } from './Composer'
 import { ConversationCard, DisplayCard } from './ConversationCard'
 import { ConversationHistory } from './ConversationHistory'
@@ -110,9 +111,12 @@ export function ChatShell() {
         )}
         {/* C2 has the composer inside the card instead. Pinned to the bottom while a tall card scrolls. */}
         {view.first ? (
-          <div className="pb-10" />
+          <div className="pb-10">
+            <VoiceBar />
+          </div>
         ) : (
           <div className="sticky bottom-0 mt-auto bg-[linear-gradient(to_top,#0B0B0B_55%,transparent)] pt-4 pb-7">
+            <VoiceBar className="mb-2.5" />
             <Composer onSend={(t) => void say(t)} disabled={sendDisabled} />
           </div>
         )}
