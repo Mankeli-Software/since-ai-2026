@@ -65,6 +65,13 @@ class Shot(BaseModel):
     impact_toe_up_deg: float | None = None
 
 
+class BallLineImportRequest(BaseModel):
+    readings_deg: list[float] = Field(min_length=1, max_length=10)
+    club: str = "own_7i"
+    append_to: str | None = None
+    synthetic: bool = False
+
+
 class ShotQualityReport(BaseModel):
     """Per-import quality summary; `quality` scales the launch-monitor weight (plan §5.3)."""
 
@@ -84,6 +91,7 @@ class ImportReport(BaseModel):
     kind: ImportKind
     club: str | None = None
     shots: list[Shot] = Field(default_factory=list)
+    readings_deg: list[float] = Field(default_factory=list)
     report: ShotQualityReport = Field(default_factory=ShotQualityReport)
     status: ImportStatus = "pending"
     state: FittingState | None = None
@@ -109,6 +117,7 @@ class ExtractedSession(BaseModel):
 
 
 __all__ = [
+    "BallLineImportRequest",
     "Cell",
     "ExtractedSession",
     "Flag",
