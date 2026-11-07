@@ -130,3 +130,36 @@
   border-radius: 50%;
   background: #fff;
 }
+
+/* Cross-document View Transitions (index.html <-> studio.html) */
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes vt-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: 250ms ease-out both vt-fade-out;
+  }
+  ::view-transition-new(root) {
+    animation: 250ms ease-out both vt-fade-in;
+  }
+}
+
