@@ -255,17 +255,42 @@ export const useSession = create<SessionStore>()((set, get) => {
         if (sessRes.ok) {
           const sessData = (await sessRes.json()) as {
             transcript?: Array<{ turn_no: number; role: 'assistant' | 'user'; text: string }>
+            blocks?: Array<{
+              id: string
+              block: UIBlock
+              interactive: boolean
+              answer?: { value: unknown; display_text: string } | null
+              turn_no?: number | null
+            }>
           }
-          if (sessData.transcript && sessData.transcript.length > 0) {
-            set({
-              messages: sessData.transcript.map((t, idx) => ({
-                id: `t-${t.turn_no}-${idx}`,
-                role: t.role,
-                text: t.text,
-                seq: nextSeq(),
-              })),
-            })
+          // Messages and the cards that were shown, in one timeline (#216): a turn's cards follow its last message.
+          type Row = { turn: number; card: 0 | 1; m?: ChatMessage; u?: UiItem }
+          const rows: Row[] = [
+            ...(sessData.transcript ?? []).map((t, idx): Row => ({
+              turn: t.turn_no,
+              card: 0,
+              m: { id: `t-${t.turn_no}-${idx}`, role: t.role, text: t.text, seq: 0 },
+            })),
+            ...(sessData.blocks ?? []).map((b): Row => ({
+              turn: b.turn_no ?? Number.MAX_SAFE_INTEGER,
+              card: 1,
+              u: {
+                id: b.id,
+                block: b.block,
+                interactive: b.interactive,
+                answered: b.answer != null,
+                seq: 0,
+                answer: b.answer ? { value: b.answer.value, displayText: b.answer.display_text } : undefined,
+              },
+            })),
+          ].sort((a, b) => a.turn - b.turn || a.card - b.card)
+          const messages: ChatMessage[] = []
+          const ui: UiItem[] = []
+          for (const r of rows) {
+            if (r.m) messages.push({ ...r.m, seq: nextSeq() })
+            if (r.u) ui.push({ ...r.u, seq: nextSeq() })
           }
+          if (messages.length > 0 || ui.length > 0) set({ messages, ui })
         }
       } catch (e) {
         set({ error: `resume failed: ${String(e)}` })

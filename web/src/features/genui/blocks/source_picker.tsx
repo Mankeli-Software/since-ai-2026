@@ -1,6 +1,7 @@
 import { Kbd, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockProps } from '../types'
+import { ReadOnly, isReadOnly } from './_parts/Answered'
 
 export const type = 'source_picker'
 
@@ -30,7 +31,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   const pick = (i: number) => respond(tiles[i].id, tiles[i].name)
   useNumberKeys(tiles.length, pick, live && !busy)
 
-  if (!live) {
+  const readOnly = isReadOnly(interactive, answer)
+  if (!live && !readOnly) {
     const picked = tiles.find((t) => t.id === answer?.value)
     return (
       <p className="m-0 text-[15px] text-grey-55">
@@ -44,7 +46,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   // C3a (with the preview strip) uses the smaller tile; C4b the larger one.
   const compact = stats.length > 0
 
-  return (
+  const body = (
     <div className="flex flex-col gap-[18px]">
       {stats.length > 0 && (
         <div className="flex items-center gap-5 rounded-14 bg-midnight px-[18px] py-3.5 text-washed-white">
@@ -60,11 +62,12 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       <div role="group" aria-label={block.prompt} className="grid grid-cols-3 gap-3">
         {tiles.map((t, i) => {
           const photo = t.fallback && t.id.includes('photo')
+          const on = readOnly && t.id === answer?.value
           return (
             <button
               key={t.id}
               type="button"
-              aria-pressed={false}
+              aria-pressed={on}
               aria-keyshortcuts={i < 9 ? String(i + 1) : undefined}
               aria-label={photo ? `${t.name}. ${t.hint}` : undefined}
               title={photo ? t.hint : undefined}
@@ -76,6 +79,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
                 t.fallback
                   ? 'border-dashed border-grey-c8 bg-washed-white enabled:hover:border-grey-8f'
                   : 'border-grey-d9 bg-white enabled:hover:border-midnight',
+                on && 'border-midnight shadow-[inset_0_0_0_1px_#0B0B0B]',
               )}
             >
               {photo ? (
@@ -101,4 +105,5 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       </div>
     </div>
   )
+  return readOnly && answer ? <ReadOnly answer={answer}>{body}</ReadOnly> : body
 }

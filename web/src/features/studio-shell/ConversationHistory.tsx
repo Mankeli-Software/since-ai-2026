@@ -9,8 +9,8 @@ import { promptOf } from './RecapRow'
 type Entry = { seq: number; m: ChatMessage } | { seq: number; u: UiItem }
 
 /**
- * "Show conversation": the earlier turns in compact form, collapsed by default (the chat shell shows
- * one card at a time). Answered cards appear as their question; the answer is the golfer's message.
+ * "Show conversation": the earlier turns, collapsed by default (the chat shell shows one card at a time). Answered
+ * cards render as the component that was shown, read-only with the golfer's pick; the answer is also their message.
  */
 export function ConversationHistory({ messages, ui }: { messages: ChatMessage[]; ui: UiItem[] }) {
   const [open, setOpen] = useState(false)
@@ -53,15 +53,17 @@ export function ConversationHistory({ messages, ui }: { messages: ChatMessage[];
                   </p>
                 </li>
               )
-            ) : e.u.interactive ? (
+            ) : e.u.interactive && !e.u.answer ? (
               promptOf(e.u) && (
                 <li key={e.u.id} className="ml-10 font-display text-[13px] font-semibold tracking-[0.12em] text-on-page-3 uppercase">
                   Card: {promptOf(e.u)}
                 </li>
               )
             ) : (
+              // Display blocks as they were; answered input cards as their real component, read-only, with the pick
+              // shown (#216). `interactive={false}` + `answer` is the blocks' read-only mode.
               <li key={e.u.id} className="ml-10 rounded-14 bg-washed-white p-4 text-midnight ring-1 ring-card-edge">
-                <GenUiBlock id={e.u.id} block={e.u.block} interactive={false} busy={false} respond={() => {}} />
+                <GenUiBlock id={e.u.id} block={e.u.block} interactive={false} answer={e.u.answer} busy={false} respond={() => {}} />
               </li>
             ),
           )}
