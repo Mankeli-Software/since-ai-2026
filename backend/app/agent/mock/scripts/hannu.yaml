@@ -2,7 +2,7 @@ persona: hannu
 steps:
   # Turn 1: Questionnaire review and ball-line test prompt
   - text: "Hi Hannu, welcome to Takomo Fitter Studio. Let's find the best irons for your game."
-  - text: "From your questionnaire, you carry your 7-iron 145 yards. The static sizing chart suggests a standard lie, but dynamic delivery on turf often tells a different story."
+  - text: "From your questionnaire, you carry your 7-iron 125 yards. The static sizing chart suggests a standard lie, but dynamic delivery on turf often tells a different story."
   - tool_call:
       name: run_fit
       args: {}
@@ -20,9 +20,6 @@ steps:
   - text: "We received your 5 marker-line readings."
   - text: "Here is our honest assessment: the marker-line test on a range mat is approximate (sigma ~1.5°). When fused with your sizing chart, your lie angle remains a genuine close call between Standard and 1° Upright. In addition, without measured club speed, your flex is on the boundary."
   - tool_call:
-      name: update_profile
-      args: {lie_override_deg: 0.8}
-  - tool_call:
       name: run_fit
       args: {}
   - ui:
@@ -39,9 +36,14 @@ steps:
       depth: standard
       items:
         - part: lie
-          plain: "Lie is a close call: static chart suggests 0° Standard, while your ball-line readings lean +0.8° upright. Testing on a simulator is recommended before ordering custom."
+          plain:
+            by: $state.per_part.lie.alt
+            cases:
+              "1": "Lie is a close call: readings lean upright. A test-club session on a simulator gives the number."
+              "-1": "Lie is a close call: readings lean flat. A test-club session on a simulator gives the number."
+            default: "Lie is a close call: readings lean upright. A test-club session on a simulator gives the number."
           numbers:
-            lie_deg: 0.0
+            lie_deg: $state.best.lie_deg
           sources:
             - source: questionnaire
             - source: ball_line
