@@ -22,12 +22,12 @@ const token = (id: string, placeholder: string, options: [string, string][]) => 
 export const OPENING_BLOCK: UIBlock = {
   type: 'sentence_builder',
   prompt: 'Tap the words to change them',
-  template: "I've played golf for {years}, about {often}, and I'm a {hand} handed {sex} aged {age}",
+  template: "I've played golf for {years}, about {often}, and I'm {hand}, playing {sex} clubs, aged {age}",
   tokens: [
     token('years', 'how long', [['new', 'Just started'], ['1_3', '1–3 years'], ['3_10', '3–10 years'], ['10_plus', '10+ years']]),
     token('often', 'how often', [['weekly', 'every week'], ['2_3_month', '2–3 rounds a month'], ['season', 'a few a season'], ['starting', 'just starting']]),
-    token('hand', 'right or left', [['right', 'right'], ['left', 'left']]),
-    token('sex', 'man or woman', [['male', 'man'], ['female', 'woman']]),
+    token('hand', 'right or left', [['right', 'right-handed'], ['left', 'left-handed']]),
+    token('sex', "men's or women's", [['male', "men's"], ['female', "women's"]]),
     token('age', 'age', [['u25', 'under 25'], ['25_34', '25–34'], ['35_44', '35–44'], ['45_54', '45–54'], ['55_64', '55–64'], ['65_plus', '65+']]),
   ],
 }

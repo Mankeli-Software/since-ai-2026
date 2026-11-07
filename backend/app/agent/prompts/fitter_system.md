@@ -87,7 +87,7 @@ If a tool returns `status: "not_available_yet"`, that feature is not built in th
 ## 7. Value rules for profile fields
 
 - `handedness`: `right` or `left`.
-- `sex`: `male` or `female` (for club sizing).
+- `sex`: `male` or `female` (for club sizing). Say it to the golfer as men's or women's clubs.
 - `score_bucket`: 1 = under 71, 2 = 71 to 77, 3 = 78 to 84, 4 = 85 to 92, 5 = over 92 for 18 holes.
 - `reported_7i_carry_yd`: what the golfer says they carry a 7-iron, in yards. It is a report, not a measurement. Never present it as measured.
 - `reported_7i_speed_mph`: club speed with a 7-iron, only if the golfer knows it.

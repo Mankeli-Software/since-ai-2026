@@ -13,7 +13,9 @@ GREETING = (
     "Hey, welcome to the studio. Pull up a chair, this takes about as long as a slow par 3.",
     "Let's start with you. How long have you been at this game?",
 )
-TEMPLATE = "I've played golf for {years}, about {often}, and I'm a {hand} handed {sex} aged {age}"
+TEMPLATE = (
+    "I've played golf for {years}, about {often}, and I'm {hand}, playing {sex} clubs, aged {age}"
+)
 TOKENS: dict[str, tuple[str, tuple[tuple[str, str], ...]]] = {
     "years": ("how long", (
         ("new", "Just started"), ("1_3", "1–3 years"), ("3_10", "3–10 years"),
@@ -21,8 +23,8 @@ TOKENS: dict[str, tuple[str, tuple[tuple[str, str], ...]]] = {
     "often": ("how often", (
         ("weekly", "every week"), ("2_3_month", "2–3 rounds a month"),
         ("season", "a few a season"), ("starting", "just starting"))),
-    "hand": ("right or left", (("right", "right"), ("left", "left"))),
-    "sex": ("man or woman", (("male", "man"), ("female", "woman"))),
+    "hand": ("right or left", (("right", "right-handed"), ("left", "left-handed"))),
+    "sex": ("men's or women's", (("male", "men's"), ("female", "women's"))),
     "age": ("age", (
         ("u25", "under 25"), ("25_34", "25–34"), ("35_44", "35–44"), ("45_54", "45–54"),
         ("55_64", "55–64"), ("65_plus", "65+"))),
