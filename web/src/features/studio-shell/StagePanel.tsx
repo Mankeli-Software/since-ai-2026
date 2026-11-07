@@ -31,7 +31,7 @@ function specProps(spec: Spec): ClubStageProps {
     head: spec.head,
     handedness: spec.handedness,
     shaftMaterial: spec.material,
-    length: clamp(spec.length_in - 37, -1.5, 1.5),
+    length: clamp(spec.length_in, -1.5, 1.5), // already a delta from standard (pack length_for)
     lie: spec.lie_deg,
     grip: spec.grip,
   }

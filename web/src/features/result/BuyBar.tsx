@@ -51,7 +51,7 @@ export function BuyBar({ spec, nextRef }: BuyBarProps) {
               aria-hidden="true"
               className={cn('size-2 flex-none rounded-full', copy.tone === 'green' ? 'bg-status-green' : 'bg-status-amber')}
             />
-            <span className="truncate">{copy.status}</span>
+            <span className="line-clamp-2">{copy.status}</span>
           </span>
         )}
       </span>
