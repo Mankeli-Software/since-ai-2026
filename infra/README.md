@@ -29,16 +29,19 @@ docker rm -f fitter
 
 The backend rate-limits the public link and caps model calls per day (`backend/app/agent/CLAUDE.md`, "Cost and abuse
 guard"). The defaults need no config. Demo devices (the recording, the judges' walkthrough if needed) skip every limit
-with an `X-Demo-Key` header whose value is in `DEMO_KEY`. **Not wired yet:** CI only passes `ANTHROPIC_API_KEY`. To
-turn it on, in this order (adding the secret to `ci.yml` before it exists breaks the deploy):
+with an `X-Demo-Key` header whose value is in `DEMO_KEY`. The value lives in Secret Manager as `demo-key` (created
+2026-11-07, readable by `fitter-runtime@`) and CI passes it as `DEMO_KEY=demo-key:latest`.
 
 ```sh
-openssl rand -hex 16 | gcloud secrets create demo-key --replication-policy=automatic --data-file=- --project "$PROJECT_ID"
-gcloud secrets add-iam-policy-binding demo-key --project "$PROJECT_ID" \
-  --member="serviceAccount:$RUNTIME_SA" --role=roles/secretmanager.secretAccessor
-# then in .github/workflows/ci.yml, deploy step:
-#   secrets: ANTHROPIC_API_KEY=anthropic-api-key:latest,DEMO_KEY=demo-key:latest
+gcloud secrets versions access latest --secret demo-key --project takomo-fitter   # read the key (team admins)
+curl -H "X-Demo-Key: $KEY" ...                                                   # any API call that skips limits
 ```
+
+- Never paste the key into GitHub, Discord or a commit.
+- `DEMO_KEY` is comma-separated, so each person can have their own key: add a new version holding
+  `<old keys>,<new key>` (`openssl rand -hex 16` makes one). Cloud Run reads `:latest` when a revision starts, so a new
+  version takes effect on the next deploy (or `gcloud run services update fitter --region europe-north1`).
+- Rotate by adding a version without the old key, then redeploy.
 
 To change a limit without a code change, add it to `env_vars` in the same step (for example
 `AGENT_DAILY_MODEL_CALL_CAP=1000`). Keep `--max-instances=1`: the counters are in memory per instance.

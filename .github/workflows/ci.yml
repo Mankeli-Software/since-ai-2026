@@ -194,7 +194,7 @@ jobs:
           image: ${{ env.IMAGE }}:${{ github.sha }}
           no_traffic: ${{ steps.tag.outputs.exists == 'true' }}
           tag: ${{ steps.tag.outputs.tag }}
-          secrets: ANTHROPIC_API_KEY=anthropic-api-key:latest # add ,ELEVENLABS_API_KEY=elevenlabs-api-key:latest only if voice ships
+          secrets: ANTHROPIC_API_KEY=anthropic-api-key:latest,DEMO_KEY=demo-key:latest # add ,ELEVENLABS_API_KEY=elevenlabs-api-key:latest only if voice ships
           # ALLOWED_FRAME_ANCESTORS is space-separated: env_vars splits on commas (§6.5).
           env_vars: STORE=memory,LLM_MODE=${{ vars.PROD_LLM_MODE || 'mock' }},ALLOWED_FRAME_ANCESTORS=${{ vars.ALLOWED_FRAME_ANCESTORS || '''self''' }}
           flags: >-
