@@ -89,9 +89,9 @@ reasoning parts are not interchangeable across a provider switch.
   `{code, message}`; `X-Demo-Key` (`api/guard_deps.DemoKeyHeader`) skips them all.
 - Past `AGENT_DAILY_MODEL_CALL_CAP`, `pick_engine` gives **new** sessions `scripted` + a `SessionNotice`
   (`fallback: replay` for personas, `form` for own fittings), and live vision returns 429. Existing sessions keep
-  their engine; the per-session budget (60 calls / 300k tokens) guards them.
-- Knobs (`agent/settings.py`): `AGENT_TURNS_PER_MINUTE` (10), `AGENT_SESSIONS_PER_MINUTE` (60),
-  `AGENT_DAILY_MODEL_CALL_CAP` (2000), `AGENT_SESSION_MAX_MODEL_CALLS` (60), `AGENT_SESSION_MAX_TOKENS` (300k),
+  their engine; the per-session budget (600 calls / 3M tokens) guards them.
+- Knobs (`agent/settings.py`): `AGENT_TURNS_PER_MINUTE` (100), `AGENT_SESSIONS_PER_MINUTE` (600),
+  `AGENT_DAILY_MODEL_CALL_CAP` (20000), `AGENT_SESSION_MAX_MODEL_CALLS` (600), `AGENT_SESSION_MAX_TOKENS` (3M),
   `AGENT_MAX_TOOL_TURNS` (10; Genkit fails the whole turn when hit), `DEMO_KEY` / `AGENT_DEMO_KEYS` (comma-separated).
 
 ## Screenshot import (`extract.py`, #19)

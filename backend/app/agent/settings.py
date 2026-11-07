@@ -24,13 +24,13 @@ class AgentSettings(BaseSettings):
     model_fast: str = ""  # AGENT_MODEL_FAST, empty = provider default
 
     # Cost and abuse guard (plan 4.2, #18). In-memory: one Cloud Run instance, STORE=memory.
-    turns_per_minute: int = 10  # AGENT_TURNS_PER_MINUTE, per session_id
-    sessions_per_minute: int = 60  # AGENT_SESSIONS_PER_MINUTE, global bucket on POST /api/sessions
+    turns_per_minute: int = 100  # AGENT_TURNS_PER_MINUTE, per session_id
+    sessions_per_minute: int = 600  # AGENT_SESSIONS_PER_MINUTE, global bucket on POST /api/sessions
     daily_model_call_cap: int = (
-        2000  # AGENT_DAILY_MODEL_CALL_CAP; past it new sessions are scripted
+        20_000  # AGENT_DAILY_MODEL_CALL_CAP; past it new sessions are scripted
     )
-    session_max_model_calls: int = 60  # AGENT_SESSION_MAX_MODEL_CALLS, per-session UX guard
-    session_max_tokens: int = 300_000  # AGENT_SESSION_MAX_TOKENS, input + output per session
+    session_max_model_calls: int = 600  # AGENT_SESSION_MAX_MODEL_CALLS, per-session UX guard
+    session_max_tokens: int = 3_000_000  # AGENT_SESSION_MAX_TOKENS, input + output per session
     max_tool_turns: int = 10  # AGENT_MAX_TOOL_TURNS, Genkit tool-loop cap per turn (default 50)
     # Comma-separated X-Demo-Key values that skip the limits. DEMO_KEY is the plan's name.
     demo_keys: str = Field(default="", validation_alias=AliasChoices("AGENT_DEMO_KEYS", "DEMO_KEY"))
