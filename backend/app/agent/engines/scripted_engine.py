@@ -175,7 +175,7 @@ class ScriptedEngine:
                 args = spec.input_model.model_validate(refs(call.get("args") or {}))
                 out = await spec.fn(ctx, args)
                 if isinstance(out, BaseModel):
-                    outputs[call["name"]] = out.model_dump(mode="json")
+                    outputs[call.get("as", call["name"])] = out.model_dump(mode="json")
             elif "ui" in step:
                 spec = get_tool(f"ui_{step['ui']['type']}")
                 ui_id: list[str] = []
