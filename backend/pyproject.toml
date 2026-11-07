@@ -13,6 +13,7 @@ dependencies = [
     "genkit==0.13.0",
     "genkit-anthropic==0.13.0",
     "genkit-fastapi==0.13.0",
+    "genkit-google-genai==0.13.0",
     "anthropic==0.112.0",
     "httpx",
     "python-multipart",
