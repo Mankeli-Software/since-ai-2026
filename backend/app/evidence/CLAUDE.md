@@ -51,6 +51,9 @@ def s7_club_speed_spike(shots: list[Shot]) -> list[Flag]:
 - `fuse.py`: `sigma_factor`, `usable_shots` (drops rejects, keeps S8), `shot_quality`, `merge_flags`.
   `session_flags.refresh(session)` re-runs the golfer rules into `session.flags` + `state.pending_flags`;
   the confirm route and `POST /flags/recheck` call it. V6 = imports stay `pending` until confirmed.
+- `resolve.py`: the golfer's `outlier_review` answer (`keep` / `confirm_value` / `exclude`) via
+  `POST /flags/resolve {action, codes, import_id?}`; marks flags `resolved`, sets or clears profile values, drops or
+  converts (S10) confirmed shots. State shots carry `import_id` so a flag finds its shots.
 
 ## Screenshot extraction checks (`plausibility/extraction.py`, #34)
 
@@ -65,13 +68,21 @@ def s7_club_speed_spike(shots: list[Shot]) -> list[Flag]:
 
 ## Wave 2 rules (#33), gated by `EVIDENCE_WAVE2=1` (`evidence/settings.py`, default off)
 
-- `plausibility/shots_w2.py`: S2, S5, S6, S9, S11, S12, S13 (`wave2_shot_rules(ctx)` -> `check_shots(extra_rules=)`)
-  and the session-level S16, S17, S18 (`wave2_session_flags`). `ShotContext` carries monitor / surface /
-  normalisation; absent inputs = no flag. S5 / S11 tolerance 1.6 for radars (S17). S13 rejects only its field:
-  `fuse.usable_shots` blanks `face_to_path_deg` and keeps the shot (`FIELD_ONLY_REJECTS`).
-- `plausibility/golfer_w2.py`: G4-G10, G12, G14 (`wave2_golfer_flags`, run by `session_flags.refresh` when on).
-- Off by default so the v1 demo flow is unchanged; the trackman-csv, confirm and screenshot routes and the recheck
-  add W2 only when the setting is on.
+- `shot_checks.py` is the only place that reads the W2 setting for shots: `run_shot_rules(shots, monitor=,
+  import_id=)` (trackman-csv and confirm routes), `run_screenshot_rules(session)` (screenshot route) and
+  `stored_monitor(report_json)` (so confirm uses the review's monitor).
+- `plausibility/shots_w2.py`: S2, S5, S6, S9, S11, S12, S13 (`wave2_shot_rules(monitor)`) and S17 once per import.
+  `shots.apply_rules` runs them after v1, each on the shots nothing rejected yet. Tolerance 1.6 only for known home
+  radars (`RADAR_MONITORS`) and pack `home_radar` sessions; TrackMan, GCQuad, vision and unnamed monitors are 1.0.
+  S5 never confirms inside 3 RMSE of its predictor and only confirms with the loose club-speed-only fit.
+  S13 rejects only its field: `fuse.usable_shots` blanks `face_to_path_deg` (`FIELD_ONLY_REJECTS`).
+  Not built: S15 (link importer, cut), S16 / S18 (no parser reads the hitting surface or normalisation mode).
+- `fuse.shot_rejects(flags)` is the one definition of "this reject drops the shot" (unresolved, not field-only).
+- `plausibility/golfer_w2.py`: G4-G10 (`wave2_golfer_flags`, in `session_flags.refresh`) and G12 / G14
+  (`wave2_fit_flags`, in `session_flags.refresh_fit_flags`, called after the rescore by the confirm and recheck
+  routes with FIT's own swing buckets). FIT's profile patch does not call it yet, so G12 / G14 refresh on the next
+  confirm or recheck.
+- Off by default so the v1 demo flow is unchanged.
 
 ## Severities (σ effect in `fuse.py`)
 

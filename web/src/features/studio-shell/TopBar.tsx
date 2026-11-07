@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Mascot } from '../mascot/Mascot'
 import { useSession } from '@/store/session'
@@ -11,11 +12,20 @@ const GATE: Record<string, string> = {
 
 /** Always visible; driven only by FittingState (highest version wins, see store/session.ts). */
 export function TopBar() {
-  const { state, demo, mascot, busy, saved, say, save } = useSession()
+  const { state, demo, mascot, busy, saved, mode, setMode, say, save } = useSession()
+  const [email, setEmail] = useState('')
+  const [copied, setCopied] = useState(false)
   const pct = state?.confidence == null ? null : Math.round(state.confidence * 100)
   const best = state?.best
   const missing = state?.missing?.length ?? 0
   const gate = state ? (GATE[state.gate] ?? state.gate) : '-'
+
+  const copyLink = (url: string) => {
+    const full = new URL(url, window.location.origin).href
+    void navigator.clipboard.writeText(full)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-6 border-b border-border-dark bg-surface-dark px-5 text-washed-white">
@@ -47,16 +57,61 @@ export function TopBar() {
       {missing > 0 && <span className="text-sm text-ink-300">{missing} missing</span>}
       <div className="ml-auto flex items-center gap-3">
         {demo && <span className="border border-orange-300 px-2 py-0.5 font-display text-xs font-semibold uppercase tracking-wider text-orange-300">Simulated golfer</span>}
-        <Button variant="outline" size="sm" className="border-border-dark bg-transparent text-washed-white hover:bg-surface-dark-2 hover:text-washed-white" disabled={busy || !state} onClick={() => void say('I want to add data')}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-border-dark bg-transparent text-washed-white hover:bg-surface-dark-2 hover:text-washed-white"
+          disabled={!state}
+          onClick={() => setMode(mode === 'form' ? 'chat' : 'form')}
+        >
+          {mode === 'form' ? 'Chat mode' : 'Form mode'}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-border-dark bg-transparent text-washed-white hover:bg-surface-dark-2 hover:text-washed-white"
+          disabled={busy || !state}
+          onClick={() => void say('I want to add data')}
+        >
           Add data
         </Button>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-orange-300" disabled={!state} onClick={() => void save()}>
-          Save
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <input
+            type="email"
+            placeholder="Email (optional)"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={busy || !state}
+            className="h-8 w-28 rounded border border-border-dark bg-surface-dark-2 px-2 text-xs text-washed-white placeholder:text-ink-400 focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-orange-300" disabled={!state || busy} onClick={() => void save(email)}>
+            Save
+          </Button>
+        </div>
         {saved && (
-          <span className="text-xs text-ink-300" role="status">
-            {saved.status === 'ok' ? 'Saved' : 'Save is not available yet'}
-          </span>
+          <div className="flex items-center gap-1.5 text-xs text-ink-300" role="status">
+            {saved.status === 'ok' ? (
+              <>
+                <span>Saved ·</span>
+                {saved.resumeUrl && (
+                  <>
+                    <a href={saved.resumeUrl} className="text-orange-300 hover:underline">
+                      Resume link
+                    </a>
+                    <button
+                      type="button"
+                      className="text-ink-400 hover:text-washed-white"
+                      onClick={() => copyLink(saved.resumeUrl!)}
+                    >
+                      {copied ? '(Copied!)' : '(Copy)'}
+                    </button>
+                  </>
+                )}
+              </>
+            ) : (
+              'Save is not available yet'
+            )}
+          </div>
         )}
       </div>
     </header>

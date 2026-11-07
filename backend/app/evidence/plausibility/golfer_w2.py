@@ -2,15 +2,16 @@
 
 Same conventions as `golfer.py`: values are profile fields (`IntakeAnswers` / `PhoneMeasurements`
 names) and each flag's `field` is that name, so FIT's `mapping._flag_factor` applies the σ effect.
-G13 (score vs round history) is in `round_history.py`. `session_flags.refresh` runs
-`wave2_golfer_flags` only when `EVIDENCE_WAVE2=1`. A rule whose inputs are missing returns no flags.
+G13 (score vs round history) is in `round_history.py`. With `EVIDENCE_WAVE2=1`,
+`session_flags.refresh` runs `wave2_golfer_flags` (G4-G10) and `refresh_fit_flags` runs
+`wave2_fit_flags` (G12, G14) after the rescore. A rule whose inputs are missing returns no flags.
 
 | Rule | Severity | Field |
 |---|---|---|
 | G4 wrist-to-floor vs height | confirm | wrist_to_floor_cm / wrist_to_floor_photo_cm |
 | G5 hand vs height | confirm | hand_length_photo_cm |
 | G6 glove vs hand photo, 2+ sizes apart | info ("we'll go with the photo") | glove |
-| G7 speed vs profile | confirm (suggests a unit when one fits) | reported_7i_speed_mph |
+| G7 speed vs profile | confirm (suggests km/h when it fits) | reported_7i_speed_mph |
 | G8 driver speed typed in | confirm | reported_7i_speed_mph |
 | G9 ego carry (profile only) | downweight | reported_7i_carry_yd |
 | G10 carry short for speed | confirm | reported_7i_carry_yd |
@@ -20,8 +21,7 @@ G13 (score vs round history) is in `round_history.py`. `session_flags.refresh` r
 
 from __future__ import annotations
 
-import statistics
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 
 from app.evidence.plausibility.golfer import G1_BOUNDS, KIND
 from app.evidence.plausibility.thresholds import (
@@ -36,21 +36,18 @@ from app.evidence.plausibility.thresholds import (
     G14_RARE_SHARE,
     G14_SPEC_COUNTS,
 )
-from app.pack import (
-    GLOVE_ORDER,
-    glove_from_hand_length,
-    swing_bucket_from_carry,
-    swing_bucket_from_speed,
-)
+from app.pack import GLOVE_ORDER, glove_from_hand_length
 from app.schemas.common import Spec
-from app.schemas.evidence import Flag, Shot
+from app.schemas.evidence import Flag
 
 # G7 (plan §5.2): z = (v - mu) / (sigma + 2.5) > 3.5. Men: mu = 79 + 0.6 (88 - score)
 # - 0.22 max(age - 45, 0), sigma 4.5. Women: 0.8 mu, sigma 3.6.
 G7_Z = 3.5
 G7_UNIT_Z = 2.5  # suggest a unit when converting brings z under this
 G7_SD_PAD = 2.5
-G7_UNITS = (("km/h", 1 / 1.609), ("m/s", 2.237))
+# Only units that make a typed number *too high* fit here: km/h. An m/s entry is too low and is
+# G2's job (v1, `golfer.G2_CONVERSIONS`), so G7 never sees it.
+G7_UNITS = (("km/h", 1 / 1.609),)
 # G8: men, speed > 95 mph and score > 85.
 G8_SPEED_MPH = 95.0
 G8_SCORE = 85.0
@@ -80,11 +77,6 @@ def _score(values: Mapping[str, object]) -> float | None:
         return avg
     bucket = _num(values, "score_bucket")
     return None if bucket is None else BUCKET_SCORE.get(int(bucket))
-
-
-def _measured_speed(shots: Sequence[Shot]) -> float | None:
-    xs = [s.club_speed_mph for s in shots if s.club == "own_7i" and s.club_speed_mph is not None]
-    return statistics.fmean(xs) if xs else None
 
 
 def g4_wrist_to_floor_vs_height(
@@ -163,7 +155,7 @@ def g7_speed_vs_profile(
     speed_mph: float | None, *, sex: str | None, score: float | None, age: float | None = None
 ) -> list[Flag]:
     """G7: typed 7-iron speed far above what sex, score and age suggest (z > 3.5) -> confirm.
-    When km/h or m/s brings z under 2.5, that unit is the suggestion."""
+    When reading it as km/h brings |z| under 2.5, that unit is the suggestion."""
     if speed_mph is None or sex not in ("male", "female") or score is None:
         return []
     z = _g7_z(speed_mph, sex, score, age)  # type: ignore[arg-type]
@@ -254,31 +246,31 @@ def g10_carry_short_for_speed(carry_yd: float | None, speed_mph: float | None) -
 
 
 def g12_buckets_disagree(
-    *, speed_mph: float | None, carry_yd: float | None, measured_speed_mph: float | None
+    *,
+    self_bucket: int | None,
+    measured_bucket: int | None,
+    field: str,
+    value: float | None,
+    measured_speed_mph: float | None = None,
 ) -> list[Flag]:
-    """G12: the swing bucket from the typed speed (else the typed carry, through the pack's own
-    carry table) differs from the bucket of the measured own-7-iron speed -> info; the why panel
-    names the value used (the measured one)."""
-    if measured_speed_mph is None:
+    """G12: the swing bucket FIT would take from the self-report differs from the bucket FIT
+    takes from the measured shots -> info; the why panel names the value used (the measured one).
+
+    Both buckets come from the caller, computed by FIT's own mapping (bias-corrected typed speed,
+    or FIT's carry -> speed estimate), so this rule agrees with what the fit used. Evidence never
+    re-derives them (and never feeds a corrected carry to `swing_bucket_from_carry`)."""
+    if self_bucket is None or measured_bucket is None or self_bucket == measured_bucket:
         return []
-    if speed_mph is not None:
-        field, value, own = "reported_7i_speed_mph", speed_mph, swing_bucket_from_speed(speed_mph)
-    elif carry_yd is not None:
-        field, value, own = "reported_7i_carry_yd", carry_yd, swing_bucket_from_carry(carry_yd)
-    else:
-        return []
-    measured = swing_bucket_from_speed(measured_speed_mph)
-    if own == measured:
-        return []
+    speed = f" ({measured_speed_mph:.1f} mph)" if measured_speed_mph is not None else ""
     return [
         Flag(
             code="G12",
             severity="info",
             field=field,
             value=value,
-            expected=f"bucket {own} vs measured bucket {measured} ({measured_speed_mph:.1f} mph)",
+            expected=f"bucket {self_bucket} vs measured bucket {measured_bucket}{speed}",
             message_id="g12_buckets_disagree",
-            suggested_value=measured,
+            suggested_value=measured_bucket,
         )
     ]
 
@@ -308,14 +300,8 @@ def g14_rare_spec(spec: Spec | None) -> list[Flag]:
     ]
 
 
-def wave2_golfer_flags(
-    values: Mapping[str, object],
-    shots: Sequence[Shot],
-    *,
-    sex: str | None = None,
-    spec: Spec | None = None,
-) -> list[Flag]:
-    """Every W2 golfer rule on a profile, its usable confirmed shots and the current best spec."""
+def wave2_golfer_flags(values: Mapping[str, object], *, sex: str | None = None) -> list[Flag]:
+    """The W2 profile rules G4-G10 (`session_flags.refresh`)."""
     height, w2f = _num(values, "height_cm"), _num(values, "wrist_to_floor_cm")
     height_ph, w2f_ph = _num(values, "height_photo_cm"), _num(values, "wrist_to_floor_photo_cm")
     hand = _num(values, "hand_length_photo_cm")
@@ -335,10 +321,28 @@ def wave2_golfer_flags(
     if _in_g1("reported_7i_carry_yd", carry) and _in_g1("reported_7i_speed_mph", profile_speed):
         out += g9_ego_carry(carry, profile_speed)
         out += g10_carry_short_for_speed(carry, profile_speed)
-    out += g12_buckets_disagree(
-        speed_mph=speed if _in_g1("reported_7i_speed_mph", speed) else None,
-        carry_yd=carry if _in_g1("reported_7i_carry_yd", carry) else None,
-        measured_speed_mph=_measured_speed(shots),
-    )
-    out += g14_rare_spec(spec)
     return out
+
+
+def wave2_fit_flags(
+    values: Mapping[str, object],
+    *,
+    spec: Spec | None,
+    self_bucket: int | None,
+    measured_bucket: int | None,
+    measured_speed_mph: float | None = None,
+) -> list[Flag]:
+    """The W2 rules that need the fit: G12 (FIT's buckets) and G14 (the current best spec).
+    `session_flags.refresh_fit_flags` runs them after the rescore, so they see the new fit."""
+    speed, carry = _num(values, "reported_7i_speed_mph"), _num(values, "reported_7i_carry_yd")
+    field, value = (
+        ("reported_7i_speed_mph", speed) if speed is not None else ("reported_7i_carry_yd", carry)
+    )
+    out = g12_buckets_disagree(
+        self_bucket=self_bucket,
+        measured_bucket=measured_bucket,
+        field=field,
+        value=value,
+        measured_speed_mph=measured_speed_mph,
+    )
+    return out + g14_rare_spec(spec)

@@ -1,0 +1,92 @@
+persona: lars
+steps:
+  # Turn 1: Low-handicap evaluation and 301 CB vs 301 MB close call
+  - text: "Welcome Lars. With a 1.8 handicap and an 88 mph 7-iron club speed, you have the ball striking to play either of Takomo's tour-caliber forged irons."
+  - tool_call:
+      name: run_fit
+      args: {}
+  - text: "Your fitting reveals an honest close call between the Takomo 301 CB and 301 MB. Rather than pretending certainty, here are the measured trade-offs."
+  - tool_call:
+      name: compare_specs
+      args: {heads: [301-cb, 301-mb]}
+  - ui:
+      type: club_compare
+      highlight: 301-cb
+      heads:
+        - head: 301-cb
+          carry: 162.4
+          apex: 29.8
+          land_angle: 48.2
+          side_sd: 4.8
+          score_total: 18.2
+        - head: 301-mb
+          carry: 160.1
+          apex: 28.5
+          land_angle: 47.6
+          side_sd: 5.6
+          score_total: 17.6
+  - ui:
+      type: recommendation_card
+      spec:
+        head: 301-cb
+        shaft: kbs-tour-stiff
+        shaft_model: "KBS Tour"
+        flex: stiff
+        material: steel
+        length_in: 0.5
+        lie_deg: 0
+        grip: standard
+        handedness: right
+        purchase: stock
+      purchase: stock
+      confidence: 0.78
+      gate: confident
+      runner_up:
+        head: 301-mb
+        shaft: kbs-tour-stiff
+        shaft_model: "KBS Tour"
+        flex: stiff
+        material: steel
+        length_in: 0.5
+        lie_deg: 0
+        grip: standard
+        handedness: right
+        purchase: custom
+  - ui:
+      type: why_panel
+      depth: numbers
+      items:
+        - part: head
+          plain: "Close call: 301 CB (18.2) vs 301 MB (17.6). The 301 CB offers 2.3 yd more carry on slight mishits and a tighter dispersion ellipse, while the 301 MB offers ultimate workability."
+          numbers:
+            head_score: 18.2
+            runner_up_score: 17.6
+            carry_diff_yd: 2.3
+          sources:
+            - source: questionnaire
+            - source: trackman
+        - part: shaft_model
+          plain: "KBS Tour Stiff steel shaft matches your 88 mph club speed and moderate tempo for a penetrating ball flight."
+          numbers:
+            weight_g: 120.0
+            club_speed_mph: 88.0
+          sources:
+            - source: questionnaire
+  - ui:
+      type: choice_chips
+      prompt: "Which trade-off fits your game: the perimeter forgiveness of the 301 CB or the pure workability of the 301 MB?"
+      field: head_choice
+      options:
+        - id: 301-cb
+          label: "Takomo 301 CB (Cavity Back)"
+        - id: 301-mb
+          label: "Takomo 301 MB (Muscle Back)"
+        - id: combo
+          label: "Combo Set (4-6 CB / 7-PW MB)"
+
+  # Turn 2: Selected build confirmation and flight view
+  - text: "Both heads are forged from the same soft S20C carbon steel, allowing seamless blending in a combo set or pure feel with either model."
+  - tool_call:
+      name: simulate_flight
+      args: {heads: [301-cb, 301-mb]}
+  - text: "Your dispersion comparison is ready on the 3D Stage. You can inspect specs in the Tinker panel or save your fit."

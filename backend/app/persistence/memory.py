@@ -53,6 +53,13 @@ class InMemorySessionStore:
         async with self._lock:
             return self._get(sid)
 
+    async def load_by_resume_token(self, token: str) -> FitSession:
+        async with self._lock:
+            for doc in self._sessions.values():
+                if doc.get("resume_token") == token:
+                    return FitSession.model_validate(doc)
+            raise NotFoundError(f"resume token {token} not found", code="session_not_found")
+
     async def save(self, s: FitSession, expected_version: int | None = None) -> FittingState:
         async with self._lock:
             current = self._get(s.id)

@@ -17,14 +17,7 @@ from app.agent.guard import bind, check_vision
 from app.api.deps import SessionDep, StoreDep
 from app.api.guard_deps import DemoKeyHeader
 from app.core.errors import InvalidInputError
-from app.evidence.plausibility.extraction import cells_to_shots, validate_extraction
-from app.evidence.plausibility.shots import V1_SHOT_RULES
-from app.evidence.plausibility.shots_w2 import (
-    ShotContext,
-    wave2_session_flags,
-    wave2_shot_rules,
-)
-from app.evidence.settings import settings
+from app.evidence.shot_checks import run_screenshot_rules
 from app.schemas.evidence import ExtractedSession
 from app.schemas.extraction import (
     ExtractionReview,
@@ -72,14 +65,9 @@ def _launch_monitor_review(
     import_id: str, s: ExtractedSession, synthetic: bool
 ) -> ExtractionReview:
     # V1 cell integrity, V2 units, V4 bounds/checksums/confidence (#34). Pure, no model calls.
-    # V3: the v1 S rules (#31), plus W2 (#33) with EVIDENCE_WAVE2=1, run on the read shots and
-    # map back to screen rows. The S5 / S11 tolerance follows the monitor read: anything but a
-    # TrackMan or GCQuad is widened x1.6, and S17 says so.
-    ctx = ShotContext(monitor=s.monitor)
-    rules = (*V1_SHOT_RULES, *wave2_shot_rules(ctx)) if settings.wave2 else V1_SHOT_RULES
-    flags = validate_extraction(s, shot_rules=rules, import_id=import_id)
-    if settings.wave2:
-        flags += wave2_session_flags(cells_to_shots(s), ctx, import_id=import_id)
+    # V3: the v1 S rules (#31; W2 too with EVIDENCE_WAVE2=1) run on the read shots and map back
+    # to screen rows.
+    flags = run_screenshot_rules(s, import_id=import_id)
     flagged = _flagged_cells(s, flags)
     hit = {(f.row, f.field) for f in flagged}
     columns = list(dict.fromkeys(c.field for c in s.cells))

@@ -35,23 +35,29 @@ def sigma_factor(flags: Sequence[Flag], field: str) -> float | None:
     return factor
 
 
-def _shot_rejects(flags: Sequence[Flag]) -> set[int | None]:
+def _live_reject(f: Flag) -> bool:
+    return f.severity == "reject" and not f.resolved and f.shot_index is not None
+
+
+def shot_rejects(flags: Sequence[Flag]) -> set[int]:
+    """Indices of shots an unresolved reject drops (S1, S3, S7 > 5, W2 S5). A field-only reject
+    (W2 S13) keeps its shot. The one definition: `usable_shots`, `shot_quality`, `check_shots`
+    and `shots.rejected_indices` all use it."""
     return {
-        f.shot_index
+        f.shot_index  # type: ignore[misc]
         for f in flags
-        if f.severity == "reject" and not f.resolved and f.code not in FIELD_ONLY_REJECTS
+        if _live_reject(f) and f.code not in FIELD_ONLY_REJECTS
     }
 
 
 def usable_shots(shots: Sequence[Shot], flags: Sequence[Flag]) -> list[Shot]:
     """Shots minus rejects (S1, S3, S7 > 5, W2 S5). S8 mishits are kept (they carry lie
     information). A field-only reject (W2 S13) blanks that field and keeps the shot."""
-    rejected = _shot_rejects(flags)
+    rejected = shot_rejects(flags)
     blank: dict[int, dict[str, None]] = {}
     for f in flags:
-        field_reject = f.code in FIELD_ONLY_REJECTS and f.severity == "reject" and not f.resolved
-        if field_reject and f.shot_index is not None and f.field is not None:
-            blank.setdefault(f.shot_index, {})[f.field] = None
+        if _live_reject(f) and f.code in FIELD_ONLY_REJECTS and f.field is not None:
+            blank.setdefault(f.shot_index, {})[f.field] = None  # type: ignore[index]
     return [
         s.model_copy(update=blank[i]) if i in blank else s
         for i, s in enumerate(shots)
@@ -65,11 +71,7 @@ def shot_quality(
     """`ShotQualityReport` (plan §5.3): quality = count part (saturating at 5 per club, the
     smallest club counts) x (1 - reject share) x (1 - 0.5 mishit share)."""
     n = len(shots)
-    rejected = {
-        f.shot_index
-        for f in flags
-        if f.severity == "reject" and f.shot_index is not None and f.code not in FIELD_ONLY_REJECTS
-    }
+    rejected = shot_rejects(flags)
     mishits = {f.shot_index for f in flags if f.code == "S8" and f.shot_index is not None}
     mishits -= rejected
     per_club: dict[str, int] = {}

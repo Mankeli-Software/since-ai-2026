@@ -51,22 +51,29 @@ S6_TOTAL_BELOW_CARRY_YD = 3.0  # total < carry - 3 yd: confirm (columns swapped?
 S13_F2P_TOL_DEG = 0.2  # |f2p - (face - path)| > 0.2: reject that field
 # Rejects that drop one field, not the shot (`fuse.usable_shots` blanks the field instead).
 FIELD_ONLY_REJECTS = frozenset({"S13"})
+# RMSE of `shots.CARRY_FIT` (ball, launch, spin) on train TrackMan shots, as #31 measured it.
+CARRY_FIT_RMSE_YD = 2.3
 
-# S5 carry vs flight: confirm above max(12 yd, 8 %) x tol, reject above max(25 yd, 18 %) x tol.
+# S5 carry vs flight: confirm above max(12 yd, 8 %) x tol, reject above max(25 yd, 18 %) x tol,
+# and never inside 3 / 5 RMSE of the carry predictor used (the club-speed-only fit is loose).
 S5_CONFIRM = (12.0, 0.08)
 S5_REJECT = (25.0, 0.18)
-# Device tolerance (S5, S11, S17): 1.0 for TrackMan / GCQuad / vision, 1.6 for a radar or manual.
+S5_CONFIRM_SIGMA = 3.0
+S5_REJECT_SIGMA = 5.0
+# Device tolerance (S5, S11, S17): 1.0 for TrackMan / GCQuad / vision, 1.6 for a home radar.
 TOL_PRECISE = 1.0
 TOL_RADAR = 1.6
-PRECISE_MONITORS = ("trackman", "gcquad")
+# Known home radars (plan §5.2 S17), matched lower-case with spaces and dashes removed. Anything
+# else (TrackMan, GCQuad, a vision read, no name) counts as precise.
+RADAR_MONITORS = ("garmin", "approachr10", "r10", "r50", "shotscope", "lm1", "rapsodo", "mevo")
 # S9: robust z of carry or smash within the session above +3.5: confirm.
 S9_Z = 3.5
 # S11: median carry / predicted carry outside 0.87-1.12: confirm (wrong column or unit). The band
 # widens by the device tolerance: 1 - 0.13 tol .. 1 + 0.12 tol.
 S11_BAND = (0.87, 1.12)
-# S18: "Actual" (not normalised) carries above this altitude, or this far from 20 C, are looser.
-S18_ALTITUDE_M = 500.0
-S18_TEMP_DELTA_C = 10.0
+# A carry predictor with an RMSE above this (the club-speed-only fit) is loose: S5 only confirms
+# with it (never rejects) and S11 does not ask about metres with it.
+TIGHT_FIT_RMSE_YD = 6.0
 
 # --------------------------------------------------------------------------- train statistics
 

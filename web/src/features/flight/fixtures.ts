@@ -15,7 +15,7 @@ function gauss(r: () => number) {
 }
 
 function head(
-  slug: string,
+  slug: HeadFlight['head'],
   seed: number,
   carry: number,
   apex: number,

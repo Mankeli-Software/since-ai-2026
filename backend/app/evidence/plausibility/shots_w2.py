@@ -1,10 +1,10 @@
-"""Wave 2 shot-level rules S2, S5, S6, S9, S11, S12, S13, S16, S17, S18 (plan §5.2; issue #33).
+"""Wave 2 shot-level rules S2, S5, S6, S9, S11, S12, S13, S17 (plan §5.2; issue #33).
 
 Same shape as the v1 rules in `shots.py`: one function per rule, the shots of **one session = one
-club** in, flags out, `shot_index` = position in the list given. `check_shots(...,
-extra_rules=wave2_shot_rules(ctx))` runs them per club group next to the v1 rules; the routes
-pass them only when `EVIDENCE_WAVE2=1` (`evidence/settings.py`). S15 (TrackMan's own ignore flag)
-belongs to the link importer, which is cut (L6).
+club** in, flags out, `shot_index` = position in the list given. `shots.apply_rules` runs them after
+the v1 rules, each on the shots no earlier rule rejected, so a rejected misread never gets a
+confirm or skews a session median or sum. `evidence/shot_checks.py` adds them only when
+`EVIDENCE_WAVE2=1`.
 
 | Rule | Severity | Field |
 |---|---|---|
@@ -15,22 +15,21 @@ belongs to the link importer, which is cut (L6).
 | S11 carries inconsistent (ratio outside 0.87-1.12; metres without spin) | confirm | carry_yd |
 | S12 side sign flipped | confirm, suggested flip (session) | side_yd |
 | S13 face-to-path checksum | reject that field only (`usable_shots` blanks it) | face_to_path_deg |
-| S16 hitting surface is a mat / simulator | info (session) | - |
-| S17 device is not TrackMan / GCQuad | info (session); S5 / S11 tolerance x 1.6 | - |
-| S18 not normalised, high altitude or far from 20 C | info (session); carry tolerance x 1.6 | - |
+| S17 the monitor is a known home radar | info (import); S5 / S11 tolerance x 1.6 | - |
 
-Session context the app does not collect yet (surface, normalisation, altitude) comes in through
-`ShotContext`; a rule whose input is absent returns no flags. S5 / S11 predict carry from the ball:
-with spin through `shots.predicted_carry_yd` (fitted on train shots, which the pack's
-`physics.fly` produced; `gen_thresholds.py` prints how close it is), without spin through the
-quadratic fits in `thresholds.json`.
+Not built: S15 (TrackMan's own ignore flag) belongs to the cut link importer (L6); S16 (mat or
+simulator) and S18 (not normalised) need the hitting surface and normalisation mode, which no
+parser reads yet.
+
+S5 / S11 predict carry from the ball: with spin through `shots.predicted_carry_yd` (fitted on train
+shots, which the pack's `physics.fly` produced; `gen_thresholds.py` prints how close it is), without
+spin through the quadratic fits in `thresholds.json`, each with its own RMSE.
 """
 
 from __future__ import annotations
 
 import statistics
 from collections.abc import Sequence
-from dataclasses import dataclass
 from functools import partial
 
 from app.evidence.plausibility.shots import (
@@ -43,18 +42,20 @@ from app.evidence.plausibility.shots import (
     predicted_carry_yd,
 )
 from app.evidence.plausibility.thresholds import (
+    CARRY_FIT_RMSE_YD,
     CARRY_FITS_NO_SPIN,
-    PRECISE_MONITORS,
+    RADAR_MONITORS,
     S1_BOUNDS,
     S2_RARE,
     S5_CONFIRM,
+    S5_CONFIRM_SIGMA,
     S5_REJECT,
+    S5_REJECT_SIGMA,
     S6_TOTAL_BELOW_CARRY_YD,
     S9_Z,
     S11_BAND,
     S13_F2P_TOL_DEG,
-    S18_ALTITUDE_M,
-    S18_TEMP_DELTA_C,
+    TIGHT_FIT_RMSE_YD,
     TOL_PRECISE,
     TOL_RADAR,
 )
@@ -65,39 +66,20 @@ S12_LAUNCH_DIR_K = 2.19  # side ~ 2.19 launch_dir + 0.74 spin_axis (plan §5.2)
 S12_SPIN_AXIS_K = 0.74
 
 
-@dataclass(frozen=True)
-class ShotContext:
-    """What an import knows about where its shots came from. Everything optional."""
-
-    monitor: str | None = None  # "trackman", a vision `monitor` read, a vendor alias name
-    hitting_surface: str | None = None  # TrackMan "hittingSurface": "Mat" | "Grass"
-    simulator: bool = False
-    normalization_mode: str | None = None  # TrackMan "normalizationMode": "Actual" | ...
-    altitude_m: float | None = None
-    temperature_c: float | None = None
-
-
-def _precise(monitor: str | None) -> bool | None:
-    if monitor is None:
-        return None
-    m = monitor.lower().replace(" ", "")
-    return any(p in m for p in PRECISE_MONITORS)
-
-
-def _not_normalised(ctx: ShotContext) -> bool:
-    if (ctx.normalization_mode or "").lower() != "actual":
+def is_radar(monitor: str | None) -> bool:
+    """A known home radar (plan §5.2 S17: Garmin R10 / R50, Shot Scope LM1, Rapsodo, ...).
+    TrackMan, GCQuad, a vision read of any other screen, or no name at all count as precise."""
+    if not monitor:
         return False
-    high = ctx.altitude_m is not None and ctx.altitude_m > S18_ALTITUDE_M
-    hot_cold = ctx.temperature_c is not None and abs(ctx.temperature_c - 20.0) > S18_TEMP_DELTA_C
-    return high or hot_cold
+    m = monitor.lower().replace(" ", "").replace("-", "")
+    return any(r in m for r in RADAR_MONITORS)
 
 
-def device_tol(shots: Sequence[Shot], ctx: ShotContext | None = None) -> float:
-    """S5 / S11 tolerance: 1.6 for a radar (a non-TrackMan / GCQuad monitor, a pack
-    `home_radar` session) or an S18 not-normalised session, else 1.0."""
-    ctx = ctx or ShotContext()
-    radar = _precise(ctx.monitor) is False or any(s.session == "home_radar" for s in shots)
-    return TOL_RADAR if radar or _not_normalised(ctx) else TOL_PRECISE
+def device_tol(shots: Sequence[Shot], monitor: str | None = None) -> float:
+    """S5 / S11 tolerance: 1.6 for a known radar (`is_radar`) or a pack `home_radar` session,
+    else 1.0 (TrackMan, GCQuad, vision)."""
+    radar = is_radar(monitor) or any(s.session == "home_radar" for s in shots)
+    return TOL_RADAR if radar else TOL_PRECISE
 
 
 def _no_spin_terms(s: Shot) -> dict[str, float | None]:
@@ -114,24 +96,24 @@ def _no_spin_terms(s: Shot) -> dict[str, float | None]:
     }
 
 
-def predict_carry_no_spin(s: Shot) -> float | None:
-    """Carry from the first `thresholds.json` no-spin fit whose inputs this shot has."""
+def predict_carry(s: Shot) -> tuple[float, float] | None:
+    """(predicted carry, that predictor's RMSE in yd). With spin: `shots.predicted_carry_yd`;
+    without: the first `thresholds.json` no-spin fit whose inputs this shot has."""
+    p = predicted_carry_yd(s)
+    if p is not None:
+        return p, CARRY_FIT_RMSE_YD
     terms = _no_spin_terms(s)
     for fit in CARRY_FITS_NO_SPIN:
         xs = [terms.get(t) for t in fit["terms"]]
         if all(x is not None for x in xs):
-            return sum(c * x for c, x in zip(fit["coef"], xs, strict=True))  # type: ignore[operator]
+            pred = sum(c * x for c, x in zip(fit["coef"], xs, strict=True))  # type: ignore[operator]
+            return pred, float(fit.get("rmse_yd", 15.0))
     return None
 
 
-def predict_carry(s: Shot) -> float | None:
-    """With spin: `shots.predicted_carry_yd`; without: the no-spin quadratic fits."""
-    p = predicted_carry_yd(s)
-    return p if p is not None else predict_carry_no_spin(s)
-
-
 def s2_rare_value(shots: list[Shot]) -> list[Flag]:
-    """S2: a value outside the train p0.1-p99.9 range (but inside S1) -> confirm."""
+    """S2: a value outside the train p0.1-p99.9 range -> confirm. `apply_rules` gives it only
+    shots S1 / S3 / S7 kept, so it never asks about a value S1 already rejected."""
     out = []
     for i, s in enumerate(shots):
         for field, (lo, hi) in S2_RARE.items():
@@ -160,26 +142,31 @@ def s2_rare_value(shots: list[Shot]) -> list[Flag]:
     return out
 
 
-def s5_carry_vs_flight(shots: list[Shot], *, ctx: ShotContext | None = None) -> list[Flag]:
+def s5_carry_vs_flight(shots: list[Shot], *, monitor: str | None = None) -> list[Flag]:
     """S5: carry vs the carry its launch predicts. Confirm above max(12 yd, 8 %) x tol, reject
-    above max(25 yd, 18 %) x tol; tol 1.0 for TrackMan / GCQuad / vision, 1.6 for a radar."""
-    tol = device_tol(shots, ctx)
+    above max(25 yd, 18 %) x tol (tol 1.0 for TrackMan / GCQuad / vision, 1.6 for a radar), and
+    never inside 3 / 5 RMSE of the predictor used. With the loose club-speed-only fit (a carry-only
+    radar) it only confirms: that fit cannot tell a misread from a mishit."""
+    tol = device_tol(shots, monitor)
     out = []
     for i, s in enumerate(shots):
         if s.carry_yd is None:
             continue
-        pred = predict_carry(s)
-        if pred is None or pred <= 0:
+        p = predict_carry(s)
+        if p is None or p[0] <= 0:
             continue
+        pred, rmse = p
         resid = s.carry_yd - pred
-        confirm = max(S5_CONFIRM[0], S5_CONFIRM[1] * pred) * tol
-        reject = max(S5_REJECT[0], S5_REJECT[1] * pred) * tol
+        confirm = max(max(S5_CONFIRM[0], S5_CONFIRM[1] * pred) * tol, S5_CONFIRM_SIGMA * rmse)
+        reject = max(max(S5_REJECT[0], S5_REJECT[1] * pred) * tol, S5_REJECT_SIGMA * rmse)
         if abs(resid) <= confirm:
             continue
         out.append(
             Flag(
                 code="S5",
-                severity="reject" if abs(resid) > reject else "confirm",
+                severity="reject"
+                if abs(resid) > reject and rmse <= TIGHT_FIT_RMSE_YD
+                else "confirm",
                 field="carry_yd",
                 value=s.carry_yd,
                 expected=f"about {pred:.0f} yd for this launch (+-{confirm:.0f})",
@@ -239,23 +226,25 @@ def s9_high_carry_or_smash(shots: list[Shot]) -> list[Flag]:
     return out
 
 
-def s11_carries_inconsistent(shots: list[Shot], *, ctx: ShotContext | None = None) -> list[Flag]:
+def s11_carries_inconsistent(shots: list[Shot], *, monitor: str | None = None) -> list[Flag]:
     """S11: median carry / median predicted carry outside 0.87-1.12 (widened by the device tol)
     -> confirm: a wrong column or unit. S10 owns the 0.87-0.95 metres window inside it, but S10
-    needs spin; for a radar session without spin, S11 asks about metres in that window too."""
-    pairs = [(s.carry_yd, p) for s in shots if s.carry_yd is not None and (p := predict_carry(s))]
-    if len(pairs) < S14_LOW:
+    needs spin; without spin S11 asks about metres in that window too, when the predictor is tight
+    enough (RMSE <= 6 yd: a ball-speed fit, not the club-speed-only one)."""
+    preds = [(s.carry_yd, p) for s in shots if s.carry_yd is not None and (p := predict_carry(s))]
+    if len(preds) < S14_LOW:
         return []
-    carry = statistics.median(c for c, _ in pairs)
-    predicted = statistics.median(p for _, p in pairs)
+    carry = statistics.median(c for c, _ in preds)
+    predicted = statistics.median(p for _, (p, _) in preds)
     if predicted <= 0:
         return []
-    tol = device_tol(shots, ctx)
+    tol = device_tol(shots, monitor)
     lo = 1 - (1 - S11_BAND[0]) * tol
     hi = 1 + (S11_BAND[1] - 1) * tol
     ratio = carry / predicted
     no_spin = all(predicted_carry_yd(s) is None for s in shots)
-    metres = no_spin and S10_METRES_RATIO[0] <= ratio <= S10_METRES_RATIO[1]
+    tight = max(rmse for _, (_, rmse) in preds) <= TIGHT_FIT_RMSE_YD
+    metres = no_spin and tight and S10_METRES_RATIO[0] <= ratio <= S10_METRES_RATIO[1]
     if lo <= ratio <= hi and not metres:
         return []
     return [
@@ -322,28 +311,10 @@ def s13_face_to_path_checksum(shots: list[Shot]) -> list[Flag]:
     return out
 
 
-def s16_hitting_surface(
-    shots: Sequence[Shot], *, hitting_surface: str | None = None, simulator: bool = False
-) -> list[Flag]:
-    """S16: a mat or a simulator forgives fat strikes (attack angle and low point look better
-    than on turf; carry is mostly unaffected) -> info. No surface known, no flag."""
-    mat = (hitting_surface or "").strip().lower() == "mat"
-    if not shots or not (mat or simulator):
-        return []
-    return [
-        Flag(
-            code="S16",
-            severity="info",
-            value="simulator" if simulator else "mat",
-            message_id="s16_hitting_surface",
-        )
-    ]
-
-
 def s17_device_tolerance(shots: Sequence[Shot], *, monitor: str | None = None) -> list[Flag]:
-    """S17: the monitor is not a TrackMan or GCQuad (a home radar, or unknown) -> info; S5 and
-    S11 use the radar tolerance x1.6 (`device_tol`). No monitor named, no flag."""
-    if not shots or _precise(monitor) is not False:
+    """S17: the monitor is a known home radar -> info; S5 and S11 use the radar tolerance x1.6
+    (`device_tol`). TrackMan, GCQuad, vision reads and unnamed monitors get no flag."""
+    if not shots or not is_radar(monitor):
         return []
     return [
         Flag(
@@ -355,42 +326,23 @@ def s17_device_tolerance(shots: Sequence[Shot], *, monitor: str | None = None) -
     ]
 
 
-def s18_not_normalised(shots: Sequence[Shot], *, ctx: ShotContext | None = None) -> list[Flag]:
-    """S18: "Actual" (not normalised) numbers above 500 m or far from 20 C -> info; carry
-    checks use the wider tolerance. Without the normalisation mode, no flag."""
-    if not shots or ctx is None or not _not_normalised(ctx):
-        return []
-    return [
-        Flag(
-            code="S18",
-            severity="info",
-            value=ctx.altitude_m,
-            expected=f"normalised, or below {S18_ALTITUDE_M:g} m and near 20 C",
-            message_id="s18_not_normalised",
-        )
-    ]
-
-
-def wave2_shot_rules(ctx: ShotContext | None = None) -> tuple[ShotRule, ...]:
+def wave2_shot_rules(monitor: str | None = None) -> tuple[ShotRule, ...]:
     """The W2 per-session rules for `check_shots(..., extra_rules=...)`, bound to this import's
-    context. Pure: the caller decides whether W2 is on (`evidence.settings.settings.wave2`)."""
+    monitor. Pure: `evidence/shot_checks.py` decides whether W2 is on."""
     return (
         s2_rare_value,
-        partial(s5_carry_vs_flight, ctx=ctx),
+        partial(s5_carry_vs_flight, monitor=monitor),
         s6_total_below_carry,
         s9_high_carry_or_smash,
-        partial(s11_carries_inconsistent, ctx=ctx),
+        partial(s11_carries_inconsistent, monitor=monitor),
         s12_side_sign_flipped,
         s13_face_to_path_checksum,
     )
 
 
-def wave2_session_flags(
-    shots: Sequence[Shot], ctx: ShotContext | None = None, *, import_id: str | None = None
+def wave2_import_flags(
+    shots: Sequence[Shot], monitor: str | None = None, *, import_id: str | None = None
 ) -> list[Flag]:
-    """S16, S17, S18: once per import (they describe the session, not a club group)."""
-    ctx = ctx or ShotContext()
-    flags = s16_hitting_surface(shots, hitting_surface=ctx.hitting_surface, simulator=ctx.simulator)
-    flags += s17_device_tolerance(shots, monitor=ctx.monitor)
-    flags += s18_not_normalised(shots, ctx=ctx)
+    """S17, once per import (it describes the device, not a club group)."""
+    flags = s17_device_tolerance(shots, monitor=monitor)
     return [f.model_copy(update={"import_id": import_id}) for f in flags]

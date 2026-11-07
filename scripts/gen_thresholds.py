@@ -116,6 +116,7 @@ def fit_no_spin(train: pd.DataFrame, dev: pd.DataFrame) -> list[dict]:
         cols = needed(terms)
         tr = train.dropna(subset=[*cols, "carry_yd"])
         coef, *_ = np.linalg.lstsq(term_matrix(tr, terms), tr["carry_yd"].to_numpy(), rcond=None)
+        train_resid = tr["carry_yd"].to_numpy() - term_matrix(tr, terms) @ coef
         dv = dev.dropna(subset=[*cols, "carry_yd"])
         rmse = {}
         for session, g in dv.groupby("session"):
@@ -126,6 +127,7 @@ def fit_no_spin(train: pd.DataFrame, dev: pd.DataFrame) -> list[dict]:
                 "name": name,
                 "terms": terms,
                 "coef": [round(float(c), 6) for c in coef],
+                "rmse_yd": round(float(np.sqrt(np.mean(train_resid**2))), 2),
                 "dev_rmse_yd": rmse,
             }
         )
@@ -323,6 +325,31 @@ def main() -> None:
     print(
         f"CARRY_FIT vs measured RMSE {rmse(pred - meas):.2f} yd; physics.fly vs measured "
         f"{rmse(fly - meas):.2f} yd; CARRY_FIT vs physics.fly {rmse(pred - fly):.2f} yd"
+    )
+
+    # A carry-only radar (club speed + carry): S5 / S11 fall back to the club-speed fit.
+    club_only = [
+        [
+            Shot(
+                session=s.session,
+                club=s.club,
+                shot_no=s.shot_no,
+                club_speed_mph=s.club_speed_mph,
+                carry_yd=s.carry_yd,
+            )
+            for s in g
+            if s.club == "own_7i"
+        ]
+        for g in train_groups
+    ]
+    club_only = [g for g in club_only if g]
+    n_co = sum(len(g) for g in club_only)
+    s5 = Counter(f.severity for g in club_only for f in shots_w2.s5_carry_vs_flight(g))
+    s11 = sum(bool(shots_w2.s11_carries_inconsistent(g)) for g in club_only)
+    print(
+        "carry-only (club speed + carry) own-7i train shots: S5 confirms "
+        f"{pct(s5['confirm'] / n_co)}, rejects {pct(s5['reject'] / n_co)} of {n_co}; S11 confirms "
+        f"{pct(s11 / len(club_only))} of {len(club_only)} sessions"
     )
 
     # 3. Validation on dev.

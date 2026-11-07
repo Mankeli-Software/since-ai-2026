@@ -29,6 +29,10 @@ class SessionStore(Protocol):
         """Raise `app.core.errors.NotFoundError` if the session does not exist."""
         ...
 
+    async def load_by_resume_token(self, token: str) -> FitSession:
+        """Raise `app.core.errors.NotFoundError` if the resume token does not exist."""
+        ...
+
     async def save(self, s: FitSession, expected_version: int | None = None) -> FittingState:
         """Write outside a turn (REST imports, profile patch). Optimistic on state.version:
         raise `ConflictError` (409, `version_conflict`) if the stored version is not
