@@ -36,6 +36,7 @@ from app.evidence.plausibility.thresholds import (
     G14_RARE_SHARE,
     G14_SPEC_COUNTS,
 )
+from app.evidence.settings import settings
 from app.pack import GLOVE_ORDER, glove_from_hand_length
 from app.schemas.common import Spec
 from app.schemas.evidence import Flag
@@ -334,15 +335,20 @@ def wave2_fit_flags(
 ) -> list[Flag]:
     """The W2 rules that need the fit: G12 (FIT's buckets) and G14 (the current best spec).
     `session_flags.refresh_fit_flags` runs them after the rescore, so they see the new fit."""
-    speed, carry = _num(values, "reported_7i_speed_mph"), _num(values, "reported_7i_carry_yd")
-    field, value = (
-        ("reported_7i_speed_mph", speed) if speed is not None else ("reported_7i_carry_yd", carry)
-    )
-    out = g12_buckets_disagree(
-        self_bucket=self_bucket,
-        measured_bucket=measured_bucket,
-        field=field,
-        value=value,
-        measured_speed_mph=measured_speed_mph,
-    )
-    return out + g14_rare_spec(spec)
+    out: list[Flag] = []
+    if settings.wave2:
+        speed, carry = _num(values, "reported_7i_speed_mph"), _num(values, "reported_7i_carry_yd")
+        if speed is not None:
+            field, value = "reported_7i_speed_mph", speed
+        else:
+            field, value = "reported_7i_carry_yd", carry
+        out += g12_buckets_disagree(
+            self_bucket=self_bucket,
+            measured_bucket=measured_bucket,
+            field=field,
+            value=value,
+            measured_speed_mph=measured_speed_mph,
+        )
+    if settings.wave2 or settings.enable_g14:
+        out += g14_rare_spec(spec)
+    return out

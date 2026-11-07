@@ -61,8 +61,9 @@ def rescore(session: FitSession) -> FittingState:
 def fit_flags(session: FitSession) -> list[Flag]:
     """W2 G12 / G14 against the fit as it stands (call after `rescore`): FIT's own swing bucket
     from the self-report alone vs from the measured shots, and `state.best`. Without
-    EVIDENCE_WAVE2 the session's flags come back unchanged. Shared with the recheck route."""
-    if not evidence_settings.wave2:
+    EVIDENCE_WAVE2 (or EVIDENCE_ENABLE_G14) the session's flags come back unchanged. Shared with
+    the recheck route."""
+    if not (evidence_settings.wave2 or evidence_settings.enable_g14):
         return list(session.flags)
     try:
         intake, ev = intake_of(session), evidence_of(session)
