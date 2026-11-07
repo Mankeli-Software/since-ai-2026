@@ -1,5 +1,6 @@
 """The live engine's fixed opening: the design's greeting and the C2 background card, shown at once
-with no model call (the same copy as turn 1 of `mock/scripts/own.yaml`; keep them in step).
+with no model call (the same copy as turn 1 of `mock/scripts/own.yaml` and the web's instant
+opening, `web/src/store/opening.ts`; keep the three in step).
 Persona sessions get the card prefilled from their questionnaire. The engine saves the answer,
 so the model's first turn starts from the next question."""
 
