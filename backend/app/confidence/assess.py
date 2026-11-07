@@ -38,6 +38,8 @@ class Assessment:
     state: ConfidenceStatePart
     answers: MappedAnswers | None = None
     best: Recommendation | None = None
+    estimates: InputEstimates | None = None
+    seed: int | None = None
 
 
 def _as_measured(est: InputEstimates, name: str, o: MappingOptions) -> InputEstimates:
@@ -101,4 +103,4 @@ def assess(
         per_part=result.per_part,
         missing=missing,
     )
-    return Assessment(state, answers, best)
+    return Assessment(state, answers, best, est, seed)

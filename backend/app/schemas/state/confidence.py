@@ -14,6 +14,9 @@ class PartConfidence(BaseModel):
     ours: SpecValue | None = None
     alt: SpecValue | None = None
     close_call: bool = False
+    next_step: str | None = Field(
+        default=None, description="What would settle a close call (plan §3.5), plain text"
+    )
 
 
 class NextQuestionHint(BaseModel):
@@ -24,6 +27,11 @@ class NextQuestionHint(BaseModel):
     field: str
     kind: Literal["intake", "precision"] = "intake"
     reason: str | None = None
+    part: Part | None = Field(default=None, description="Precision offers: the part it firms up")
+    reason_code: str | None = Field(default=None, description="Stable id of the offer (§5.5)")
+    expected_gain: float | None = Field(
+        default=None, description="Expected rise in confidence C if the golfer adds it"
+    )
 
 
 class ConfidenceStatePart(BaseModel):
@@ -35,3 +43,6 @@ class ConfidenceStatePart(BaseModel):
     per_part: dict[Part, PartConfidence] = Field(default_factory=dict)
     missing: list[str] = Field(default_factory=list)
     next_question: NextQuestionHint | None = None
+    precision_offered: list[Part] = Field(
+        default_factory=list, description="Parts already offered a precision follow-up (once each)"
+    )

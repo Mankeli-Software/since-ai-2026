@@ -162,46 +162,52 @@ def simulate(
     """Agreement of `ours` with the rules over `n` possible truths drawn around `est`."""
     assert est.height and est.wrist_to_floor and est.flight and est.tempo and est.glove
 
+    # One random stream per input: a precision rung changes how one input is drawn without
+    # shifting every other input's draws, so gains compare like with like (common random numbers).
+    streams = [np.random.default_rng(int(x)) for x in rng.integers(0, 2**62, size=10)]
+    r_speed, r_height, r_wtf, r_glove, r_flight, r_tempo, r_score, r_delivery, r_lie, _ = streams
+
     # continuous inputs
     if est.speed is not None:
-        swing = pack.swing_buckets_from_speeds(rng.normal(est.speed.value, est.speed.sd, n))
+        swing = pack.swing_buckets_from_speeds(r_speed.normal(est.speed.value, est.speed.sd, n))
     else:
         swing = [int(est.swing_bucket or answers.swing_bucket)] * n
-    height = rng.normal(est.height.value, est.height.sd, n)
-    wtf = rng.normal(est.wrist_to_floor.value, est.wrist_to_floor.sd, n)
+    height = r_height.normal(est.height.value, est.height.sd, n)
+    wtf = r_wtf.normal(est.wrist_to_floor.value, est.wrist_to_floor.sd, n)
 
     # discrete inputs
     if est.hand is not None:
-        gloves = pack.gloves_from_hand_lengths(rng.normal(est.hand.value, est.hand.sd, n))
+        gloves = pack.gloves_from_hand_lengths(r_glove.normal(est.hand.value, est.hand.sd, n))
     else:
-        gloves = _draw_glove(rng, str(est.glove.value), n)
+        gloves = _draw_glove(r_glove, str(est.glove.value), n)
     if "flight" in est.at_prior:
-        flights = _draw_choice(rng, priors.FLIGHT, n)
+        flights = _draw_choice(r_flight, priors.FLIGHT, n)
     else:
         wrong = est.flight.wrong
         if wrong is None:  # older callers: fall back to the questionnaire rate
             wrong = priors.FLIGHT_WRONG["questionnaire"]
-        flights = _draw_flight(rng, str(est.flight.value), wrong, n)
+        flights = _draw_flight(r_flight, str(est.flight.value), wrong, n)
     if "tempo" in est.at_prior:
-        tempos = _draw_choice(rng, priors.TEMPO, n)
+        tempos = _draw_choice(r_tempo, priors.TEMPO, n)
     elif est.tempo.prov.source == "questionnaire":
-        tempos = _draw_choice(rng, priors.TEMPO_GIVEN_REPORTED[str(est.tempo.value)], n)
+        tempos = _draw_choice(r_tempo, priors.TEMPO_GIVEN_REPORTED[str(est.tempo.value)], n)
     else:
         tempos = [str(est.tempo.value)] * n
     reported = int(answers.score_bucket)
     if est.score_bucket is not None and est.score_bucket.prov.source == "questionnaire":
         given = {str(k): v for k, v in priors.SCORE_BUCKET_GIVEN_REPORTED[reported].items()}
-        scores = [int(x) for x in _draw_choice(rng, given, n)]
+        scores = [int(x) for x in _draw_choice(r_score, given, n)]
     else:
         scores = [reported] * n
 
     # lie need: the chart on the sampled body plus the delivery spread, unless evidence says more
-    chart = pack.static_lie_deg_many(height, wtf) + rng.normal(0.0, priors.LIE_DELIVERY_SD, n)
+    delivery = r_delivery.normal(0.0, priors.LIE_DELIVERY_SD, n)
+    chart = pack.static_lie_deg_many(height, wtf) + delivery
     lie_ev = est.lie
     if lie_ev is None:
         need = chart
     else:
-        reading = rng.normal(lie_ev.reading, lie_ev.reading_sd, n)
+        reading = r_lie.normal(lie_ev.reading, lie_ev.reading_sd, n)
         need = (
             reading
             if lie_ev.kind == "test_club"
