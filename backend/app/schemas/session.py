@@ -134,3 +134,19 @@ class PublicSession(BaseModel):
     transcript: list[TranscriptEntry] = Field(default_factory=list)
     blocks: list[PublicBlock] = Field(default_factory=list)
     notice: SessionNotice | None = None
+
+
+class SaveSessionRequest(BaseModel):
+    email: str | None = Field(default=None, max_length=254)
+
+
+class SaveSessionResponse(BaseModel):
+    saved: bool = True
+    resume_url: str
+
+
+class ResumeSessionResponse(BaseModel):
+    session_id: str
+    demo_golfer_id: str | None = None
+    engine: Engine
+    state: FittingState
