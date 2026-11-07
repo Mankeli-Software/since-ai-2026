@@ -84,7 +84,7 @@ jobs:
         name: Export contracts (openapi.json + schemas) to generated/
         run: |
           uv sync --locked --project backend
-          cd backend && PYTHONPATH=../vendor uv run python -m app.core.export --out ../generated
+          cd backend && PYTHONPATH=../vendor uv run python -m app.export --out ../generated
       - if: steps.has.outputs.web == 'true'
         uses: pnpm/action-setup@v6
         with: { package_json_file: web/package.json }

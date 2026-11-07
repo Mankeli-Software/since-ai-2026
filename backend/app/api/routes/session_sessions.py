@@ -21,7 +21,9 @@ async def create_session(
     body: CreateSessionRequest, store: StoreDep, settings: SettingsDep
 ) -> CreateSessionResponse:
     now = datetime.now(UTC)
-    engine = body.engine or ("live" if settings.llm_mode == "live" else "scripted")
+    # The server decides: a client can opt out of live (smoke uses scripted), never into it.
+    live = settings.llm_mode == "live" and body.engine != "scripted"
+    engine = "live" if live else "scripted"
     session = FitSession(
         id=secrets.token_urlsafe(24),
         resume_token=secrets.token_urlsafe(24),

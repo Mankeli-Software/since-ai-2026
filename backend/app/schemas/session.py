@@ -45,6 +45,7 @@ class FitSession(BaseModel):
     state: FittingState = Field(default_factory=FittingState)
     recommendation_json: str | None = None  # FitResult as a JSON string
     budget: Budget = Field(default_factory=Budget)
+    ui_block_seq: int = 0  # generated ui_* blocks are numbered `<type>-<n>`, unique per session
 
 
 class StoredMessage(BaseModel):
@@ -83,7 +84,9 @@ class HealthResponse(BaseModel):
 class CreateSessionRequest(BaseModel):
     host: HostInfo | None = None
     demo_golfer_id: str | None = Field(default=None, pattern=r"^DEMO-\d{2}$")
-    engine: Engine | None = None
+    engine: Engine | None = Field(
+        default=None, description="A request, not an override: live only when LLM_MODE=live."
+    )
 
 
 class CreateSessionResponse(BaseModel):

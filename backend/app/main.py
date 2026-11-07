@@ -1,15 +1,19 @@
 """App factory. Routes are autodiscovered from `app/api/routes/*.py` in sorted order: each module
-exposes `router = APIRouter(tags=["<lane>"])`. Add a file; never edit this one to add a route."""
+exposes `router = APIRouter(tags=["<lane>"])`. Add a file; never edit this one to add a route.
+
+`app.main:app` (uvicorn) is built lazily on first access, so importing `create_app` (e.g. from
+`app.export`) does not build the app a second time."""
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import Response
-from starlette.types import Scope
+from starlette.types import ASGIApp, Scope
 
 from app import __version__
 from app.config import get_settings
@@ -42,16 +46,28 @@ class SpaStaticFiles(StaticFiles):
             return await super().get_response("index.html", scope)
 
 
+class FitterApp(FastAPI):
+    """Puts `SecurityHeadersMiddleware` outside Starlette's `ServerErrorMiddleware`, so every
+    response, including unhandled-exception 500s, carries CSP + nosniff (plan §6.5)."""
+
+    def __init__(self, *, frame_ancestors: str, **kwargs: Any) -> None:
+        self.frame_ancestors = frame_ancestors
+        super().__init__(**kwargs)
+
+    def build_middleware_stack(self) -> ASGIApp:
+        return SecurityHeadersMiddleware(super().build_middleware_stack(), self.frame_ancestors)
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging()
-    app = FastAPI(
+    app = FitterApp(
+        frame_ancestors=settings.allowed_frame_ancestors,
         title="Takomo Fitter Studio API",
         version=__version__,
         generate_unique_id_function=unique_id,
     )
     install_error_handlers(app)
-    app.add_middleware(SecurityHeadersMiddleware, frame_ancestors=settings.allowed_frame_ancestors)
 
     if settings.store != "memory":
         log.warning("store_unavailable", extra={"store": settings.store, "using": "memory"})
@@ -69,4 +85,14 @@ def create_app() -> FastAPI:
     return app
 
 
-app = create_app()
+_app: FastAPI | None = None
+
+
+def __getattr__(name: str) -> Any:
+    """PEP 562: `app.main.app` is created on first access (uvicorn, `from app.main import app`)."""
+    global _app
+    if name != "app":
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    if _app is None:
+        _app = create_app()
+    return _app

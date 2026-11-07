@@ -2,6 +2,7 @@
 
 Every write is encoded with `encode_for_firestore()` and every read decodes it again, so callers
 never share mutable objects with the store and Firestore-unsafe shapes fail fast.
+`save()` and `commit_turn()` are optimistic on `state.version` and bump it on every write.
 """
 
 import asyncio
@@ -11,10 +12,17 @@ from typing import Any
 from app.core.errors import ConflictError, NotFoundError
 from app.persistence.store import encode_for_firestore
 from app.schemas.session import FitSession, StoredImport, StoredMessage
+from app.schemas.state import FittingState
 
 
 def _now() -> datetime:
     return datetime.now(UTC)
+
+
+def _bumped(new: FittingState, stored_version: int) -> FittingState:
+    """Every state write bumps the version past the stored one. A caller that already emitted a
+    higher version mid-turn keeps it, so the client never sees a version go backwards."""
+    return new.model_copy(update={"version": max(stored_version + 1, new.version)})
 
 
 class InMemorySessionStore:
@@ -45,7 +53,7 @@ class InMemorySessionStore:
         async with self._lock:
             return self._get(sid)
 
-    async def save(self, s: FitSession, expected_version: int | None = None) -> None:
+    async def save(self, s: FitSession, expected_version: int | None = None) -> FittingState:
         async with self._lock:
             current = self._get(s.id)
             if expected_version is not None and current.state.version != expected_version:
@@ -53,12 +61,14 @@ class InMemorySessionStore:
             # Never clobber a lock taken by a concurrent turn.
             s = s.model_copy(
                 update={
+                    "state": _bumped(s.state, current.state.version),
                     "active_turn_id": current.active_turn_id,
                     "active_turn_expires": current.active_turn_expires,
                     "updated_at": _now(),
                 }
             )
             self._put(s)
+            return s.state
 
     async def acquire_turn(self, sid: str, turn_id: str, ttl_s: int = 120) -> bool:
         async with self._lock:
@@ -81,7 +91,7 @@ class InMemorySessionStore:
         messages: list[StoredMessage],
         session: FitSession,
         expected_version: int,
-    ) -> None:
+    ) -> FittingState:
         async with self._lock:
             current = self._get(sid)
             if current.active_turn_id != turn_id:
@@ -90,11 +100,17 @@ class InMemorySessionStore:
                 raise ConflictError("state changed during the turn", code="version_conflict")
             encoded_msgs = [encode_for_firestore(m) for m in messages]  # encode all before writing
             committed = session.model_copy(
-                update={"active_turn_id": None, "active_turn_expires": None, "updated_at": _now()}
+                update={
+                    "state": _bumped(session.state, current.state.version),
+                    "active_turn_id": None,
+                    "active_turn_expires": None,
+                    "updated_at": _now(),
+                }
             )
             encoded_session = encode_for_firestore(committed)
             self._messages[sid].extend(encoded_msgs)
             self._sessions[sid] = encoded_session
+            return committed.state
 
     async def release_turn(self, sid: str, turn_id: str) -> None:
         async with self._lock:

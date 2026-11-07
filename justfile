@@ -6,8 +6,10 @@ set dotenv-load
 export LLM_MODE := env("LLM_MODE", "mock")
 export PYTHONPATH := justfile_directory() + "/vendor"
 lab := justfile_directory() + "/data/TakomoGolf_SinceAI2026_FINAL/TAKOMO_FITTING_LAB_2026"
-# Finds a free port once per worktree and caches it in .port. Web runs on api_port + 1.
-api_port := env("API_PORT", `scripts/port.sh`)
+# The api port is $API_PORT, else a free port found once per worktree and cached in .port
+# (scripts/port.sh). Web runs on port + 1. Only dev/genkit/smoke resolve it, so other recipes
+# never probe ports or write .port.
+resolve_port := 'port="${API_PORT:-$(scripts/port.sh)}"'
 web_missing := "web/ not scaffolded yet (#35), skipping the web step"
 
 # List recipes
@@ -22,19 +24,20 @@ setup:
 
 # Export OpenAPI + JSON schemas to generated/, then web/src/api/schema.gen.ts (nothing generated is committed)
 gen:
-    cd backend && PYTHONPATH=../vendor uv run python -m app.core.export --out ../generated
+    cd backend && PYTHONPATH=../vendor uv run python -m app.export --out ../generated
     @if [ -f web/package.json ]; then pnpm -C web gen; else echo "{{web_missing}}"; fi
 
 # Backend (uvicorn --reload) on api_port + web (vite) on api_port+1
 dev: gen
     #!/usr/bin/env bash
     set -euo pipefail
-    web_port=$(({{api_port}} + 1))
+    {{resolve_port}}
+    web_port=$((port + 1))
     trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
-    echo "api: http://localhost:{{api_port}}  web: http://localhost:$web_port  LLM_MODE=$LLM_MODE"
-    uv run --project backend uvicorn app.main:app --reload --port {{api_port}} --app-dir backend &
+    echo "api: http://localhost:$port  web: http://localhost:$web_port  LLM_MODE=$LLM_MODE"
+    uv run --project backend uvicorn app.main:app --reload --port "$port" --app-dir backend &
     if [ -f web/package.json ]; then
-      API_PORT={{api_port}} pnpm -C web dev --port "$web_port" --strictPort &
+      API_PORT="$port" pnpm -C web dev --port "$web_port" --strictPort &
     else
       echo "{{web_missing}}"
     fi
@@ -42,7 +45,7 @@ dev: gen
 
 # Backend under the Genkit Dev UI (traces at http://localhost:4000)
 genkit:
-    genkit start -- uv run --project backend uvicorn app.main:app --reload --port {{api_port}} --app-dir backend
+    {{resolve_port}} && genkit start -- uv run --project backend uvicorn app.main:app --reload --port "$port" --app-dir backend
 
 # ruff check + ruff format --check + lint-imports, then web typecheck + lint
 lint:
@@ -71,5 +74,5 @@ record persona:
     uv run --project backend python scripts/record_mocks.py {{persona}}
 
 # Deploy health check against a running server (default: this worktree's api)
-smoke url=("http://localhost:" + api_port):
-    scripts/smoke.sh {{url}}
+smoke url="":
+    url={{quote(url)}}; if [ -z "$url" ]; then {{resolve_port}} || exit 1; url="http://localhost:$port"; fi; scripts/smoke.sh "$url"
