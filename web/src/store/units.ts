@@ -4,6 +4,9 @@ export type Units = 'imperial' | 'metric'
 
 const STORAGE_KEY = 'takomo_units'
 
+// Regions that use imperial units. Anything else uses metric.
+const IMPERIAL_REGIONS = ['US', 'LR', 'MM']
+
 function getInitialUnits(): Units {
   if (typeof window === 'undefined') return 'imperial'
   try {
@@ -12,13 +15,17 @@ function getInitialUnits(): Units {
   } catch {
     // ignore
   }
-  return 'imperial'
+  try {
+    const region = new Intl.Locale(navigator.language).maximize().region
+    return IMPERIAL_REGIONS.includes(region ?? '') ? 'imperial' : 'metric'
+  } catch {
+    return 'imperial'
+  }
 }
 
 interface UnitsStore {
   units: Units
   setUnits: (units: Units) => void
-  toggleUnits: () => void
 }
 
 export const useUnitsStore = create<UnitsStore>((set) => ({
@@ -30,16 +37,5 @@ export const useUnitsStore = create<UnitsStore>((set) => ({
       // ignore
     }
     set({ units })
-  },
-  toggleUnits: () => {
-    set((state) => {
-      const next: Units = state.units === 'imperial' ? 'metric' : 'imperial'
-      try {
-        localStorage.setItem(STORAGE_KEY, next)
-      } catch {
-        // ignore
-      }
-      return { units: next }
-    })
   },
 }))
