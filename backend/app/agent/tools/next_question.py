@@ -23,6 +23,8 @@ class NextQuestionOut(BaseModel):
     ui_tool: str | None = None
     ui_args: dict[str, Any] | None = None
     missing: list[str]
+    part: str | None = None  # precision offers: the part it firms up (record_offer_answer)
+    reason_code: str | None = None
 
 
 @fitter_tool("next_question")
@@ -65,4 +67,6 @@ async def next_question(ctx: ToolContext, args: NextQuestionIn) -> NextQuestionO
         ui_tool=f"ui_{nq.component.type}",
         ui_args=nq.component.model_dump(exclude_none=True),
         missing=a.state.missing,
+        part=nq.part,
+        reason_code=nq.reason_code,
     )
