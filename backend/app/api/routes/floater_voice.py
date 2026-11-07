@@ -75,8 +75,10 @@ def _charge(session_id: str, chars: int, demo_key: str | None) -> None:
         while recent and now - recent[0] > _WINDOW_S:
             recent.popleft()
         if len(recent) >= settings.requests_per_minute:
+            log.warning("voice_limit", extra={"limit": "per_minute", "session_id": session_id})
             raise VoiceLimitError("Talking a bit fast. The fitter's text is on screen.")
         if _SESSION_CHARS.get(session_id, 0) + chars > settings.session_chars:
+            log.warning("voice_limit", extra={"limit": "session_chars", "session_id": session_id})
             raise VoiceLimitError("This fitting has used its voice time. Replies stay on screen.")
         if _daily["chars"] + chars > settings.daily_chars:
             log.warning("voice_daily_cap", extra={"chars": _daily["chars"]})
@@ -105,7 +107,17 @@ async def speak(session: SessionDep, body: SpeakIn, demo_key: DemoKeyHeader = No
     text = body.text.strip()[: settings.max_chars]
     _charge(session.id, len(text), demo_key)
 
-    payload: dict[str, object] = {"text": text, "model_id": settings.model_id}
+    payload: dict[str, object] = {
+        "text": text,
+        "model_id": settings.model_id,
+        "seed": settings.seed,
+        "voice_settings": {
+            "stability": settings.stability,
+            "similarity_boost": settings.similarity_boost,
+            "style": 0.0,
+            "use_speaker_boost": True,
+        },
+    }
     if body.lang:
         payload["language_code"] = body.lang
     if body.previous_text:
