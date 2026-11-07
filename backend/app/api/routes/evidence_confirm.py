@@ -10,6 +10,8 @@ Evidence accumulates: a new import never replaces an earlier one. Confirming twi
 discarded import cannot be confirmed.
 """
 
+import json
+
 from fastapi import APIRouter
 from pydantic import TypeAdapter, ValidationError
 from starlette.concurrency import run_in_threadpool
@@ -83,6 +85,16 @@ async def confirm_import(import_id: str, session: SessionDep, store: StoreDep) -
     imp = await store.get_import(session.id, import_id)
     if imp.status == "discarded":
         raise ConflictError("This import was discarded.", code="import_discarded")
+    if imp.kind == "ball_line":
+        readings: list[float] = []
+        if imp.parsed_shots_json:
+            try:
+                parsed = json.loads(imp.parsed_shots_json)
+                if isinstance(parsed, list):
+                    readings = [float(x) for x in parsed]
+            except (json.JSONDecodeError, ValueError):
+                pass
+        return _report(imp).model_copy(update={"readings_deg": readings, "state": session.state})
     shots = _SHOTS.validate_json(imp.parsed_shots_json)
     if imp.status == "confirmed" or import_id in session.state.import_ids:
         return _report(imp).model_copy(update={"shots": shots, "state": session.state})

@@ -27,31 +27,13 @@ steps:
           score_total: 17.6
   - ui:
       type: recommendation_card
-      spec:
-        head: 301-cb
-        shaft: kbs-tour-stiff
-        shaft_model: "KBS Tour"
-        flex: stiff
-        material: steel
-        length_in: 0.5
-        lie_deg: 0
-        grip: standard
-        handedness: right
-        purchase: stock
-      purchase: stock
-      confidence: 0.78
-      gate: confident
-      runner_up:
-        head: 301-mb
-        shaft: kbs-tour-stiff
-        shaft_model: "KBS Tour"
-        flex: stiff
-        material: steel
-        length_in: 0.5
-        lie_deg: 0
-        grip: standard
-        handedness: right
-        purchase: custom
+      # Bound to the live fit so the card always matches the buy bar and the header confidence.
+      spec: $state.best
+      purchase: $state.best.purchase
+      confidence: $state.confidence
+      gate: $state.gate
+      strength: $state.strength
+      runner_up: $state.runner_up
   - ui:
       type: why_panel
       depth: numbers

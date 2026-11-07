@@ -79,9 +79,8 @@ def s7_club_speed_spike(shots: list[Shot]) -> list[Flag]:
   Not built: S15 (link importer, cut), S16 / S18 (no parser reads the hitting surface or normalisation mode).
 - `fuse.shot_rejects(flags)` is the one definition of "this reject drops the shot" (unresolved, not field-only).
 - `plausibility/golfer_w2.py`: G4-G10 (`wave2_golfer_flags`, in `session_flags.refresh`) and G12 / G14
-  (`wave2_fit_flags`, in `session_flags.refresh_fit_flags`, called after the rescore by the confirm and recheck
-  routes with FIT's own swing buckets). FIT's profile patch does not call it yet, so G12 / G14 refresh on the next
-  confirm or recheck.
+  (`wave2_fit_flags`, in `session_flags.refresh_fit_flags`, called after the rescore by the confirm, recheck,
+  and profile patch routes with FIT's own swing buckets).
 - Off by default so the v1 demo flow is unchanged.
 
 ## Severities (σ effect in `fuse.py`)

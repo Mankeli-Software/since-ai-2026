@@ -13,6 +13,7 @@ from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
 
 from app.api.deps import SessionDep, StoreDep
+from app.api.routes.evidence_confirm import fit_flags
 from app.confidence.analysis import analyze, refresh_state
 from app.confidence.next_question import next_question
 from app.core.errors import InvalidInputError
@@ -83,7 +84,9 @@ def _apply(session: FitSession, body: ProfilePatch) -> FittingState:
     )
     a = analyze(intake, evidence, session_id=session.id, evidence_version=session.evidence_version)
     nq = next_question(intake, evidence, a, answered=answered(session), offered=offered)
-    return refresh_state(session.state, a, nq)
+    session.state = refresh_state(session.state, a, nq)
+    session.flags = fit_flags(session)
+    return session.state
 
 
 @router.patch("/api/sessions/{session_id}/profile")
