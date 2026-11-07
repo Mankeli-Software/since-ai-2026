@@ -11,7 +11,7 @@
 #  4    C4a     update_profile -> text -> yes_no_fork (sim_data / by_hand)
 #  5    C4b     text -> source_picker (simulators)
 #  6    C4c     text -> data_import (csv + skip, own 7-iron)
-#  7    C5      text -> confidence_update (display) -> outlier_review (shot 7, 191 m)
+#  7    C5      get_import_report -> text -> outlier_review (live flags; the engine applies the answer)
 #  8    C6a     update_profile -> text -> body_measure height
 #  9    C6b     update_profile -> text -> body_measure wrist_to_floor
 # 10    C6      update_profile -> text -> body_measure glove (size tiles)
@@ -155,36 +155,22 @@ steps:
       club_hint: own_7i
 
   # ---- C5: shots in
-  - text: "Got 24 shots. You carry it **142 m**, not 165. That's the ego tax, and everyone pays it. It also means **regular flex**, not stiff."
-  # TODO(FIT confidence): before/after are design values until confidence is computed.
-  - ui:
-      type: confidence_update
-      before: 34
-      after: 68
-      changes: ["Shaft: now measured", "Head: now measured"]
-      left_count: 3
-  # TODO(EVIDENCE #30-#32): design values until the import routes return a real ImportReport.
+  # Everything here comes from the golfer's own import (or nothing, if they skipped it): the review
+  # lists the flags the rules raised on their shots, and the engine applies their answer
+  # (scripted_engine runs resolve_flags on an outlier_review reply). The header meter shows the
+  # confidence change, so no before/after numbers are copied here.
+  - tool_call:
+      name: get_import_report
+      args: {}
+  - text: "Your shots are in. Here's what the checks found, and you decide what counts."
   - ui:
       type: outlier_review
-      import_id: imp_demo01_own7i
-      flags:
-        - code: S9
-          severity: confirm
-          field: carry_m
-          value: 191
-          expected: "about 142 m like your other shots"
-          shot_index: 6
-          import_id: imp_demo01_own7i
-      shots_summary: {n: 24, club_speed_mph: 76, carry_avg_m: 142, claimed_carry_m: 165}
-      actions: [keep, exclude]
+      import_id: own_7i
+      flags: $state.pending_flags
+      shots_summary: $get_import_report.shots_summary
+      actions: [keep, exclude, confirm_value]
 
   # ---- C6a: height
-  # shortcut: run_fit reads no imported shots yet (TODO(EVIDENCE #30-#32)), so the measured
-  # 142 m (155.3 yd) carry replaces the guess as the carry answer. It maps to swing bucket 3
-  # (regular flex), as the shots would.
-  - tool_call:
-      name: update_profile
-      args: {reported_7i_carry_yd: 155.3, reported_7i_speed_mph: 76.0}  # measured: speed decides flex
   - text: "Last three, and they're quick. Your body sets the length and lie. How tall are you?"
   - ui:
       type: body_measure
@@ -230,6 +216,7 @@ steps:
       name: update_profile
       args: {glove: L, glove_was_guessed: false}
   - tool_call: {name: run_fit, args: {depth: standard}}
+  - tool_call: {name: get_import_report, args: {}}
   - ui:
       type: recommendation_card
       spec: $state.best
@@ -252,7 +239,7 @@ steps:
             head_score: $run_fit.best.head_score
             runner_up_score: $run_fit.runner_up.head_score
           sources:
-            - {source: trackman, n: 24, note: "your shots"}
+            - {source: trackman, note: "your shots"}
             - {source: questionnaire, note: "what you want"}
           close_call:
             part: head
@@ -261,11 +248,10 @@ steps:
             share: 0.53  # TODO(FIT confidence): Monte Carlo share; design value
             next_step: "Hit both in a bay"
         - part: flex
-          plain: "Your swing speed sits in the regular band. Stiff would launch the ball lower, and you already fly it low."
-          # TODO(EVIDENCE #30-#32): design shot numbers until imports reach the fit.
-          numbers: {speed_mph: 76, carry_m: 142, claimed_carry_m: 165}
+          plain: "Your swing speed sets the flex: from your imported shots when you brought them, otherwise from your carry answer."
+          numbers: $get_import_report.shots_summary
           sources:
-            - {source: trackman, n: 24, note: "24 TrackMan shots"}
+            - {source: trackman, note: "your imported shots, if any"}
         - part: length
           plain: "You're 181 cm with an 86 cm wrist to floor. That sits inside the standard band on Takomo's chart, so there's nothing to add or take off."
           numbers:
@@ -275,11 +261,11 @@ steps:
           sources:
             - {source: questionnaire, note: "measured height and wrist to floor"}
         - part: lie
-          plain: "Your height and wrist to floor point to a standard lie. This is the least measured part of your fit: it comes from the chart, not your shots."
+          plain: "Your lie starts from your height and wrist to floor on Takomo's chart. Imported shots move it; without them it is the least measured part of your fit."
           numbers:
             lie_deg: $run_fit.best.lie_deg
           sources:
-            - {source: derived, note: "fitting chart, no strike data yet"}
+            - {source: derived, note: "fitting chart, plus your shots if imported"}
         - part: grip
           plain: "Your glove is a large, and Takomo's chart puts a large glove on a midsize grip."
           sources:

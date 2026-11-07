@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml  # shortcut: transitive via uvicorn[standard], not a declared dependency
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from app.agent.engines.base import answer_of, load_tools, stored, user_text
 from app.agent.guard import REPLAY_TEXT
@@ -55,6 +55,21 @@ def resolve_refs(value: Any, roots: dict[str, Any]) -> Any:
     return value
 
 
+async def _apply_review_answer(ctx: ToolContext, value: Any) -> None:
+    """Scripts never branch, so an `outlier_review` answer (`{action, codes}`) is applied here with
+    whatever the golfer tapped, through the real `resolve_flags` tool."""
+    if not (ctx.session.pending_ui_id or "").startswith("outlier_review"):
+        return
+    if not isinstance(value, dict) or "action" not in value:
+        return  # free text while the review is pending: nothing to apply
+    spec = get_tool("resolve_flags")
+    try:
+        args = spec.input_model.model_validate(value)
+    except ValidationError:
+        return
+    await spec.fn(ctx, args)
+
+
 class ScriptedEngine:
     async def run_turn(
         self, ctx: ToolContext, request: TurnRequest, history: list[StoredMessage]
@@ -68,7 +83,9 @@ class ScriptedEngine:
             and s.script_cursor > 0
             and isinstance(request.message, TextMessage)
         )
-        if answer_of(s, request) is not None and not replay_free_text:
+        answer = answer_of(s, request)
+        if answer is not None and not replay_free_text:
+            await _apply_review_answer(ctx, answer[0])
             s.pending_ui_id = None
             recompute_session_state(s)
             await commit_state(ctx)
