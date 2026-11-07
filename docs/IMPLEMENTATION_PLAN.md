@@ -1,6 +1,6 @@
 # Takomo Fitter Studio: Technical Implementation Plan
 
-> Status: v3.1, Saturday 7 Nov 2026, 14:25 EET (Saturday times shifted +1.5 h, Sunday unchanged). Demo and submission are on Sunday 8 Nov. v3 adds everything from [issue #1](https://github.com/Mankeli-Software/since-ai-2026/issues/1) and its comments (TrackMan API brief, TrackMan data dictionary, golf-app APIs brief, Q&A transcripts). Those additions are marked **(issue #1)**. v3.1 (Sat 7 Nov) adds typed entry of the ball-line test (§5.1), measured lie accuracy per evidence source (§3.3), the "add more for precision" follow-up (§5.5) and the "Try as" persona picker (L16, §6.6), and drops all automated tests (L17). It also folds in the verified findings of an external review (`argon_issues.md`, since deleted), marked **(argon)**, and the team decisions L18–L22.
+> Status: v3.1, Saturday 7 Nov 2026, 14:25 EET (Saturday times shifted +1.5 h, Sunday unchanged). Demo and submission are on Sunday 8 Nov. v3 adds everything from [issue #1](https://github.com/Mankeli-Software/since-ai-2026/issues/1) and its comments (TrackMan API brief, TrackMan data dictionary, golf-app APIs brief, Q&A transcripts). Those additions are marked **(issue #1)**. v3.1 (Sat 7 Nov) adds typed entry of the ball-line test (§5.1), measured lie accuracy per evidence source (§3.3), the "add more for precision" follow-up (§5.5) and the "Try as" persona picker (L16, §6.6), and drops all automated tests (L17). It also folds in the verified findings of an external review (`argon_issues.md`, since deleted), marked **(argon)**, and the team decisions L18–L22. **v3.2 (Sat 7 Nov, evening)** adds L23–L28 after the c14 client demo: Flow v3 is the default, no free configuration, the stock-lean rule, beginner skips, a minimal "clubs are fine" check and the submission format. Its addendum, under the locked decisions, says where each dropped item went.
 > Source of truth for features: [`VISION.md`](VISION.md). Feature numbers `#1`–`#25` refer to VISION §7.
 > Readers: the team, and every AI coding agent working in this repo. **If you are an agent, read §10 before you write code.**
 > Version numbers marked "(verify in spike)" were not checked by running code. The Genkit spike (15:00–16:30) checks them.
@@ -35,6 +35,23 @@ These override anything below that disagrees. Agents: don't reopen them.
 | L20 | **Timeline re-baselined at Sat 14:25.** | Saturday times are +1.5 h (skeleton 15:00–15:45); Sunday is unchanged (L4). §11.2 and §11.3 show the shifted times. |
 | L21 | **AR: USDZ is assumed.** Issue #3 delivers `assets/clubs/ar/<slug>.{glb,usdz}`. | `ar.html` uses the GLB for Android Scene Viewer and the USDZ for iOS Quick Look (§6.3). |
 | L22 | **GitHub issues: small and per lane.** | When work items are created, they are small issues, each inside one lane's globs (§11.1), not one large issue per lane. Not created yet. |
+| L23 | **Flow v3 is the default studio (v3.2, Sat ~20:20, PR #106).** Chat phase (C1–C6) then results phase (R1–R5), per `docs/ui-v3/design-spec.md`. | Build for v3. `?ff=legacy` keeps the old two-column layout for reference only; don't add features there. Where §6 and §11 describe the stage-left layout, TopBar or TinkerPanel, the v3.2 addendum below says where that item went. |
+| L24 | **No free configuration (c14 L151–155).** Too many options make the decision harder. Takomo shows a 1st and a 2nd choice and swaps **only the head; the shaft stays the same**. | Results show best and runner-up head with the same shaft (R1, R3). The free tinker panel is not in the default path. The only "what if" is the narrow stock toggle in R5 (L25). A second shaft is mentioned only as the out-of-stock fallback (write-up, not built). |
+| L25 | **Stock-lean rule (c14 L166–168).** Takomo sells whatever fits; custom is not preferred. The further a spec is from stock and the better the player, the more custom is right; a newer golfer close to stock should lean stock. | R5 badges the option the FIT advisor leans to (or none for "either") and, when it leans stock, says the 30-day return is kept and custom can't be returned. Numbers come from the advisor, never hardcoded (#124). **The English c14 summary is wrong on one point:** Jonas's remark that a golfer could play stock "if they fixed their swing" is context, not something we tell the user. No swing advice (L18). |
+| L26 | **Beginner skips (c14 L119–121).** Someone who has played about a year doesn't need every card; a golfer who types everything up front skips ahead (C2b). | `next_question` skips flight, tempo and characteristics with "Not sure" defaults for a new golfer and says why. A beginner path is 8 questions or fewer (#133). |
+| L27 | **"Your clubs are fine": minimal check, or a slide (c14 L145–147).** Takomo doesn't want to push clubs on anyone, but we can't see wear or grooves. | Narrows L11: only a deterministic check from measured own-7-iron shots vs the simulated best head, stored as optional `current_clubs_verdict` with the gain in yards (#132). Copy comes from that number, mentions wear and grooves, never says "in a year". If it doesn't ship, it stays a slide and the live prompt must not claim it. |
+| L28 | **Submission (c14 L174–181).** Private repo shared with the Takomo contact's GitHub user, a ZIP of the repo and a 2–3 min video (YouTube unlisted). | Refines L19. The organiser rules say public; the lead confirms on the platform. ZIP from the freeze tag, without `data/` and `generated/`, with the predictions CSV (#127). |
+
+### v3.2 addendum (Sat 7 Nov, evening, after the c14 client demo)
+
+v3.2 records the decisions above (L23–L28) and moves each item v3 dropped. **Re-homed** means it still ships, in a new place. **Cut** means it is not built.
+- **Dispersion + SVG flight → re-homed to R3** (compare heads), from `POST /api/flight`, labelled "Estimated" (#122).
+- **Add data, current best and missing-N → re-homed to the v3 header** (`StudioHeader`), with a gate chip (#130).
+- **Form fallback → re-homed into ChatShell** as v3 cards driven by `next_question` when the engine is keyless or capped (#129).
+- **Lie tinker / TinkerPanel → narrowed** to the R5 "What if I stay stock?" toggle (L24, L25, #124). `POST /api/tinker` stays as the backend for it.
+- **Stage-left layout and TopBar → cut** (L23). They live on only under `?ff=legacy`.
+- **Mascot (SVG and Rive) → cut** from the v3 path; v3 has no mascot slot. #43 is dropped.
+- Sources: the Finnish c14 transcript in issue #1 (line numbers refer to that comment), issues #114 and #116.
 
 ## 0. TL;DR
 
@@ -1510,7 +1527,7 @@ Not planned: #21–#25 (stretch). The camera kit stays in the pack.
 - **Hannu:** after his ball-line test the lie stays a close call, so the studio says "don't commit to a custom lie yet; 5 shots with a Takomo test club on a simulator will give you the number" and shows the simulator map (§5.5). It delays the sale to get his lie right.
 - **Anders:** his only non-standard item is lie +1°, which makes the set custom and non-returnable, so `stock_vs_custom` asks whether +1° is worth giving up the 30-day return, and stock stays a real option.
 
-**The demo spine (Mikko, DEMO-01):** landing → studio → chat with `choice_chips` and `slider` (from `next_question`) → TrackMan CSV import (own 7-iron) → `outlier_review` (G11 carry: 160 claimed vs 124.7 measured) → confidence rises → precision follow-up → test-club import (lie +2 → +3) → `recommendation_card` + `why_panel` → SVG flight → lie tinker → `stock_vs_custom` → Save.
+**The demo spine (Mikko, DEMO-01):** landing → studio → chat with `choice_chips` and `slider` (from `next_question`) → TrackMan CSV import (own 7-iron) → `outlier_review` (G11 carry: 160 claimed vs 124.7 measured) → confidence rises → precision follow-up → test-club import (lie +2 → +3) → R1 summary (best and runner-up head, same shaft) → R2 why each part → R3 compare heads with SVG flight and dispersion → R5 stock vs custom with the stock toggle → Save (v3, L23–L25).
 
 ### 11.3 Cut lines (timed triggers)
 
@@ -1531,7 +1548,7 @@ Not planned: #21–#25 (stretch). The camera kit stays in the pack.
 
 **Cut first, in order:** all Shopify work and the mobile layout (the Final phase, L2/L3; slides only) → AR (#20), Rive (keep the SVG placeholder), voice (#18) → round-stats screenshot → launch-monitor screenshot (#15) → 3D flight → club row → W2 gen-UI components.
 
-**Never cut:** the "Try as" picker with sample imports (L16), because it is how judges use the hosted link; conversational intake with the form fallback; TrackMan CSV import with v1 outlier flags; `recommend()` + why panel; confidence meter and gate; SVG flight; lie tinker; stock vs custom; an honest ending; Save; the predictions CSV.
+**Never cut (v3.2):** the "Try as" picker with sample imports (L16), because it is how judges use the hosted link; conversational intake, with the form fallback inside ChatShell; TrackMan CSV import with v1 outlier flags; `recommend()` + why panel (R1, R2); confidence and gate in the v3 header, with Add data; SVG flight with dispersion in R3; stock vs custom with the stock toggle (R5, L25); an honest ending; Save; the predictions CSV. **No longer never-cut** (v3.2 addendum): the free lie tinker (narrowed to the stock toggle), the stage-left layout and the mascot (cut).
 
 ---
 

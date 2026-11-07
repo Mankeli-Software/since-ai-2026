@@ -97,6 +97,9 @@ The assistant greets you, explains how the fitting works, then starts the fitter
 - **Trade-offs spelled out.** For example, "+20 m, but you give up height and stopping power."
 
 ### 6.8 "Play with it": the tinker mode
+
+> **v3.2 (plan L24, L25):** narrowed after the client demo. The shipped studio swaps only the head between the 1st and 2nd choice (same shaft) and offers one "What if I stay stock?" toggle. Free configuration of every spec, as described below, is not built.
+
 - The user can change any spec (head, shaft, flex, length, lie, grip) and **see the effect immediately** in 3D and in ball flight. The change is always compared with the recommendation.
 - **Live 3D change.** The 3D club updates as a spec changes. We probably won't have a separate model for every variant, so we use **one base club model and change it in code**:
   - **Length:** stretch the shaft.
@@ -196,7 +199,7 @@ The rule for prioritising: **trust and the experience first** (35% of the judgin
   - **Kaisa:** a guessed glove size.
   - **Pekka:** joint pain the form never asks about.
   - **Aino:** a beginner with no data, who gets a gentle path.
-- The flow: landing page → studio → conversation → data import → reveal → tinker → honest ending → save.
+- The flow: landing page → studio → conversation → data import → reveal → compare heads → stock vs custom → honest ending → save (plan L23–L25).
 - **Deliverables:**
   - A working PoC (live link or recording).
   - A one-page write-up covering the idea, what the PoC proves, the accuracy validation plan, the trust design and next steps.
