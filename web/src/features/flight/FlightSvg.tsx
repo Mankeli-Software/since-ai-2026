@@ -16,15 +16,11 @@ const NAMES: Record<string, string> = {
   "301-mb": "301 MB",
 };
 
-// Colours: CSS vars (brand tokens / #42) with dataviz-palette fallbacks. Slot 0 = Tiger Orange (recommended).
-// Slot 1 (recommended head) follows the brand token from src/styles/theme.css (#42 owns it).
-const SLOT_LIGHT = ["var(--color-tiger-orange,#ff6e01)","#2a78d6", "#1baf7a", "#6250d6", "#e87ba4"];
-const SLOT_DARK = ["#d95926", "#3987e5", "#199e70", "#9085e9", "#d55181"];
-const css = SLOT_LIGHT.map((c, i) => `--fl-${i}:var(--color-flight-${i + 1},${c});`).join("");
-const cssDark = SLOT_DARK.map((c, i) => `--fl-${i}:var(--color-flight-${i + 1},${c});`).join("");
+// Monochrome brand palette on a dark simulator background: slot 0 = Tiger Orange (recommended), then white and grey.
+const SLOT = ["var(--color-tiger-orange,#ff6e01)", "#f8f8f8", "#c8c8c8", "#c8c8c8", "#c8c8c8"];
+const css = SLOT.map((c, i) => `--fl-${i}:${c};`).join("");
 const STYLE = `
-.flight-svg{--fl-bg:var(--color-flight-surface,#fcfcfb);--fl-ink:var(--color-flight-ink,#0b0b0b);--fl-ink2:var(--color-flight-ink-2,#52514e);--fl-muted:#898781;--fl-grid:#e1e0d9;--fl-axis:#c3c2b7;${css}}
-@media (prefers-color-scheme:dark){.flight-svg{--fl-bg:var(--color-flight-surface,#1a1a19);--fl-ink:var(--color-flight-ink,#f0efec);--fl-ink2:var(--color-flight-ink-2,#c3c2b7);--fl-grid:#2c2c2a;--fl-axis:#383835;${cssDark}}}
+.flight-svg{--fl-bg:#121212;--fl-ink:#f8f8f8;--fl-ink2:#c8c8c8;--fl-muted:#8f8f8f;--fl-grid:#262626;--fl-axis:#3d3d3d;${css}}
 .flight-svg text{font-family:inherit;font-size:12px;fill:var(--fl-ink2)}
 .flight-svg .mut{fill:var(--fl-muted);font-size:11px}
 .flight-svg .strong{fill:var(--fl-ink);font-weight:600}

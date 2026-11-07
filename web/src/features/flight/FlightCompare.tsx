@@ -4,6 +4,7 @@
  *
  * The arcs are DRAWN, not simulated: each is a cubic bezier from the tee to `carry` whose highest point is
  * exactly `apex` and whose end tangent is exactly `land_angle`, on one shared scale (metres, x and y equal).
+ * Solid arcs = carry from measured shots, dashed = guessed carry.
  * Deterministic, no physics claims; the host labels it "estimate". Replace with real trajectories once
  * the flight API exists (FIT #26).
  */
@@ -28,6 +29,8 @@ export interface FlightCompareProps {
   /** Summary for screen readers (the SVG is role="img"). */
   ariaLabel: string
   className?: string
+  /** Carry is a guess, not from measured shots: arcs are dashed. */
+  guessed?: boolean
 }
 
 const W = 900
@@ -48,7 +51,7 @@ function controls(a: FlightCompareArc) {
   return { h, p1x, p2x, apexX: (3 * p1x + 3 * p2x + a.carry) / 8 }
 }
 
-export function FlightCompare({ arcs, selected, ariaLabel, className }: FlightCompareProps) {
+export function FlightCompare({ arcs, selected, ariaLabel, className, guessed }: FlightCompareProps) {
   const valid = arcs.filter((a) => a.carry > 0 && a.apex > 0)
   const maxCarry = Math.max(1, ...valid.map((a) => a.carry))
   const maxApex = Math.max(1, ...valid.map((a) => a.apex))
@@ -84,7 +87,7 @@ export function FlightCompare({ arcs, selected, ariaLabel, className }: FlightCo
         const ly = top ? y(a.apex) - 10 : y(a.apex) + 30
         return (
           <g key={a.id}>
-            <path d={d} fill="none" stroke={on ? '#FF6E01' : '#C8C8C8'} strokeWidth={on ? 4 : 2} strokeLinecap="round" />
+            <path d={d} fill="none" stroke={on ? '#FF6E01' : '#C8C8C8'} strokeWidth={on ? 4 : 2} strokeLinecap="round" strokeDasharray={guessed ? (on ? '10 8' : '6 6') : undefined} />
             <circle cx={x(a.carry)} cy={GROUND} r={on ? 6 : 5} fill={on ? '#FF6E01' : '#C8C8C8'} />
             <text
               x={x(c.apexX)}
