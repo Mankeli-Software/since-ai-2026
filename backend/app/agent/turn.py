@@ -21,6 +21,7 @@ from app.schemas.chat import (
     StreamEvent,
     TurnRequest,
     TurnStartEvent,
+    UiEvent,
     UiResponseMessage,
 )
 from app.schemas.ports import SessionStore
@@ -76,6 +77,27 @@ async def _run(store, session, history, request, turn_id, queue) -> None:
 
     async def emit(ev: StreamEvent) -> None:  # stamps the monotonic seq
         nonlocal seq
+        if isinstance(ev, UiEvent) and getattr(ev.block, "type", None) == "recommendation_card":
+            st = session.state
+            if st.best is not None:
+                ev = ev.model_copy(
+                    update={
+                        "block": ev.block.model_copy(
+                            update={
+                                "spec": st.best,
+                                "purchase": st.best.purchase,
+                                "confidence": (
+                                    st.confidence
+                                    if st.confidence is not None
+                                    else ev.block.confidence
+                                ),
+                                "gate": st.gate,
+                                "strength": st.strength,
+                                "runner_up": st.runner_up or ev.block.runner_up,
+                            }
+                        )
+                    }
+                )
         queue.put_nowait(ev.model_copy(update={"seq": seq}))
         seq += 1
 

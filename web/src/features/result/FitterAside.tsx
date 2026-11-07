@@ -1,9 +1,9 @@
-import { createContext, useContext, useEffect, useState, type FormEvent } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type FormEvent } from 'react'
 import { FitterAvatar } from '@/components/studio'
 import { useVoice, voiceAvailable } from '@/features/voice/store'
 import { VoiceBar } from '@/features/voice/VoiceConversation'
 import { cn } from '@/lib/utils'
-import { useSession } from '@/store/session'
+import { useSession, type ChatMessage } from '@/store/session'
 import { Text } from '../chat/Text'
 import { GenUiBlock } from '../genui/GenUiBlock'
 import type { ResultsAsideProps } from './chrome'
@@ -19,7 +19,33 @@ export function AsideBody({ message, fallback, chips, block, children }: Results
   const defaults = useContext(AsideDefaults)
   const say = useSession((s) => s.say)
   const busy = useSession((s) => s.busy)
-  const text = message ?? defaults.assistantText ?? fallback ?? defaults.fallback
+  const ui = useSession((s) => s.ui)
+  const respond = useSession((s) => s.respond)
+  const messages = useSession((s) => s.messages)
+
+  let latestAssistant: ChatMessage | undefined
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'assistant' && messages[i].text.trim()) {
+      latestAssistant = messages[i]
+      break
+    }
+  }
+
+  const prevMessageRef = useRef<string | undefined>(message)
+  const baselineSeqRef = useRef<number>(latestAssistant?.seq ?? 0)
+
+  if (prevMessageRef.current !== message) {
+    prevMessageRef.current = message
+    baselineSeqRef.current = latestAssistant?.seq ?? 0
+  }
+
+  const isReplyNewer = Boolean(latestAssistant && latestAssistant.seq > baselineSeqRef.current)
+  const text = (isReplyNewer && latestAssistant ? latestAssistant.text : null) ?? message ?? defaults.assistantText ?? fallback ?? defaults.fallback
+
+  // Latest pending ui_input block in session store (stock_vs_custom is handled on R5).
+  const pending = [...ui].reverse().find((u) => u.interactive && !u.answered && u.block.type !== 'stock_vs_custom')
+  const activeBlock = pending ? pending.block : block
+
   return (
     <>
       {text && (
@@ -28,7 +54,18 @@ export function AsideBody({ message, fallback, chips, block, children }: Results
         </p>
       )}
       {children}
-      {block && <GenUiBlock id={`aside-${block.type}`} block={block} interactive={false} busy={busy} respond={() => {}} />}
+      {activeBlock && (
+        <div className="rounded-14 border border-border bg-card p-4 text-card-foreground shadow-sm">
+          <GenUiBlock
+            id={pending ? pending.id : `aside-${activeBlock.type}`}
+            block={activeBlock}
+            interactive={pending ? !busy : false}
+            answer={pending?.answer}
+            busy={busy}
+            respond={pending ? (v, d) => void respond(pending.id, v, d) : () => {}}
+          />
+        </div>
+      )}
       {chips && chips.length > 0 && (
         <div className="flex flex-wrap gap-2 max-md:flex-nowrap max-md:overflow-x-auto max-md:[scrollbar-width:none]">
           {chips.map((c) => (
@@ -99,6 +136,39 @@ function Composer() {
   )
 }
 
+function ConversationLog() {
+  const messages = useSession((s) => s.messages)
+  const visible = messages.filter((m) => m.text.trim().length > 0)
+  if (visible.length === 0) return null
+
+  return (
+    <details className="mt-2 border-t border-grey-1f pt-3 text-[13px] text-grey-8f">
+      <summary className="cursor-pointer select-none font-medium text-grey-a3 transition-colors hover:text-washed-white">
+        Show conversation
+      </summary>
+      <div className="mt-3 flex flex-col gap-2.5">
+        {visible.map((m) => (
+          <div
+            key={m.id}
+            className={
+              m.role === 'user'
+                ? 'max-w-[85%] self-end rounded-lg bg-grey-1a px-3 py-1.5 text-right text-washed-white'
+                : 'max-w-[95%] self-start rounded-lg bg-grey-12 px-3 py-1.5 text-grey-c8'
+            }
+          >
+            <span className="mb-0.5 block text-[11px] font-semibold tracking-wider text-grey-8f uppercase">
+              {m.role === 'user' ? 'You' : 'Fitter'}
+            </span>
+            <p className="m-0 text-[13px] leading-relaxed">
+              <Text text={m.text} />
+            </p>
+          </div>
+        ))}
+      </div>
+    </details>
+  )
+}
+
 export interface FitterAsideProps {
   /** Default suggestion chips (no override mounted). */
   chips: string[]
@@ -154,6 +224,7 @@ export function FitterAside({ chips, slotRef, overridden, sheetOpen = false, onC
         <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1">
           {!overridden && <AsideBody chips={chips} />}
           <div ref={slotRef} className="contents" />
+          <ConversationLog />
         </div>
         <VoiceBar />
         <Composer />

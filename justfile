@@ -69,10 +69,6 @@ score *args:
 preds *args:
     PYTHONPATH={{PYTHONPATH}}:{{lab}} uv run --project backend python scripts/make_test_predictions.py {{args}}
 
-# Record a scripted SSE run to web/public/mock/<persona>.jsonl (gitignored)
-record persona:
-    uv run --project backend python scripts/record_mocks.py {{persona}}
-
 # Deploy health check against a running server (default: this worktree's api)
 smoke url="":
     url={{quote(url)}}; if [ -z "$url" ]; then {{resolve_port}} || exit 1; url="http://localhost:$port"; fi; scripts/smoke.sh "$url"

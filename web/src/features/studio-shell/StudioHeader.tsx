@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { ConfidenceSegments, Eyebrow, LogoMark, StepBars, Wordmark } from '@/components/studio'
+import { shortHead } from '@/features/result/compare/pair'
+import { hasFlag } from '@/lib/flags'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
 
@@ -72,8 +75,13 @@ function welcomeHref() {
  * Save, plus the step bars on their own row below.
  */
 export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
-  const { state, demo, saved, save } = useSession()
+  const { state, demo, saved, save, addUi, engine: sessionEngine } = useSession()
+  const [copied, setCopied] = useState(false)
   const pct = state?.confidence == null ? null : Math.round(state.confidence * 100)
+  const engineParam = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('engine') : null
+  const engine = engineParam === 'live' || engineParam === 'scripted' ? engineParam : sessionEngine
+  const hdr = hasFlag('hdr')
+  const missingCount = state?.missing?.length ?? 0
 
   return (
     <>
@@ -113,6 +121,29 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
             <span className="md:hidden">Simulated</span>
           </Eyebrow>
         )}
+        {engine && (
+          <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-c8 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+            {engine === 'live' ? 'Live AI' : 'Replay'}
+          </Eyebrow>
+        )}
+        {hdr && (
+          <>
+            {state?.best ? (
+              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-washed-white shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+                Current best: {shortHead(state.best.head)}
+              </Eyebrow>
+            ) : missingCount > 0 ? (
+              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-a3 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+                {missingCount} {missingCount === 1 ? 'input missing' : 'inputs missing'}
+              </Eyebrow>
+            ) : null}
+            {state?.gate && (
+              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-grey-c8 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+                {state.gate === 'provisional' ? 'Provisional' : 'Confident'}
+              </Eyebrow>
+            )}
+          </>
+        )}
         {variant === 'chat' && step != null && <StepBars step={step} className="max-md:hidden" />}
         <span className="flex flex-none items-center gap-2.5 max-md:hidden">
           <Eyebrow className="text-grey-a3">Fit confidence</Eyebrow>
@@ -121,6 +152,28 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
         <span className={cn('md:hidden', !demo && 'ml-auto')}>
           <ConfidenceRing pct={pct} />
         </span>
+        {hdr && (
+          <button
+            type="button"
+            onClick={() => {
+              addUi({
+                type: 'data_import',
+                prompt: 'Got shot data from your own 7-iron? A TrackMan CSV works best.',
+                sources: ['csv', 'ball_line', 'skip'],
+                club_hint: 'own_7i',
+                reason_code: 'lie',
+                append_to: null,
+              })
+            }}
+            className="flex h-9 flex-none max-md:hidden cursor-pointer items-center gap-1.5 rounded-6 bg-transparent px-3 text-washed-white shadow-[inset_0_0_0_1px_var(--color-grey-3d)] transition-ui hover:shadow-[inset_0_0_0_1px_var(--color-grey-8f)]"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span className="text-[13px] font-semibold">Add data</span>
+          </button>
+        )}
+        <div className="flex flex-col items-end gap-1">
         <button
           type="button"
           disabled={!state}
@@ -137,6 +190,28 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
             <span className="text-[15px] font-semibold">myTakomo</span>
           </span>
         </button>
+          {hdr && saved?.status === 'ok' && saved.resumeUrl && (
+            <div className="flex items-center gap-1.5 text-[11px] text-grey-a3 max-md:hidden">
+              <span className="max-w-[140px] truncate" title={saved.resumeUrl}>{saved.resumeUrl}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    const full = new URL(saved.resumeUrl!, window.location.origin).href
+                    void navigator.clipboard.writeText(full)
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 2000)
+                  } catch {
+                    // ignore
+                  }
+                }}
+                className="cursor-pointer text-orange-hover hover:underline"
+              >
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+          )}
+        </div>
       </header>
       {variant === 'chat' && step != null && <PhoneSteps step={step} />}
     </>

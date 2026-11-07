@@ -1,7 +1,7 @@
 import { Button, Eyebrow } from '@/components/studio'
+import { ArQr } from './ar/ArQr'
 import { arUrl } from './ar/arLink'
 import { PhoneMock } from './ar/PhoneMock'
-import { QrPlaceholder } from './ar/QrPlaceholder'
 import { ResultsAside, useResultsChrome } from './chrome'
 import { shortHead } from './compare/pair'
 import { PhoneNote } from './PhoneBits'
@@ -48,13 +48,8 @@ export function R4AR() {
           <div className="flex items-center gap-6 max-md:hidden">
             <div className="flex flex-none flex-col items-center gap-2">
               <div className="rounded-16 bg-white p-3.5">
-                <QrPlaceholder
-                  seed={url}
-                  className="block size-[160px] min-[1400px]:size-[200px]"
-                  label="QR code placeholder for the AR link. Scanning is coming soon; the link is written next to it."
-                />
+                <ArQr url={url} className="size-[160px] min-[1400px]:size-[200px]" />
               </div>
-              <span className="text-[12px] text-grey-8f">Scan code coming soon</span>
             </div>
             <div className="flex min-w-0 flex-col gap-2 text-[15px] text-grey-c8">
               <span>iPhone: opens in AR Quick Look</span>

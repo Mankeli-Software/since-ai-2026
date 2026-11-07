@@ -159,6 +159,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   return (
     <div className="flex flex-col gap-[18px]">
       <p className={cn('m-0', cardLabelCls)}>{block.prompt}</p>
+      <p className="m-0 text-[13px] text-grey-8f">We keep the numbers, not the file.</p>
 
       {guided && (
         <>
