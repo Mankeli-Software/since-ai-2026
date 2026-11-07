@@ -30,7 +30,7 @@ export interface ComposerProps {
 }
 
 /**
- * Free-text composer (spec §2.1). "Say it" is visible everywhere but only works with `?ff=voice`:
+ * Free-text composer (spec §2.1). "Say it" works in browsers that can listen (`?ff=novoice` turns it off):
  * it starts the hands-free voice conversation (features/voice), and tapping it again ends it.
  */
 export function Composer({
@@ -86,7 +86,7 @@ export function Composer({
         type="button"
         disabled={!voice}
         aria-pressed={voice ? listening : undefined}
-        title={voice ? (listening ? 'End the voice conversation' : 'Talk with the fitter, hands free') : 'Voice is coming soon'}
+        title={voice ? (listening ? 'End the voice conversation' : 'Talk with the fitter, hands free') : 'Voice needs Chrome, Edge or Safari'}
         onClick={toggleVoice}
         className={cn(
           'inline-flex flex-none cursor-pointer items-center rounded-full border-0 font-display font-bold uppercase text-washed-white transition-ui disabled:cursor-not-allowed disabled:opacity-50',

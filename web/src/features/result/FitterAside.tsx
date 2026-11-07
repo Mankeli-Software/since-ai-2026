@@ -85,7 +85,7 @@ function Composer() {
         aria-label={talking ? 'End voice' : 'Say it'}
         aria-pressed={voice ? talking : undefined}
         disabled={!voice}
-        title={voice ? (talking ? 'End the voice conversation' : 'Talk with the fitter, hands free') : 'Voice is coming soon'}
+        title={voice ? (talking ? 'End the voice conversation' : 'Talk with the fitter, hands free') : 'Voice needs Chrome, Edge or Safari'}
         onClick={toggleVoice}
         className={`inline-flex size-[42px] flex-none cursor-pointer items-center justify-center rounded-full border-0 bg-grey-26 disabled:cursor-default disabled:opacity-50 ${talking ? 'shadow-[inset_0_0_0_2px_#FF6E01]' : ''}`}
       >

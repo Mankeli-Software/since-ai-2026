@@ -23,8 +23,8 @@ interface VoiceStore {
   tap(): void
 }
 
-/** `?ff=voice` and a browser that can listen (Chrome, Edge, Safari). */
-export const voiceAvailable = () => hasFlag('voice') && canListen
+/** On by default in browsers that can listen (Chrome, Edge, Safari). `?ff=novoice` hides it for a session. */
+export const voiceAvailable = () => !hasFlag('novoice') && canListen
 
 export const useVoice = create<VoiceStore>()((set, get) => ({
   on: false,

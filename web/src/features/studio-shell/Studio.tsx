@@ -24,7 +24,7 @@ export function Studio() {
   const resultPhase = useSession((s) => isResultPhase(s.state, s.ui))
   const start = useSession((s) => s.start)
   const resume = useSession((s) => s.resume)
-  // Hands-free voice (`?ff=voice`): one loop across the chat and the results view.
+  // Hands-free voice (on by default, `?ff=novoice` turns it off): one loop across the chat and the results view.
   useVoiceConversation()
 
   const q = new URLSearchParams(location.search)
