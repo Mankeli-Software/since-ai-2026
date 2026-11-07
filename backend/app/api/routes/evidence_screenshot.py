@@ -13,8 +13,11 @@ from typing import Annotated
 from fastapi import APIRouter, Form, UploadFile
 
 from app.agent.extract import MAX_UPLOAD_BYTES, extractor
+from app.agent.guard import bind, check_vision
 from app.api.deps import SessionDep, StoreDep
+from app.api.guard_deps import DemoKeyHeader
 from app.core.errors import InvalidInputError
+from app.evidence.plausibility.extraction import validate_extraction
 from app.schemas.evidence import ExtractedSession
 from app.schemas.extraction import (
     ExtractionReview,
@@ -24,31 +27,47 @@ from app.schemas.extraction import (
     RoundStatsRead,
     ScreenshotKind,
 )
+from app.schemas.flags import Flag
 from app.schemas.session import StoredImport
 
 router = APIRouter(tags=["evidence"])
 
-LOW_CONFIDENCE = 0.8  # V4 (plan §5.2)
+LOW_CONFIDENCE = 0.8  # V4 (plan §5.2); round stats only, launch monitors use validate_extraction
+_LOW_CONF_MSG = "v4_low_confidence"
 
 
-def _low_confidence_flags(s: ExtractedSession) -> list[FlaggedCell]:
-    return [
-        FlaggedCell(row=c.row, field=c.field, reason="low_confidence", confidence=c.confidence)
-        for c in s.cells
-        if c.confidence < LOW_CONFIDENCE
-    ]
+def _flagged_cells(s: ExtractedSession, flags: list[Flag]) -> list[FlaggedCell]:
+    """One entry per flagged cell. A plausibility hit (S rules, V4 checksums, V5) outranks a
+    plain low-confidence one, so the table shows the reason that matters most."""
+    conf = {(c.row, c.field): c.confidence for c in s.cells}
+    out: dict[tuple[int, str], FlaggedCell] = {}
+    for f in flags:
+        key = (f.shot_index, f.field)
+        if f.shot_index is None or f.field is None or key not in conf:
+            continue  # table-level flags (V1, V2) stay in `review.flags`
+        low = f.message_id == _LOW_CONF_MSG
+        prev = out.get(key)
+        if prev is not None and (low or prev.reason == "plausibility"):
+            continue
+        out[key] = FlaggedCell(
+            row=f.shot_index,
+            field=f.field,
+            reason="low_confidence" if low else "plausibility",
+            confidence=conf[key],
+            code=None if low else f.code,
+            message_id=f.message_id,
+            suggested_value=f.suggested_value,
+        )
+    return [out[k] for k in sorted(out)]
 
 
 def _launch_monitor_review(
     import_id: str, s: ExtractedSession, synthetic: bool
 ) -> ExtractionReview:
-    # ---- validate_extraction seam (#34) -------------------------------------------------------
-    # TODO(#34): replace the next line with the pure V2-V4 checks, e.g.
-    #   from app.evidence.plausibility.extraction import validate_extraction
-    #   flagged = validate_extraction(s)  # -> list[FlaggedCell] (low_confidence + S1-S13 hits)
-    # Until then only V4's confidence half runs here.
-    flagged = _low_confidence_flags(s)
-    # -------------------------------------------------------------------------------------------
+    # V1 cell integrity, V2 units, V4 bounds/checksums/confidence (#34). Pure, no model calls.
+    # TODO: pass the v1 S rules as `shot_rules=[...]` once #31 lands (V3).
+    flags = validate_extraction(s, import_id=import_id)
+    flagged = _flagged_cells(s, flags)
     hit = {(f.row, f.field) for f in flagged}
     columns = list(dict.fromkeys(c.field for c in s.cells))
     by_row: dict[int, list[ReviewCell]] = {}
@@ -73,6 +92,7 @@ def _launch_monitor_review(
         columns=columns,
         unit_labels_seen=s.unit_labels_seen,
         headers_read=s.headers_read,
+        flags=flags,
     )
 
 
@@ -118,7 +138,10 @@ async def import_screenshot(
     store: StoreDep,
     file: UploadFile,
     kind: Annotated[ScreenshotKind, Form()],
+    demo_key: DemoKeyHeader = None,
 ) -> ExtractionReview:
+    check_vision(session, demo_key, live=not extractor.mock)  # 429s (#18)
+    bind(session.id, session.budget)  # model_call log lines carry the session id
     data = await file.read(MAX_UPLOAD_BYTES + 1)
     await file.close()
     if len(data) > MAX_UPLOAD_BYTES:

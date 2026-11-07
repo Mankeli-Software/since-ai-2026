@@ -76,6 +76,36 @@ reasoning parts are not interchangeable across a provider switch.
 - Fallback: `LLM_ENGINE=anthropic` → `engines/anthropic_engine.py` (`AsyncAnthropic().beta.messages.tool_runner`),
   same tools and SSE events.
 
+## Cost and abuse guard (#18, plan §4.2)
+
+`guard.py` (no genkit) + `metering.py` (Genkit middleware). All counters are in memory, so prod stays at
+`--max-instances=1` until they move to Firestore. The Anthropic workspace spend limit is the real backstop.
+
+- **Every model call** passes `use=[meter("<flow>", MODEL)]` on `ai.generate*`: it adds `max_output_tokens` when
+  missing, writes one JSON `model_call` log line and counts toward the daily cap. Call `guard.bind(session_id, budget)`
+  first so the line carries the session id (the engine does this per turn).
+- **Every route that can trigger a model call** calls a guard check first: `check_turn` (turns),
+  `check_vision` (screenshot reads), `check_session_create` (`POST /api/sessions`). They raise 429 with
+  `{code, message}`; `X-Demo-Key` (`api/guard_deps.DemoKeyHeader`) skips them all.
+- Past `AGENT_DAILY_MODEL_CALL_CAP`, `pick_engine` gives **new** sessions `scripted` + a `SessionNotice`
+  (`fallback: replay` for personas, `form` for own fittings), and live vision returns 429. Existing sessions keep
+  their engine; the per-session budget (60 calls / 300k tokens) guards them.
+- Knobs (`agent/settings.py`): `AGENT_TURNS_PER_MINUTE` (10), `AGENT_SESSIONS_PER_MINUTE` (60),
+  `AGENT_DAILY_MODEL_CALL_CAP` (2000), `AGENT_SESSION_MAX_MODEL_CALLS` (60), `AGENT_SESSION_MAX_TOKENS` (300k),
+  `AGENT_MAX_TOOL_TURNS` (10; Genkit fails the whole turn when hit), `DEMO_KEY` / `AGENT_DEMO_KEYS` (comma-separated).
+
+## Screenshot import (`extract.py`, #19)
+
+- `VisionExtractor`: Sonnet vision → flat `ExtractedSession` (launch monitor) or `RoundStatsRead` (round stats).
+  Uploads ≤ 8 MB, re-encoded and downscaled to 1568 px (Pillow; also strips metadata). Invalid structured output
+  retries once (V1); provider errors are a retryable 502 `extraction_failed`.
+- Every string read from an image goes through `cap()` (`^[\w %./°-]{0,32}$`); the prompt tells the model to ignore
+  text instructions in the image. Raw images are never stored.
+- `LLM_MODE=mock` returns `mock/extract/*.json` (synthetic; launch-monitor row 3 carry is a deliberate misread so the
+  review table shows a flagged cell) and never imports Genkit.
+- The route (`api/routes/evidence_screenshot.py`) runs `evidence.plausibility.extraction.validate_extraction` and
+  returns an `ExtractionReview` (`schemas/extraction.py`). Nothing is used until the golfer confirms.
+
 ## Turns and interrupts
 
 - An input `ui_*` tool (`kind="ui_input"`) **interrupts** the turn. At most one per turn: any later input tool in

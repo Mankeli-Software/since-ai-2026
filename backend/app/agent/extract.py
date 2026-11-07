@@ -17,7 +17,6 @@ import io
 import json
 import logging
 import re
-import time
 from pathlib import Path
 
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -171,6 +170,7 @@ class VisionExtractor:
         from genkit import Message, Part, Role
 
         from app.agent.ai import CHAT, ai  # Sonnet 5.5, max_output_tokens=8000 (ai.py)
+        from app.agent.metering import meter  # logs + counts each call (#18)
 
         uri = f"data:{mime};base64," + base64.b64encode(img).decode()
         msg = Message(
@@ -179,10 +179,13 @@ class VisionExtractor:
         )
         last: Exception | None = None
         for attempt in (1, 2):  # V1: invalid structured output -> retry once
-            t0 = time.monotonic()
             try:
                 r = await ai.generate(
-                    model=CHAT, system=prompt, messages=[msg], output_schema=schema
+                    model=CHAT,
+                    system=prompt,
+                    messages=[msg],
+                    output_schema=schema,
+                    use=[meter(flow, CHAT)],
                 )
                 out = schema.model_validate(r.output)
             except ValidationError as exc:
@@ -192,16 +195,6 @@ class VisionExtractor:
             except Exception as exc:  # provider/network errors: surface as a retryable 502
                 log.warning("vision_call_failed", extra={"flow": flow, "error": type(exc).__name__})
                 raise ExtractionFailedError("We couldn't read that screenshot right now.") from exc
-            usage = getattr(r, "usage", None)
-            log.info(
-                "model_call",
-                extra={
-                    "flow": flow,
-                    "latency_ms": int((time.monotonic() - t0) * 1000),
-                    "tokens_in": getattr(usage, "input_tokens", None),
-                    "tokens_out": getattr(usage, "output_tokens", None),
-                },
-            )
             return out
         raise ExtractionFailedError("We couldn't read that screenshot.") from last
 

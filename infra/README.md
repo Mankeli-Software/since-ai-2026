@@ -25,6 +25,24 @@ scripts/smoke.sh http://localhost:8080
 docker rm -f fitter
 ```
 
+### Cost guard and the demo key in prod (#18)
+
+The backend rate-limits the public link and caps model calls per day (`backend/app/agent/CLAUDE.md`, "Cost and abuse
+guard"). The defaults need no config. Demo devices (the recording, the judges' walkthrough if needed) skip every limit
+with an `X-Demo-Key` header whose value is in `DEMO_KEY`. **Not wired yet:** CI only passes `ANTHROPIC_API_KEY`. To
+turn it on, in this order (adding the secret to `ci.yml` before it exists breaks the deploy):
+
+```sh
+openssl rand -hex 16 | gcloud secrets create demo-key --replication-policy=automatic --data-file=- --project "$PROJECT_ID"
+gcloud secrets add-iam-policy-binding demo-key --project "$PROJECT_ID" \
+  --member="serviceAccount:$RUNTIME_SA" --role=roles/secretmanager.secretAccessor
+# then in .github/workflows/ci.yml, deploy step:
+#   secrets: ANTHROPIC_API_KEY=anthropic-api-key:latest,DEMO_KEY=demo-key:latest
+```
+
+To change a limit without a code change, add it to `env_vars` in the same step (for example
+`AGENT_DAILY_MODEL_CALL_CAP=1000`). Keep `--max-instances=1`: the counters are in memory per instance.
+
 ## Team access (Juho, Matti)
 
 Project `takomo-fitter` (region `europe-north1`). Jesse is Owner; Juho Torkkeli and Matti Mäki-Kihniä have the

@@ -9,10 +9,11 @@ from typing import Literal, Protocol
 from pydantic import BaseModel, Field
 
 from app.schemas.evidence import ExtractedSession
+from app.schemas.flags import Flag
 
 ScreenshotKind = Literal["launch_monitor", "round_stats"]
 ExtractionSource = Literal["vision", "fixture"]
-# V4 for now; `validate_extraction` (#34) adds S1–S13 / V2 reasons through the same list.
+# low_confidence = V4's confidence check; plausibility = any other rule from validate_extraction.
 FlaggedReason = Literal["low_confidence", "plausibility"]
 
 
@@ -48,6 +49,8 @@ class FlaggedCell(BaseModel):
     reason: FlaggedReason = "low_confidence"
     confidence: float | None = None
     code: str | None = Field(default=None, description="FlagCode when reason=plausibility")
+    message_id: str | None = Field(default=None, description="Copy key of the deciding flag")
+    suggested_value: float | str | None = None
 
 
 class ExtractionReview(BaseModel):
@@ -66,6 +69,10 @@ class ExtractionReview(BaseModel):
     unit_labels_seen: list[str] = Field(default_factory=list)
     headers_read: list[str] = Field(default_factory=list)
     round_stats: RoundStatsRead | None = None
+    flags: list[Flag] = Field(
+        default_factory=list,
+        description="Every deterministic flag (V1-V5, S rules), incl. table-level V2 units",
+    )
 
 
 class RoundStatsExtractor(Protocol):

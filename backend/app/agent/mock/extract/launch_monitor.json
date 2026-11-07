@@ -1,5 +1,5 @@
 {
-  "_comment": "SYNTHETIC scripted-mode fixture (L6): a made-up 7-iron launch-monitor screen, not a real golfer. Returned by agent/extract.py when LLM_MODE=mock.",
+  "_comment": "SYNTHETIC scripted-mode fixture (L6): a made-up 7-iron launch-monitor screen, not a real golfer. Row 3 carry is a deliberate misread (decimal point missed: 1239 for 123.9) so the review table shows a flagged cell. Returned by agent/extract.py when LLM_MODE=mock.",
   "synthetic": true,
   "session": {
     "monitor": "Synthetic launch monitor",
@@ -157,9 +157,9 @@
       {
         "row": 3,
         "field": "carry_yd",
-        "literal": "123.9",
-        "value": 123.9,
-        "confidence": 0.97
+        "literal": "1239",
+        "value": 1239.0,
+        "confidence": 0.94
       },
       {
         "row": 3,
