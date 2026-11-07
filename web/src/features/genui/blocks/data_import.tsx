@@ -11,11 +11,12 @@ const NAMES: Record<string, string> = {
   csv: 'TrackMan CSV', ball_line: 'Ball-line test', skip: 'Skip for now',
   trackman_link: 'TrackMan link', screenshot: 'Screenshot', round_stats_screenshot: 'Round stats screenshot',
 }
-const CLUBS = [
-  ['own_7i', 'My own 7-iron'], ['takomo_201t-mkii_std', 'Takomo 201T MKII test club'],
-  ['takomo_201-mkii_std', 'Takomo 201 MKII test club'], ['takomo_301-cb_std', 'Takomo 301 CB test club'],
-  ['takomo_301-mb_std', 'Takomo 301 MB test club'], ['takomo_101-mkii_std', 'Takomo 101 MKII test club'],
-] as const
+// The pack's test clubs (club ids in demo/shots.csv).
+const CLUBS: [string, string][] = [
+  ['own_7i', 'My own 7-iron'],
+  ['takomo_201-mkii_kbs-tour-regular_std', 'Takomo 201 MKII test club'],
+  ['takomo_101-mkii_kbs-tour-lite-regular_std', 'Takomo 101 MKII test club'],
+]
 // shortcut: switch to fixtures/diagrams.json (#41) when it lands.
 const STEPS = [
   'Draw a straight line on the ball.',
@@ -48,9 +49,10 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   }, [demo, interactive])
 
   const done = (r: Response, n?: string) =>
-    r.json().then((j: { import_id?: string; n_shots?: number }) => {
+    r.json().then((j: { import_id?: string; report?: { n_shots?: number } }) => {
       if (!j.import_id) throw new Error('no id')
-      respond({ import_id: j.import_id }, n ?? `Imported ${j.n_shots ?? ''} shots`.replace('  ', ' '))
+      const shots = j.report?.n_shots
+      respond({ import_id: j.import_id }, n ?? (shots ? `Imported ${shots} shots` : 'Imported my shots'))
     })
 
   const run = async (go: () => Promise<Response>, text?: string) => {
@@ -118,7 +120,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         <div className="flex flex-col gap-2 rounded-md border border-border p-3">
           <label className={labelCls}>Club
             <select className={inputCls} value={club} disabled={off} onChange={(e) => setClub(e.target.value)}>
-              {CLUBS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              {(CLUBS.some(([v]) => v === club) ? CLUBS : [...CLUBS, [club, club]]).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </label>
           <input type="file" accept=".csv,text/csv" disabled={off} onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />

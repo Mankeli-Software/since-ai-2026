@@ -127,7 +127,11 @@ export const useSession = create<SessionStore>()((set, get) => {
       }
     },
     say: (text) => {
-      set((s) => ({ messages: [...s.messages, { id: `u-${s.messages.length}`, role: 'user', text, seq: nextSeq() }] }))
+      // Typed text while an input block waits also answers it on the server (agent/engines/base.py answer_of).
+      set((s) => ({
+        ui: s.ui.map((u) => (u.interactive && !u.answered ? { ...u, answered: true, answer: { value: text, displayText: text } } : u)),
+        messages: [...s.messages, { id: `u-${s.messages.length}`, role: 'user', text, seq: nextSeq() }],
+      }))
       return turn({ message: { kind: 'text', text } })
     },
     respond(componentId, value, displayText) {
