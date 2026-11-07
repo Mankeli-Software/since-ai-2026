@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react'
-import { Button, Eyebrow, useNumberKeys } from '@/components/studio'
+import { Button, EnterKbd, Eyebrow, Kbd, useEnterKey, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 
 type Choice = 'stock' | 'custom'
@@ -78,7 +78,7 @@ const AMBER = '#E3B341'
 
 /**
  * R5 stock vs custom, on the light conversation card: a radiogroup of two cards (custom = recommended),
- * then "Choose this" confirms. `onPick` gets 'stock' | 'custom' (the block's resume value).
+ * then "Choose this" confirms (number keys 1/2 select, Enter confirms). `onPick` gets 'stock' | 'custom' (the block's resume value).
  * Delivery times are example copy from the design until commerce data exists.
  */
 export function StockVsCustomView(p: {
@@ -95,6 +95,7 @@ export function StockVsCustomView(p: {
   const off = p.locked || done
   const choices: Choice[] = ['stock', 'custom']
   useNumberKeys(2, (i) => setSel(choices[i]), !off)
+  useEnterKey(() => p.onPick(sel), !off)
 
   const cards = [
     {
@@ -131,7 +132,7 @@ export function StockVsCustomView(p: {
         </ul>
       )}
       <div role="radiogroup" aria-label="Stock or custom" className="flex gap-3.5">
-        {cards.map((c) => {
+        {cards.map((c, i) => {
           const on = sel === c.id
           const custom = c.id === 'custom'
           return (
@@ -140,6 +141,7 @@ export function StockVsCustomView(p: {
               type="button"
               role="radio"
               aria-checked={on}
+              aria-keyshortcuts={done ? undefined : String(i + 1)}
               disabled={off}
               onClick={() => setSel(c.id)}
               className={cn(
@@ -157,6 +159,7 @@ export function StockVsCustomView(p: {
                 {custom && (
                   <Eyebrow className="ml-auto rounded-4 bg-tiger-orange px-2 py-[3px] text-midnight">Recommended</Eyebrow>
                 )}
+                {!done && <Kbd className={custom ? undefined : 'ml-auto'}>{i + 1}</Kbd>}
               </span>
               <Eyebrow className="text-grey-55">Your strikes</Eyebrow>
               <StrikeMap custom={custom} />
@@ -176,8 +179,9 @@ export function StockVsCustomView(p: {
           {done ? `You chose ${p.picked}.` : 'Pick one. Not sure? Stock still plays fine for you.'}
         </span>
         {!done && (
-          <Button variant="dark" disabled={off} onClick={() => p.onPick(sel)}>
+          <Button variant="dark" disabled={off} aria-keyshortcuts="Enter" onClick={() => p.onPick(sel)} className="pr-3">
             Choose this
+            <EnterKbd />
           </Button>
         )}
       </div>
