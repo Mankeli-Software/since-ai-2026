@@ -23,7 +23,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     const label = SCORES.find(([n]) => n === score)?.[1]
     respond(
       { age: Number(age), sex, handedness: hand, rounds_per_year: rounds, typical_score: score },
-      `${age} yrs, ${sex}, ${hand}-handed, ${rounds} rounds a year, scores ${label}`,
+      `${age} yrs, ${sex === 'female' ? "women's" : "men's"} standard, ${hand}-handed, ${rounds} rounds a year, scores ${label}`,
     )
   }
   // Several fields, so no number keys; Enter (outside a field) continues once every field is set.

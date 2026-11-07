@@ -48,7 +48,7 @@ INTAKE: tuple[tuple[str, str, ChoiceChips | Slider | BodyMeasure], ...] = (
         [("right", "Right-handed"), ("left", "Left-handed")])),
     ("age", "age", Slider(prompt="How old are you?", field="age", unit="years", min=8, max=100)),
     ("sex", "sex", _chips("sex", "Which fits you best for club sizing?",
-        [("male", "Male"), ("female", "Female")])),
+        [("male", "Men's clubs"), ("female", "Women's clubs")])),
     ("score_bucket", "score_bucket", _chips("score_bucket",
         "What do you usually shoot for 18? Your typical round, not your best one.",
         [("1", "Under 71"), ("2", "71-77"), ("3", "78-84"), ("4", "85-92"), ("5", "Over 92")])),

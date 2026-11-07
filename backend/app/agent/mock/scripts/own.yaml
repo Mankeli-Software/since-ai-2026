@@ -37,7 +37,7 @@ steps:
   - ui:
       type: sentence_builder
       prompt: "Tap the words to change them"
-      template: "I've played golf for {years}, about {often}, and I'm a {hand} handed {sex} aged {age}"
+      template: "I've played golf for {years}, about {often}, and I'm {hand}, playing {sex} clubs, aged {age}"
       tokens:
         - id: years
           placeholder: "how long"
@@ -56,13 +56,13 @@ steps:
         - id: hand
           placeholder: "right or left"
           options:
-            - {id: right, label: "right"}
-            - {id: left, label: "left"}
+            - {id: right, label: "right-handed"}
+            - {id: left, label: "left-handed"}
         - id: sex
-          placeholder: "man or woman"
+          placeholder: "men's or women's"
           options:
-            - {id: male, label: "man"}
-            - {id: female, label: "woman"}
+            - {id: male, label: "men's"}
+            - {id: female, label: "women's"}
         - id: age
           placeholder: "age"
           options:

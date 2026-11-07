@@ -1,7 +1,7 @@
 {
   "type": "heard_summary",
   "facts": [
-    {"label": "Man, 31", "source": "typed"},
+    {"label": "Men's clubs, 31", "source": "typed"},
     {"label": "Right-handed", "source": "typed"},
     {"label": "8 years, handicap 12", "source": "typed"},
     {"label": "142 m carry", "source": "measured"},
