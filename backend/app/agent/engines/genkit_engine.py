@@ -13,6 +13,9 @@ from pydantic import BaseModel
 
 from app.agent.ai import CHAT, ai
 from app.agent.engines.base import answer_of, stored, user_text
+from app.agent.guard import bind
+from app.agent.metering import meter
+from app.agent.settings import settings
 from app.core.tooling import ToolContext, ToolSpec, get_tool, list_tools, ui_tool_specs
 from app.schemas.chat import TextEvent, TurnRequest, UiEvent
 from app.schemas.session import StoredMessage
@@ -69,6 +72,7 @@ class GenkitEngine:
         s = ctx.session
         tools = _define_tools()
         _CTX.set(ctx)
+        bind(s.id, ctx.budget)  # the meter middleware counts calls + tokens into this budget
         msgs = [
             Message.model_validate(d)
             for h in history
@@ -101,7 +105,15 @@ class GenkitEngine:
             out[0] = stored("user", "live", user_text(request), [_dump(msgs[-1])])
         base = len(msgs) - (1 if answer is None else 0)  # messages before this turn's own
 
-        sr = ai.generate_stream(model=CHAT, system=SYSTEM, messages=msgs, tools=tools, **kwargs)
+        sr = ai.generate_stream(
+            model=CHAT,
+            system=SYSTEM,
+            messages=msgs,
+            tools=tools,
+            max_turns=settings.max_tool_turns,
+            use=[meter("chat", CHAT)],
+            **kwargs,
+        )
         texts: list[str] = []
         async for chunk in sr.stream:
             if chunk.text:  # chunk.text never includes reasoning
@@ -116,9 +128,7 @@ class GenkitEngine:
         resp = await sr.response
         if resp.error or str(resp.finish_reason).lower().endswith("failed"):
             raise RuntimeError(f"model call failed: {resp.error}")
-        if resp.usage:
-            ctx.budget.input_tokens += int(resp.usage.input_tokens or 0)
-            ctx.budget.output_tokens += int(resp.usage.output_tokens or 0)
+        # tokens + model calls were already counted per call by the meter middleware
 
         if resp.interrupts:  # the first input component ends the turn
             first = resp.interrupts[0].tool_request

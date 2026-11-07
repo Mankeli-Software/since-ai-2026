@@ -8,18 +8,21 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
+from app.agent.guard import check_turn
 from app.agent.turn import start_turn
 from app.api.deps import StoreDep
+from app.api.guard_deps import DemoKeyHeader
 from app.schemas.chat import StreamEvent, TurnRequest
 
 router = APIRouter(tags=["session"])  # "session" keeps the generated operation id of the stub
 
 
 async def turn_events(
-    session_id: str, body: TurnRequest, store: StoreDep
+    session_id: str, body: TurnRequest, store: StoreDep, demo_key: DemoKeyHeader = None
 ) -> AsyncIterator[StreamEvent]:
     """A dependency, because errors raised inside an SSE generator come after the 200 headers.
-    Here 404 / 409 / 422 are still proper HTTP errors."""
+    Here 404 / 409 / 422 / 429 are still proper HTTP errors."""
+    check_turn(await store.load(session_id), demo_key)  # 429: 10 turns/min, session budget (#18)
     return await start_turn(store, session_id, body)
 
 
