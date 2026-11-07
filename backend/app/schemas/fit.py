@@ -1,6 +1,6 @@
 """Fit I/O models (plan §3.2, §3.5, §3.7). Owned by FIT after v0: additive changes only."""
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -23,6 +23,7 @@ from app.schemas.common import (
     SpecValue,
     Tempo,
 )
+from app.schemas.evidence import Shot
 
 
 class MappedAnswers(BaseModel):
@@ -41,6 +42,63 @@ class MappedAnswers(BaseModel):
     handedness: Handedness = "right"
     rounds_per_year: str | None = None
     provenance: dict[str, Provenance] = Field(default_factory=dict)
+    lie_override_deg: float | None = Field(
+        default=None,
+        description="Continuous lie need from evidence (test-club shots, or ball-line / own-7i "
+        "Dynamic Lie fused with the chart). None = the static chart decides.",
+    )
+    est_7i_speed_mph: float | None = Field(
+        default=None, description="The 7-iron club speed behind swing_bucket, when one is known"
+    )
+    est_hand_length_cm: float | None = None
+
+
+class IntakeAnswers(BaseModel):
+    """What the golfer told us (conversation, form or questionnaire.csv). All optional: the
+    conversation fills it in over time; `fitting.mapping.missing_inputs` lists what is still
+    needed before a fit can run."""
+
+    age: int | None = Field(default=None, ge=8, le=100)
+    sex: Sex | None = None
+    handedness: Handedness | None = None
+    rounds_per_year: str | None = None
+    score_bucket: Bucket | None = None
+    reported_7i_speed_mph: float | None = None
+    reported_7i_carry_yd: float | None = None
+    characteristics: list[Characteristic] = Field(default_factory=list)
+    flight: FlightPref | None = None
+    tempo: Tempo | None = None
+    height_cm: float | None = None
+    wrist_to_floor_cm: float | None = None
+    glove: Glove | None = None
+    glove_was_guessed: bool = False
+    own_7i_loft_deg: float | None = None
+
+
+class PhoneMeasurements(BaseModel):
+    """At-home capture output (pack phone_measurements.csv; simulated in the pack)."""
+
+    body_photo_quality: Literal["good", "poor"] | None = None
+    height_photo_cm: float | None = None
+    wrist_to_floor_photo_cm: float | None = None
+    hand_length_photo_cm: float | None = None
+    backswing_video_s: float | None = None
+    downswing_video_s: float | None = None
+    clubhead_speed_video_mph: float | None = None
+
+
+class FitEvidence(BaseModel):
+    """Measured evidence for `build_answers`. `shots` are the usable shots: the caller drops
+    plausibility rejects (S1/S3) first and keeps mishits (they carry lie information)."""
+
+    phone: PhoneMeasurements | None = None
+    shots: list[Shot] = Field(default_factory=list)
+    ball_line_tilt_deg: list[float] = Field(
+        default_factory=list, description="Ball-line test readings, + = toe up (own club)"
+    )
+    round_avg_score: float | None = Field(
+        default=None, description="Average 18-hole score from a round-stats import"
+    )
 
 
 class Cutoff(BaseModel):
