@@ -9,7 +9,7 @@ issue #11, to run **by hand** (Jesse). CI never creates cloud resources.
 - **Every PR and every push to `main`:** `backend-checks` (ruff, `lint-imports`), `frontend-checks` (contract export,
   `pnpm gen/typecheck/lint/build`), `build-image` (Docker build, run the container, `scripts/smoke.sh`). No test jobs (L17).
   Each job skips cleanly while `backend/` or `web/` are not on `main` yet.
-- **Push to `main` only:** `build-image` pushes `europe-north1-docker.pkg.dev/<PROJECT_ID>/app/fitter:<sha>`, then `deploy`
+- **Push to `main` only:** `build-image` pushes `europe-north1-docker.pkg.dev/takomo-fitter/app/fitter:<sha>`, then `deploy`
   creates a revision tagged `sha-<7>` with `--no-traffic`, runs `scripts/smoke.sh` on the tag URL, and only then moves
   traffic to it. A revision that fails the smoke gets no traffic; prod stays on the last good one.
 - **Gates:** the push and the deploy run only when the GitHub Variables below are set, so CI is green before #11 is done.
@@ -30,7 +30,7 @@ docker rm -f fitter
 Run these from a shell logged in as the project owner (`gcloud auth login`). Replace every `<…>` placeholder.
 
 ```sh
-export PROJECT_ID=<PROJECT_ID>              # e.g. takomo-fitter-2026 (globally unique)
+export PROJECT_ID=takomo-fitter              # project number 266978168041
 export BILLING_ACCOUNT=<BILLING_ACCOUNT_ID> # from: gcloud billing accounts list
 export REGION=europe-north1
 export GH_REPO=Mankeli-Software/since-ai-2026
@@ -39,7 +39,7 @@ export GH_REPO=Mankeli-Software/since-ai-2026
 ### 1. Project, billing, APIs
 
 ```sh
-gcloud projects create "$PROJECT_ID" --name="Takomo Fitter Studio"
+# gcloud projects create "$PROJECT_ID" --name="Takomo Fitter Studio"   # already done: takomo-fitter exists
 gcloud billing projects link "$PROJECT_ID" --billing-account="$BILLING_ACCOUNT"
 gcloud config set project "$PROJECT_ID"
 
@@ -52,7 +52,7 @@ gcloud services enable \
   sts.googleapis.com \
   iam.googleapis.com
 
-export PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+export PROJECT_NUMBER=266978168041         # = gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)"
 ```
 
 ### 2. Artifact Registry repo `app`
@@ -78,7 +78,7 @@ gcloud secrets add-iam-policy-binding anthropic-api-key \
 Juho then adds the key (never paste it into an issue, PR or commit; share it only by password manager or DM):
 
 ```sh
-printf %s "$ANTHROPIC_KEY" | gcloud secrets versions add anthropic-api-key --data-file=- --project=<PROJECT_ID>
+printf %s "$ANTHROPIC_KEY" | gcloud secrets versions add anthropic-api-key --data-file=- --project=takomo-fitter
 ```
 
 > **The deploy needs at least one version.** It mounts `anthropic-api-key:latest`, and Cloud Run refuses a revision whose
