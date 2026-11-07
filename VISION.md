@@ -130,7 +130,18 @@ The rule for prioritising: **trust and the experience first** (35% of the judgin
 3. **Light conversational intake** that covers everything the current questionnaire asks, plus the fitter-only questions. The fallback is always available.
 4. **TrackMan / simulator data import.** We have access to TrackMan simulators, so real measured data is part of the core demo, not an add-on. Import is a shared-report URL or a CSV. It replaces guesses with measured speed, carry and dynamic lie, and the user sees confidence rise.
    - **Includes "find a simulator near you" as a static PoC:** a mocked map and list of nearby simulators, shown in the flow and in the "get a more accurate result" ending.
-5. **Recommendation engine** using Takomo's baseline rules from the participant pack (`baseline.py`) as tools. It guarantees a **buildable** spec and produces the `.trace` for the "why".
+5. **Recommendation engine.** We don't write our own fitting rules. Our Python backend runs the participant pack's `baseline.py` (today's Takomo tool as code) and `physics.py`. This is pack code running on our side, not a Takomo API. The AI agent calls them as tools:
+   - `recommend(...)` returns a ranked head, shaft, length, lie, grip and stock/custom, plus a `.trace` that explains why. `score_heads`, `lie_for`, `flex_for` and the other functions can be called separately.
+   - `physics.py` gives the ball flight and dispersion for each head.
+   - The product data lookups guarantee a **buildable** spec.
+
+   **Our own code is the glue around it:**
+   - **Input mapping.** Turn the conversation and imported data into the answers format the baseline expects. Measured TrackMan values replace guesses, which alone takes the baseline from 77.1 to 83.6.
+   - **Confidence and close calls.** Computed from which inputs are measured versus guessed, how close a value is to a cutoff, and the gap between head scores.
+   - **Explanations.** Turn the `.trace` into plain-language "why" text at the right depth for the player.
+   - **Tinker mode.** Re-run the recommendation and physics with the changed spec and compare against the recommendation.
+
+   The pack's **scorer** (Spec Agreement Score) is only for validation: the test-predictions CSV and the B1/B2 comparison. The app never calls it.
 6. **3D club stage** using Takomo's club models (we have access): the recommended head plus the comparison row.
 7. **Ball-flight and dispersion visual** for each head, driven by the pack's `physics.py`.
 8. **Why panel** for each spec, with close-call flags and adaptive depth.
@@ -159,7 +170,7 @@ The rule for prioritising: **trust and the experience first** (35% of the judgin
 ### Explicitly not now
 - Building camera/CV capture before the trust experience works.
 - A native app. Takomo prefers web that integrates easily into takomogolf.com.
-- Rewriting Takomo's recommendation logic. *"Leave the recommendation process to the experts."* We wrap it, explain it and feed it better evidence.
+- Rewriting Takomo's recommendation logic. *"Leave the recommendation process to the experts."* We run the pack's `baseline.py` as it is, then wrap it, explain it and feed it better evidence.
 
 ## 8. Trust design: the mechanisms in one list
 
