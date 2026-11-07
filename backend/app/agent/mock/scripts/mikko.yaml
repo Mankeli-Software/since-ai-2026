@@ -20,6 +20,12 @@ steps:
   - tool_call:
       name: get_import_report
       args: {import_id: own_7i}
+  # The script never branches, so a skipped import must not leave the fit on the stated 160 yd
+  # (that maps to stiff). Mikko's measured speed from his own-7i session goes in either way; with
+  # the import done it agrees with the confirmed shots.
+  - tool_call:
+      name: update_profile
+      args: {reported_7i_speed_mph: 72.1}
   - text: "Thanks for importing your TrackMan session! The measured data gives us an honest baseline."
   - text: "Your 10 shots averaged 124.7 yards carry at 72.1 mph club speed. That places you in swing bucket 3 (Regular flex) rather than Stiff."
   - text: "Your stated 160 yd carry likely reflects your current 28° strong-lofted 7-iron, which is 4° stronger than Takomo's 32° 7-iron. That loft difference adds roughly 12 yards on loft alone."
@@ -67,34 +73,16 @@ steps:
       name: run_fit
       args: {}
   - text: "Your test-club shots show an impact dynamic lie of 64.8° (+2.8° toe-up). That overrides the chart to +3° upright!"
-  - text: "Your recommended build is the Takomo 201T MKII with KBS Tour Lite Regular steel shafts, +0.5\" length, and +3° upright lie."
+  - text: "Here is your recommended build. Every spec on the card comes straight from the fit."
   - ui:
       type: recommendation_card
-      spec:
-        head: 201t-mkii
-        shaft: kbs-tour-lite-r
-        shaft_model: "KBS Tour Lite"
-        flex: regular
-        material: steel
-        length_in: 0.5
-        lie_deg: 3
-        grip: standard
-        handedness: right
-        purchase: custom
-      purchase: custom
-      confidence: 0.85
-      gate: confident
-      runner_up:
-        head: 201-mkii
-        shaft: kbs-tour-lite-r
-        shaft_model: "KBS Tour Lite"
-        flex: regular
-        material: steel
-        length_in: 0.5
-        lie_deg: 3
-        grip: standard
-        handedness: right
-        purchase: custom
+      # Bound to the live fit so the card always matches the buy bar and the header confidence.
+      spec: $state.best
+      purchase: $state.best.purchase
+      confidence: $state.confidence
+      gate: $state.gate
+      strength: $state.strength
+      runner_up: $state.runner_up
   - tool_call:
       name: explain_part
       args: {part: head}
