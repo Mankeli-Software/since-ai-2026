@@ -11,3 +11,8 @@ export type {
   Handedness,
   ShaftMaterialKind,
 } from './types'
+export { default as ClubRow, preloadHeads } from './ClubRow'
+export type { ClubRowProps } from './ClubRow'
+export { HeadPhoto } from './HeadPhoto'
+export { DEFAULT_ASSET_BASE, loadManifest, useManifest } from './manifest'
+export type { ClubManifest, HeadSlug } from './manifest'
