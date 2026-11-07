@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { btnCls, cardCls, eyebrowCls } from '../genui/ui'
 
 const topics = forge as Record<string, { title: string; blurb: string }>
-const vids = videos as Record<string, { youtube_id: string; start_s: number; title: string }>
+const vids = videos as Record<string, { youtube_id: string; start_s?: number; title: string }>
 
 export function DriverTeaserView() {
   return (
@@ -36,7 +36,7 @@ export function ProductVideoView({ head }: { head: string }) {
     <iframe
       className="aspect-video w-full rounded-lg border border-border bg-surface-dark"
       title={v.title}
-      src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.youtube_id)}?start=${Math.max(0, Math.floor(v.start_s))}`}
+      src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.youtube_id)}?start=${Math.max(0, Math.floor(v.start_s ?? 0))}`}
       allow="encrypted-media; picture-in-picture"
       referrerPolicy="strict-origin-when-cross-origin"
       allowFullScreen

@@ -5,10 +5,7 @@ from app.schemas.ui._base import UIBlockBase, UIKind
 
 
 class ProductVideo(UIBlockBase):
-    """Show the Takomo product video for a head.
-
-    The video is resolved from fixtures/product_videos.json.
-    """
+    """Takomo testing, influencer in-the-bag setups, and video reviews for a head."""
 
     kind: ClassVar[UIKind] = "ui_display"
 

@@ -1,1 +1,859 @@
-{}
+{
+  "101-mkii": {
+    "head": "101-mkii",
+    "headline": "#1 Bestseller — Game Improvement",
+    "tagline": "Maximum distance, launch, and forgiveness for beginners and developing golfers",
+    "youtube_id": "AP7MiQJfaXI",
+    "title": "Takomo 101 MKII Irons Tested at Average Swing Speeds",
+    "hero_mp4_url": "https://takomogolf.com/cdn/shop/videos/c/vp/c94104610c894f34befa1049d12135b8/c94104610c894f34befa1049d12135b8.HD-720p-4.5Mbps-84973612.mp4?v=0",
+    "hero_hls_url": "https://takomogolf.com/cdn/shop/videos/c/vp/c94104610c894f34befa1049d12135b8/c94104610c894f34befa1049d12135b8.m3u8?v=0",
+    "forge_clinic_mux_id": "EDwGa8Y400U1XFw2R5ttBFgqX00h9xGDS6eQcMIbwEY004",
+    "forge_clinic_stream_url": "https://stream.mux.com/EDwGa8Y400U1XFw2R5ttBFgqX00h9xGDS6eQcMIbwEY004.m3u8",
+    "influencers": [
+      {
+        "name": "Robbie Berger (Bobby Fairways)",
+        "handle": "@Bobdoessports",
+        "channel": "Bob Does Sports",
+        "role_or_note": "Official Partner & Ambassador — games 101 MKII for maximum forgiveness",
+        "youtube_id": "yjUTQcY1rt8",
+        "video_title": "Bobby Fairways 👌 Takomos In The Bag @Bobdoessports"
+      },
+      {
+        "name": "Josh Zerkaa",
+        "handle": "@BigWedgeGolf",
+        "channel": "Big Wedge Golf / Sidemen",
+        "role_or_note": "High-handicapper gamer — \"I love how forgiving they are\"",
+        "youtube_id": "e2ykbK5WQxc",
+        "video_title": "BIG WEDGE is Team Takomo!"
+      },
+      {
+        "name": "Joey Cold Cuts",
+        "handle": "@Bobdoessports",
+        "channel": "Bob Does Sports",
+        "role_or_note": "Official Partner — games player-profile hollow body Takomo irons",
+        "youtube_id": "uuUYFbWtfrE",
+        "video_title": "Joey Cold Cuts⚡️Takomos In The Bag @Bobdoessports"
+      },
+      {
+        "name": "Sabrina Andolpho",
+        "handle": "@sabrinaandolpho",
+        "channel": "Sabrina Andolpho Golf",
+        "role_or_note": "Ambassador — \"Even if my swing is slightly off, I'm still hitting greens\"",
+        "youtube_id": "JiBbYBVB-j8",
+        "video_title": "Takomo Trackman Challenge: Sabrina Andolpho"
+      }
+    ],
+    "videos": [
+      {
+        "id": "101-mkii-official-1",
+        "youtube_id": "AP7MiQJfaXI",
+        "title": "Takomo 101 MKII Irons Tested at Average Swing Speeds",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Official Takomo testing measuring realistic launch monitor numbers and ball speed for average swing speeds"
+      },
+      {
+        "id": "101-mkii-official-2",
+        "youtube_id": "gIGyfUl_nqQ",
+        "title": "NEW Takomo 101 MKII (TrackMan Testing)",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Hollow-body design reveal, refined shaping, and TrackMan clubhead data"
+      },
+      {
+        "id": "101-mkii-official-3",
+        "youtube_id": "eeaH5b9yVcA",
+        "title": "OG 101 vs Takomo 101 MKII",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Direct comparison between the original bestselling 101 and the upgraded 101 MKII"
+      },
+      {
+        "id": "101-mkii-official-4",
+        "youtube_id": "w00qCbcIhy4",
+        "title": "NEW Takomo Game Improvement Irons! On Course Testing!",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Course testing evaluating turf interaction, flight height, and green-holding capability"
+      },
+      {
+        "id": "101-mkii-witb-1",
+        "youtube_id": "yjUTQcY1rt8",
+        "title": "Bobby Fairways 👌 Takomos In The Bag @Bobdoessports",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Bob Does Sports",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Bobby Fairways from Bob Does Sports shows why he bags the 101 MKII for game improvement"
+      },
+      {
+        "id": "101-mkii-witb-2",
+        "youtube_id": "e2ykbK5WQxc",
+        "title": "BIG WEDGE is Team Takomo!",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Big Wedge",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Josh Zerkaa and the Big Wedge crew test Takomo 101 MKII irons"
+      },
+      {
+        "id": "101-mkii-witb-3",
+        "youtube_id": "uuUYFbWtfrE",
+        "title": "Joey Cold Cuts⚡️Takomos In The Bag @Bobdoessports",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Bob Does Sports",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Joey Cold Cuts breaks down his Takomo iron setup and on-course feel"
+      },
+      {
+        "id": "101-mkii-witb-4",
+        "youtube_id": "JiBbYBVB-j8",
+        "title": "Takomo Trackman Challenge: Sabrina Andolpho",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Sabrina Andolpho",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Trackman challenge showcasing forgiveness and launch consistency"
+      },
+      {
+        "id": "101-mkii-review-1",
+        "youtube_id": "cq1hwDrzJh0",
+        "title": "NEW for 2026! - Takomo 101 MKII Review",
+        "channel": "Lets Play Thru",
+        "creator": "Lets Play Thru",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "On-course testing and comprehensive review of 101 MKII turf interaction and forgiveness"
+      },
+      {
+        "id": "101-mkii-review-2",
+        "youtube_id": "k0SCeWHSCng",
+        "title": "Takomo 101 MK2 — My Honest Thoughts After Testing Them",
+        "channel": "Mistah Short Hitter",
+        "creator": "Mistah Short Hitter",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Range testing, 9-hole on-course performance, and honest pros/cons for everyday golfers"
+      },
+      {
+        "id": "101-mkii-review-3",
+        "youtube_id": "1asUKCW7Hkc",
+        "title": "9 Holes with Takomo 101 MK2 + Short Hitter Opinion",
+        "channel": "Mistah Short Hitter",
+        "creator": "Mistah Short Hitter",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Course vlog evaluating scoring performance with 101 MKII irons"
+      },
+      {
+        "id": "101-mkii-review-4",
+        "youtube_id": "YmNzv6wU0jo",
+        "title": "BEST BUDGET IRONS AROUND? | Takomo 101 MK2 Irons",
+        "channel": "AskGolfNut",
+        "creator": "AskGolfNut",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Data-driven launch monitor testing analyzing ball speed, descent angle, and value"
+      },
+      {
+        "id": "101-mkii-review-5",
+        "youtube_id": "GNV5SNMk7Ak",
+        "title": "Takomo (2026) has done What the Golf Industry Doesn’t Want",
+        "channel": "Alex Elliott Reviews",
+        "creator": "Alex Elliott Reviews",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Featured review on Takomo's website evaluating direct-to-consumer value vs legacy OEM brands"
+      },
+      {
+        "id": "101-mkii-review-6",
+        "youtube_id": "rt026pmHraQ",
+        "title": "THE TRUTH: Takomo v TaylorMade v Titleist",
+        "channel": "H.I.T GOLF",
+        "creator": "Rick Shiels / H.I.T GOLF",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Direct comparison against TaylorMade P790 and Titleist irons"
+      }
+    ]
+  },
+  "201-mkii": {
+    "head": "201-mkii",
+    "headline": "#2 Bestseller — Forged Players Distance",
+    "tagline": "Multi-material forged feel with distance and forgiveness for mid-handicappers",
+    "youtube_id": "OmCEpyfiquo",
+    "title": "THIS Iron Replaces 101T (Takomo 201 MKII)",
+    "hero_mp4_url": null,
+    "hero_hls_url": null,
+    "influencers": [
+      {
+        "name": "Robbie Berger (Bobby Fairways)",
+        "handle": "@Bobdoessports",
+        "channel": "Bob Does Sports",
+        "role_or_note": "Original gamer setup with 201 MKII irons",
+        "youtube_id": "0Jl9h0AgrME",
+        "video_title": "IT'S OFFICIAL! Bob Does Sports x Takomo"
+      },
+      {
+        "name": "Seb on Golf",
+        "handle": "@BigWedgeGolf",
+        "channel": "Big Wedge Golf",
+        "role_or_note": "Gamer — \"really like how they feel off the face with a high launch\"",
+        "youtube_id": "e2ykbK5WQxc",
+        "video_title": "BIG WEDGE is Team Takomo!"
+      },
+      {
+        "name": "Claire Hogle",
+        "handle": "@clairehogle",
+        "channel": "Claire Hogle",
+        "role_or_note": "Official Ambassador — tested and showcased 201 MKII setup",
+        "youtube_id": "Oat4C8_86AI",
+        "video_title": "Takomos In The Bag @ClaireHogle"
+      }
+    ],
+    "videos": [
+      {
+        "id": "201-mkii-official-1",
+        "youtube_id": "OmCEpyfiquo",
+        "title": "THIS Iron Replaces 101T (Takomo 201 MKII)",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Takomo explains how the multi-material forged 201 MKII succeeds the 101T"
+      },
+      {
+        "id": "201-mkii-official-2",
+        "youtube_id": "U4dlPoubLls",
+        "title": "The New 201 Irons: Head-to-Head!",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Side-by-side comparison of 201 MKII vs 201T MKII lofts, offsets, and profiles"
+      },
+      {
+        "id": "201-mkii-official-3",
+        "youtube_id": "QhRIHDfxIgk",
+        "title": "Hype? Or Actually Good?",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Takomo team course testing evaluating turf interaction and dispersion"
+      },
+      {
+        "id": "201-mkii-official-4",
+        "youtube_id": "x_E9CTheL8s",
+        "title": "HOW FAR Does an Average Golfer Hit Takomo 201 MKII Irons?",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Distance, launch angle, and carry numbers tested across an amateur swing speed profile"
+      },
+      {
+        "id": "201-mkii-witb-1",
+        "youtube_id": "0Jl9h0AgrME",
+        "title": "IT'S OFFICIAL! Bob Does Sports x Takomo",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Bob Does Sports",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Bob Does Sports partnership announcement and initial bag builds"
+      },
+      {
+        "id": "201-mkii-witb-2",
+        "youtube_id": "Oat4C8_86AI",
+        "title": "Takomos In The Bag @ClaireHogle",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Collegiate player Claire Hogle showcases her Takomo 201 MKII setup"
+      },
+      {
+        "id": "201-mkii-review-1",
+        "youtube_id": "ht-B-xodRiY",
+        "title": "The NEW Takomo 201 Mk2 vs TaylorMade P790 - HUGE RESULTS!",
+        "channel": "James Robinson Golf",
+        "creator": "James Robinson Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "James Robinson tests the 201 MKII against TaylorMade P790 on the launch monitor"
+      },
+      {
+        "id": "201-mkii-review-2",
+        "youtube_id": "A73oqqIH5O8",
+        "title": "These are the Best Irons Takomo Has Ever Made",
+        "channel": "Lets Play Thru",
+        "creator": "Lets Play Thru",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Featured review on Takomo's website praising the forged feel and stability"
+      },
+      {
+        "id": "201-mkii-review-3",
+        "youtube_id": "rtSlPVUmacM",
+        "title": "Takomo 201 MKII tested by a 9-handicap GOLFER",
+        "channel": "Golf Mates",
+        "creator": "Golf Mates",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Single-digit handicap golfer course testing review"
+      },
+      {
+        "id": "201-mkii-review-4",
+        "youtube_id": "HNmoeHpICWg",
+        "title": "TAKING ON THE TAYLORMADE P790 | Takomo 201MK2 Irons 2026 Review",
+        "channel": "AskGolfNut",
+        "creator": "AskGolfNut",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Full launch monitor numbers, dispersion, and TaylorMade P790 comparison"
+      },
+      {
+        "id": "201-mkii-review-5",
+        "youtube_id": "aA0x1TSC5s4",
+        "title": "2026 Takomo Irons - Almost Perfect...",
+        "channel": "H.I.T GOLF",
+        "creator": "Rick Shiels / H.I.T GOLF",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Rick Shiels evaluates the 101 MKII, 201 MKII, and 201T MKII lineup"
+      },
+      {
+        "id": "201-mkii-review-6",
+        "youtube_id": "I-GBkdS57JY",
+        "title": "Have I Been Using The WRONG IRONS!? Brutal Takomo Comparison!",
+        "channel": "James Robinson Golf",
+        "creator": "James Robinson Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Direct comparison between Takomo 101 and 201 players performance irons"
+      }
+    ]
+  },
+  "201t-mkii": {
+    "head": "201t-mkii",
+    "headline": "Tour-Shaped Precision — Compact Players Distance",
+    "tagline": "Tour-caliber compact profile with thinner topline, less offset, and explosive hollow-body speed",
+    "youtube_id": "_47TA2zYHUs",
+    "title": "Give me some NUMBERS! (TrackMan Testing 201T MKII)",
+    "hero_mp4_url": null,
+    "hero_hls_url": null,
+    "influencers": [
+      {
+        "name": "Bryan Bros (Wesley & George Bryan)",
+        "handle": "@BryanBrosGolf",
+        "channel": "Bryan Bros Golf",
+        "role_or_note": "PGA Tour winner & contenders — featured 201T as Iron of the Year candidate",
+        "youtube_id": "PrQfDxQy-xw",
+        "video_title": "Takomo 201T - Iron Of The Year @BryanBrosGolf"
+      },
+      {
+        "name": "Josh Mayer (JMay)",
+        "handle": "@joshmayergolf",
+        "channel": "Josh Mayer Golf",
+        "role_or_note": "Ambassador & gamer — games 201T MKII + 101U driving iron",
+        "youtube_id": "0fx_DFSuiIw",
+        "video_title": "Is 201T MKII good for you? @BryanBrosGolf"
+      }
+    ],
+    "videos": [
+      {
+        "id": "201t-mkii-official-1",
+        "youtube_id": "_47TA2zYHUs",
+        "title": "Give me some NUMBERS! (TrackMan Testing 201T MKII)",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Takomo TrackMan testing showing spin rates, descent angles, and flight windows"
+      },
+      {
+        "id": "201t-mkii-official-2",
+        "youtube_id": "R6MJLKNWJyc",
+        "title": "Can You Really Play the Takomo 201T MKII at Average Swing Speeds?",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Launch conditions and green-holding capability for moderate swing speeds"
+      },
+      {
+        "id": "201t-mkii-official-3",
+        "youtube_id": "EmGluKEZc3o",
+        "title": "OG 201 vs Takomo 201T MKII",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Topline, offset, and sole width comparison against the classic 201"
+      },
+      {
+        "id": "201t-mkii-official-4",
+        "youtube_id": "U4dlPoubLls",
+        "title": "The New 201 Irons: Head-to-Head!",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Direct head-to-head comparison between 201 MKII and 201T MKII"
+      },
+      {
+        "id": "201t-mkii-witb-1",
+        "youtube_id": "PrQfDxQy-xw",
+        "title": "Takomo 201T - Iron Of The Year @BryanBrosGolf",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Bryan Bros",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Bryan Bros review why the 201T delivers player blade looks with modern speed"
+      },
+      {
+        "id": "201t-mkii-witb-2",
+        "youtube_id": "0fx_DFSuiIw",
+        "title": "Is 201T MKII good for you? @BryanBrosGolf",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Bryan Bros",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Bryan Bros break down handicap fit and turf interaction"
+      },
+      {
+        "id": "201t-mkii-review-1",
+        "youtube_id": "Z9li4WW_lws",
+        "title": "An Honest On Course Test of Takomo 201T MKII Irons",
+        "channel": "Lets Play Thru",
+        "creator": "Lets Play Thru",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Full 18-hole on-course testing evaluating workability and forgiveness"
+      },
+      {
+        "id": "201t-mkii-review-2",
+        "youtube_id": "0dP0XHD8Umg",
+        "title": "Takomo 201T MK2 — The Truth After Testing Them",
+        "channel": "Mistah Short Hitter",
+        "creator": "Mistah Short Hitter",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Honest breakdown of who should choose 201T MKII vs standard 201 MKII"
+      },
+      {
+        "id": "201t-mkii-review-3",
+        "youtube_id": "vvN70h3p8w0",
+        "title": "Are These the Hottest Irons of 2026? - Takomo 201T MkII",
+        "channel": "CK Golf",
+        "creator": "CK Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Scratch golfer perspective on feel, sound, ball flight, and workability"
+      }
+    ]
+  },
+  "301-cb": {
+    "head": "301-cb",
+    "headline": "Precision Forged Cavity Back — Pure S20C Steel",
+    "tagline": "Tour-proven forged feel with perimeter stability chosen by championship golfers",
+    "youtube_id": "du8z9ch1lVk",
+    "title": "Grant's Updated Takomo Setup",
+    "hero_mp4_url": null,
+    "hero_hls_url": null,
+    "influencers": [
+      {
+        "name": "Grant Horvat",
+        "handle": "@granthorvatgolf",
+        "channel": "Grant Horvat Golfs",
+        "role_or_note": "Won 2024 PGA Tour Creator Classic at East Lake gaming 301 CB irons",
+        "youtube_id": "du8z9ch1lVk",
+        "video_title": "Grant's Updated Takomo Setup"
+      },
+      {
+        "name": "Fat Perez (Nick Stubbe)",
+        "handle": "@Bobdoessports",
+        "channel": "Bob Does Sports",
+        "role_or_note": "Bob Does Sports ball-striker — games 301 CB for forged feel with stability",
+        "youtube_id": "WJ6LRFlKAt8",
+        "video_title": "FAT PEREZ ⛳️ Takomos In The Bag @Bobdoessports"
+      },
+      {
+        "name": "Mason Nutt (Busta)",
+        "handle": "@BustaJackGolf",
+        "channel": "BustaJack Golf",
+        "role_or_note": "BustaJack co-founder — custom built 301 CB set",
+        "youtube_id": "U9BC7sFuHBE",
+        "video_title": "Mason's got some SICK Takomos!"
+      },
+      {
+        "name": "Taco Golf (Tae Koh)",
+        "handle": "@tacogolf",
+        "channel": "Taco Golf",
+        "role_or_note": "NZ golf creator — games 301 CB irons + 101U",
+        "youtube_id": "qzj_8OuHHuI",
+        "video_title": "THIS is our Takomo Setup (Luke Kwon, Sam Heung Min, Taco Golf)"
+      },
+      {
+        "name": "Golf Sidekick (Matt)",
+        "handle": "@GolfSidekick",
+        "channel": "Golf Sidekick",
+        "role_or_note": "Official Ambassador — games 301 CB forged cavity back irons",
+        "youtube_id": "CFEmfFqYuYU",
+        "video_title": "Tim is MIA. Golf SideKick runs our YouTube - Irons Only"
+      },
+      {
+        "name": "Eric Cogorno",
+        "handle": "@ericcogorno",
+        "channel": "Eric Cogorno Golf",
+        "role_or_note": "PGA Teaching Professional & Ambassador — \"Love the look. Love the FEEL.\"",
+        "youtube_id": "wHWkdH1P-EA",
+        "video_title": "Which one will he choose? 201 vs 301 CB @GrantHorvatGolfs"
+      }
+    ],
+    "videos": [
+      {
+        "id": "301-cb-official-1",
+        "youtube_id": "zjkhwg4W7XY",
+        "title": "Takomo Iron 301 CB / MB explained",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Engineering overview of S20C forged carbon steel construction and combo set blending"
+      },
+      {
+        "id": "301-cb-official-2",
+        "youtube_id": "3osmksYaopM",
+        "title": "I won the Creator Classic using these Irons! @GrantHorvatGolfs",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Grant Horvat",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Grant Horvat celebrates winning the inaugural PGA Tour Creator Classic playing 301 CBs"
+      },
+      {
+        "id": "301-cb-official-3",
+        "youtube_id": "wHWkdH1P-EA",
+        "title": "Which one will he choose? 201 vs 301 CB @GrantHorvatGolfs",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Grant Horvat",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Grant Horvat tests 201 vs 301 CB head to head on the range before locking in 301 CB"
+      },
+      {
+        "id": "301-cb-witb-1",
+        "youtube_id": "du8z9ch1lVk",
+        "title": "Grant's Updated Takomo Setup",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Grant Horvat",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Grant Horvat walks through his full bag showing why he games Takomo 301 CB irons"
+      },
+      {
+        "id": "301-cb-witb-2",
+        "youtube_id": "WJ6LRFlKAt8",
+        "title": "FAT PEREZ ⛳️ Takomos In The Bag @Bobdoessports",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Bob Does Sports",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Fat Perez demonstrates why 301 CBs fit his elite ball-striking"
+      },
+      {
+        "id": "301-cb-witb-3",
+        "youtube_id": "U9BC7sFuHBE",
+        "title": "Mason's got some SICK Takomos!",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x BustaJack",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Mason Nutt showcases his custom built 301 CB iron set"
+      },
+      {
+        "id": "301-cb-witb-4",
+        "youtube_id": "qzj_8OuHHuI",
+        "title": "THIS is our Takomo Setup (Luke Kwon, Sam Heung Min, Taco Golf)",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Luke Kwon, Sam Heung Min, and Taco Golf present their forged Takomo setups"
+      },
+      {
+        "id": "301-cb-witb-5",
+        "youtube_id": "CFEmfFqYuYU",
+        "title": "Tim is MIA. Golf SideKick runs our YouTube - Irons Only",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x Golf Sidekick",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Golf Sidekick plays an irons-only match gaming Takomo 301 CBs"
+      },
+      {
+        "id": "301-cb-review-1",
+        "youtube_id": "gKkM1z9rnv4",
+        "title": "Maybe the BEST VALUE IRONS in the world (blown away!) | Takomo 301CB irons",
+        "channel": "Golfalot",
+        "creator": "Golfalot",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Tested against premium OEM forged cavity backs on Foresight GCQuad"
+      },
+      {
+        "id": "301-cb-review-2",
+        "youtube_id": "eQczQ4zbEV8",
+        "title": "Are The Takomo 301 CB Irons Worth The Hype? (Honest Review)",
+        "channel": "Bogey Book Golf",
+        "creator": "Bogey Book Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Comprehensive look at feel, trajectory control, and value"
+      },
+      {
+        "id": "301-cb-review-3",
+        "youtube_id": "N9_YifU6pos",
+        "title": "Takomo 301 CB Irons: 3 Months In The Bag… Was The Gamble Worth It?",
+        "channel": "Golf Mad Dad",
+        "creator": "Golf Mad Dad",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Long-term 3-month durability, feel, and on-course scoring evaluation"
+      },
+      {
+        "id": "301-cb-review-4",
+        "youtube_id": "1beMZDyjdjM",
+        "title": "Takomo 301 CB vs Takomo 101 | Which Should You Buy?",
+        "channel": "Golf Mad Dad",
+        "creator": "Golf Mad Dad",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Forged cavity back vs hollow-body distance head comparison"
+      },
+      {
+        "id": "301-cb-review-5",
+        "youtube_id": "V8l_DLgJDgk",
+        "title": "Takomo 301CB Review | Can Irons Beat Titleist & Mizuno?",
+        "channel": "Good Ole Days Golf",
+        "creator": "Good Ole Days Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Head to head launch monitor and turf interaction against Titleist T100 and Mizuno Pro"
+      },
+      {
+        "id": "301-cb-review-6",
+        "youtube_id": "otQOwG1Z9u8",
+        "title": "We Laughed at These Irons… Until We Hit Them – Takomo 201 vs 301 MB vs 301 CB Irons",
+        "channel": "Embers Golf",
+        "creator": "Embers Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Featured review on Takomo's website comparing 201, 301 CB, and 301 MB"
+      },
+      {
+        "id": "301-cb-review-7",
+        "youtube_id": "dorklm4M7MQ",
+        "title": "The CHEAP Irons That Are KILLING The Big Brands!",
+        "channel": "Matt Fryer Golf",
+        "creator": "Matt Fryer Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Matt Fryer tests 301 CB forged irons against legacy OEM brands"
+      }
+    ]
+  },
+  "301-mb": {
+    "head": "301-mb",
+    "headline": "Pure S20C Forged Muscle Back Blade",
+    "tagline": "Ultimate trajectory control, razor-thin topline, and pinpoint shot-shaping feedback",
+    "youtube_id": "HVVIjMVly9g",
+    "title": "Our Brand New Irons! | Bryan Bros WITB",
+    "hero_mp4_url": null,
+    "hero_hls_url": null,
+    "influencers": [
+      {
+        "name": "Wesley Bryan",
+        "handle": "@BryanBrosGolf",
+        "channel": "Bryan Bros Golf",
+        "role_or_note": "PGA Tour Winner (RBC Heritage) — played 301 MB blades in competitive PGA Tour play",
+        "youtube_id": "HVVIjMVly9g",
+        "video_title": "Our Brand New Irons! | Bryan Bros WITB"
+      },
+      {
+        "name": "George Bryan",
+        "handle": "@BryanBrosGolf",
+        "channel": "Bryan Bros Golf",
+        "role_or_note": "PGA Tour / Korn Ferry Tour competitor — games 301 combo set",
+        "youtube_id": "HVVIjMVly9g",
+        "video_title": "Our Brand New Irons! | Bryan Bros WITB"
+      },
+      {
+        "name": "Luke Kwon",
+        "handle": "@LukeKwonGolf",
+        "channel": "Luke Kwon Golf",
+        "role_or_note": "Pro golfer & creator — games 301 combo set with 301 MB scoring clubs",
+        "youtube_id": "dCuo81QMw-I",
+        "video_title": "Ok fine I'll tell the truth about Takomo Golf Clubs"
+      },
+      {
+        "name": "Cole Lantz (MadJack)",
+        "handle": "@BustaJackGolf",
+        "channel": "BustaJack Golf",
+        "role_or_note": "BustaJack co-founder — games 301 MB short irons",
+        "youtube_id": "xh87z2V71rE",
+        "video_title": "This is SAVAGE."
+      },
+      {
+        "name": "Sam Heung Min",
+        "handle": "@samheungmin",
+        "channel": "Sam Heung Min Golf",
+        "role_or_note": "Ambassador — games 301 combo set (301 MB short irons + 101U)",
+        "youtube_id": "qzj_8OuHHuI",
+        "video_title": "THIS is our Takomo Setup (Luke Kwon, Sam Heung Min, Taco Golf)"
+      }
+    ],
+    "videos": [
+      {
+        "id": "301-mb-official-1",
+        "youtube_id": "zjkhwg4W7XY",
+        "title": "Takomo Iron 301 CB / MB explained",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "official",
+        "start_s": 0,
+        "summary": "Engineering overview of pure S20C forged carbon steel muscle back construction"
+      },
+      {
+        "id": "301-mb-witb-1",
+        "youtube_id": "HVVIjMVly9g",
+        "title": "Our Brand New Irons! | Bryan Bros WITB",
+        "channel": "Bryan Bros Golf",
+        "creator": "Bryan Bros Golf",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Wesley and George Bryan reveal their custom Takomo 301 MB/CB combo iron setups"
+      },
+      {
+        "id": "301-mb-witb-2",
+        "youtube_id": "qzj_8OuHHuI",
+        "title": "THIS is our Takomo Setup (Luke Kwon, Sam Heung Min, Taco Golf)",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Luke Kwon showcases his 301 Combo set with 301 MB scoring clubs"
+      },
+      {
+        "id": "301-mb-witb-3",
+        "youtube_id": "dCuo81QMw-I",
+        "title": "Ok fine I'll tell the truth about Takomo Golf Clubs",
+        "channel": "Luke Kwon Golf",
+        "creator": "Luke Kwon Golf",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Luke Kwon gives his raw assessment of the forged 301 blades after intense testing"
+      },
+      {
+        "id": "301-mb-witb-4",
+        "youtube_id": "xh87z2V71rE",
+        "title": "This is SAVAGE.",
+        "channel": "Takomo Golf",
+        "creator": "Takomo Golf x BustaJack",
+        "kind": "influencer_witb",
+        "start_s": 0,
+        "summary": "Cole Lantz from BustaJack reviews 301 MB blades in match play"
+      },
+      {
+        "id": "301-mb-review-1",
+        "youtube_id": "1fRmV1vWQsA",
+        "title": "Could Takomo DESTROY the big brands?",
+        "channel": "H.I.T GOLF",
+        "creator": "Rick Shiels / H.I.T GOLF",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Rick Shiels puts Takomo 301 MB head-to-head against TaylorMade P7MB blades"
+      },
+      {
+        "id": "301-mb-review-2",
+        "youtube_id": "rRDPyxosp_Y",
+        "title": "I play Golf with all Takomo clubs - my BRUTALLY HONEST Opinion",
+        "channel": "Rick Shiels Golf",
+        "creator": "Rick Shiels Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Rick Shiels plays a full 18-hole course round using a complete Takomo bag"
+      },
+      {
+        "id": "301-mb-review-3",
+        "youtube_id": "QhQGDjpfBMg",
+        "title": "Takomo 301 MB Irons: SO MUCH CLUB FOR SO LITTLE MONEY",
+        "channel": "Andrew Jensen Golf",
+        "creator": "Andrew Jensen Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Professional golfer Andrew Jensen reviews blade aesthetics, sound, and control"
+      },
+      {
+        "id": "301-mb-review-4",
+        "youtube_id": "QdfOEJzbCjU",
+        "title": "Are The Takomo 301 MB Irons Worth The Hype? (Honest Review)",
+        "channel": "Bogey Book Golf",
+        "creator": "Bogey Book Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Blade workability, strike feedback, and off-center penalty breakdown"
+      },
+      {
+        "id": "301-mb-review-5",
+        "youtube_id": "rIjujtigQZA",
+        "title": "Takomo Iron Range Review | 101, 201, 201T & 301 MB Tested",
+        "channel": "Golfshake.com",
+        "creator": "Golfshake.com",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Complete Takomo iron range test and player comparison"
+      },
+      {
+        "id": "301-mb-review-6",
+        "youtube_id": "eEqmN5q-f5M",
+        "title": "Takomo 301 Irons Review — 5 Best Cheap New Forged Iron",
+        "channel": "Budget Tee Box",
+        "creator": "Budget Tee Box",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Evaluation of S20C forged iron construction and value"
+      },
+      {
+        "id": "301-mb-review-7",
+        "youtube_id": "UopdSuHqYEg",
+        "title": "Does He REGRET Buying TAKOMO Irons!? - 12 MONTH HONEST REVIEW!",
+        "channel": "James Robinson Golf",
+        "creator": "James Robinson Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "12-month long-term testing and durability check on Takomo forged irons"
+      },
+      {
+        "id": "301-mb-review-8",
+        "youtube_id": "-vxgr_zM5OU",
+        "title": "The Golf Clubs to BEAT in 2024!",
+        "channel": "Alex Etches Golf",
+        "creator": "Alex Etches Golf",
+        "kind": "independent_review",
+        "start_s": 0,
+        "summary": "Alex Etches puts Takomo 301 forged irons through trackman & course performance testing"
+      }
+    ]
+  }
+}
