@@ -1,0 +1,40 @@
+"""A stored session -> the mapping's inputs. Pure (no I/O): reads the FitSession it is given.
+
+`session.profile` holds what the golfer answered (IntakeAnswers fields) and any phone
+measurements (PhoneMeasurements fields), each as a ProvenancedValue. A key present with value
+None means the golfer answered "I don't know": it counts as asked, not as known.
+"""
+
+from __future__ import annotations
+
+from app.schemas.fit import FitEvidence, IntakeAnswers, PhoneMeasurements
+from app.schemas.session import FitSession
+
+INTAKE_FIELDS = frozenset(IntakeAnswers.model_fields)
+PHONE_FIELDS = frozenset(PhoneMeasurements.model_fields)
+# Answers to offers (not profile values): recorded so the same offer is not asked again.
+OFFER_FIELDS = frozenset({"ball_line_offer", "precision_offer"})
+PROFILE_FIELDS = INTAKE_FIELDS | PHONE_FIELDS | OFFER_FIELDS
+
+
+def _values(session: FitSession, names: frozenset[str]) -> dict[str, object]:
+    return {k: pv.value for k, pv in session.profile.items() if k in names and pv.value is not None}
+
+
+def intake_of(session: FitSession) -> IntakeAnswers:
+    return IntakeAnswers.model_validate(_values(session, INTAKE_FIELDS))
+
+
+def evidence_of(session: FitSession) -> FitEvidence:
+    """Evidence known to the session. TODO(EVIDENCE #30-#32): add shots and ball-line readings
+    from confirmed imports once the import routes land; today only phone values and flags."""
+    phone = _values(session, PHONE_FIELDS)
+    return FitEvidence(
+        phone=PhoneMeasurements.model_validate(phone) if phone else None,
+        flags=list(session.flags),
+    )
+
+
+def answered(session: FitSession) -> set[str]:
+    """Every profile key the golfer has answered, "I don't know" included."""
+    return set(session.profile)

@@ -1,38 +1,89 @@
 @import "tailwindcss";
 
 /*
- * PLACEHOLDER brand tokens (Takomo brand book). Issue #42 owns the final styling.
- * Contrast: Tiger Orange on Washed White is 2.64:1. Use orange for fills and accents, never for body text.
- * Fonts: Barlow Condensed (headlines), Barlow (body). Not loaded yet (#42).
+ * Takomo brand tokens (brand book, data/docs/2025-02_Takomo_Brand_Book_public_version_compressed.md).
+ * - Colour ratio 60/30/10, leaning dark: dark surfaces (stage, top bar) + Washed White panels + orange accent.
+ *   Never use full black (#000): the darkest colour is Midnight Black.
+ * - Contrast: Tiger Orange on Washed White is 2.64:1, so never use it for text on light surfaces.
+ *   Orange text on light uses --color-orange-ink (4.8:1). Tiger Orange text on Midnight Black is 7.1:1 (fine).
+ * - Fonts: Barlow Condensed for headlines, numbers and labels; Barlow for body text (loaded in each *.html).
+ * Look: the neutral main-site style (monochrome, premium product), not the Forge cartoon style.
  */
 @theme {
+  /* Brand primaries */
   --color-midnight-black: #0b0b0b;
   --color-washed-white: #f8f8f8;
   --color-tiger-orange: #ff6e01;
 
-  /* shadcn semantic tokens, mapped to the brand placeholders */
+  /* Tints (brand book slide 20 shows 3 tints per primary, no values; these follow that idea) */
+  --color-ink-900: #0b0b0b;
+  --color-ink-800: #161616;
+  --color-ink-700: #222222;
+  --color-ink-600: #333333;
+  --color-ink-500: #5c5c5c;
+  --color-ink-400: #8a8a8a;
+  --color-ink-300: #bdbdbd;
+  --color-ink-200: #dedede;
+  --color-ink-100: #ececec;
+  --color-orange-ink: #b84d00; /* orange text on light surfaces (4.8:1 on Washed White) */
+  --color-orange-300: #ff9a4d;
+  --color-orange-100: #ffe3cc;
+  --color-orange-50: #fff3e9;
+
+  /* shadcn semantic tokens (light surfaces: chat, cards, gen-UI blocks) */
   --color-background: var(--color-washed-white);
   --color-foreground: var(--color-midnight-black);
+  --color-card: #ffffff;
+  --color-card-foreground: var(--color-midnight-black);
   --color-primary: var(--color-midnight-black);
   --color-primary-foreground: var(--color-washed-white);
-  --color-secondary: #e9e9e9;
+  --color-secondary: var(--color-ink-100);
   --color-secondary-foreground: var(--color-midnight-black);
   --color-accent: var(--color-tiger-orange);
   --color-accent-foreground: var(--color-midnight-black);
-  --color-muted: #e9e9e9;
-  --color-muted-foreground: #555555;
+  --color-muted: var(--color-ink-100);
+  --color-muted-foreground: var(--color-ink-500);
   --color-destructive: #b3261e;
-  --color-border: #d4d4d4;
-  --color-input: #d4d4d4;
+  --color-success: #2e7d4f;
+  --color-border: var(--color-ink-200);
+  --color-input: var(--color-ink-300);
   --color-ring: var(--color-tiger-orange);
+
+  /* Dark surfaces (stage, top bar, landing hero): text on them uses washed-white / ink-300 */
+  --color-surface-dark: var(--color-midnight-black);
+  --color-surface-dark-2: var(--color-ink-800);
+  --color-surface-dark-3: var(--color-ink-700);
+  --color-border-dark: var(--color-ink-600);
 
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
   --font-sans: "Barlow", system-ui, sans-serif;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
 }
 
-body {
-  margin: 0;
-  background: var(--color-washed-white);
-  color: var(--color-midnight-black);
-  font-family: var(--font-sans);
+@layer base {
+  body {
+    margin: 0;
+    background: var(--color-washed-white);
+    color: var(--color-midnight-black);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-tiger-orange);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-orange-100);
+  }
 }

@@ -28,7 +28,7 @@ function App() {
         )}
         {fixtures.map((block) => (
           <article key={block.type} className="rounded-lg border border-border bg-background p-4">
-            <h2 className="mb-2 font-mono text-xs uppercase text-muted-foreground">{block.type}</h2>
+            <h2 className="mb-3 font-display text-xs font-semibold uppercase tracking-[0.14em] text-ink-500">{block.type}</h2>
             <GenUiBlock
               id={`dev-${block.type}`}
               block={block}

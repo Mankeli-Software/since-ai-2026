@@ -22,6 +22,18 @@ class Budget(BaseModel):
     turns: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
+    model_calls: int = 0  # raw model API calls (a turn's tool loop makes several)
+
+
+class SessionNotice(BaseModel):
+    """Why this session runs differently than asked (#18). Past the daily model-call cap a new
+    session gets the scripted engine: personas replay their script, own fittings use the form."""
+
+    code: str = Field(description='"replay_mode" today; more codes may be added')
+    fallback: Literal["replay", "form"] = Field(
+        description="replay = persona script replay (tap options); form = the form fallback"
+    )
+    message: str
 
 
 class FitSession(BaseModel):
@@ -48,6 +60,7 @@ class FitSession(BaseModel):
     ui_block_seq: int = 0  # generated ui_* blocks are numbered `<type>-<n>`, unique per session
     pending_ui_id: str | None = None  # input component the last turn is waiting on (AGENT)
     script_cursor: int = 0  # next step of the scripted engine's persona script (AGENT)
+    notice: SessionNotice | None = None  # set when the guard downgraded the engine (AGENT, #18)
 
 
 class StoredMessage(BaseModel):
@@ -95,6 +108,7 @@ class CreateSessionResponse(BaseModel):
     session_id: str
     resume_token: str
     state: FittingState
+    notice: SessionNotice | None = None
 
 
 class TranscriptEntry(BaseModel):
@@ -119,3 +133,4 @@ class PublicSession(BaseModel):
     state: FittingState
     transcript: list[TranscriptEntry] = Field(default_factory=list)
     blocks: list[PublicBlock] = Field(default_factory=list)
+    notice: SessionNotice | None = None

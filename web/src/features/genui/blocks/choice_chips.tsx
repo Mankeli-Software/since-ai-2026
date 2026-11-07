@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { chipCls, promptCls } from '../ui'
 import type { BlockProps } from '../types'
 
 export const type = 'choice_chips'
@@ -7,19 +7,20 @@ export const type = 'choice_chips'
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'choice_chips'>) {
   return (
     <div className="flex flex-wrap gap-2">
-      <p className="w-full font-semibold">{block.prompt}</p>
+      <p className={`w-full ${promptCls}`}>{block.prompt}</p>
       {block.options.map((o) => {
         const picked = answer?.value === o.id
         return (
-          <Button
+          <button
             key={o.id}
-            variant={picked ? 'default' : 'secondary'}
+            type="button"
+            className={chipCls(picked)}
             disabled={!interactive || busy}
             title={o.hint ?? undefined}
             onClick={() => respond(o.id, o.label)}
           >
             {o.label}
-          </Button>
+          </button>
         )
       })}
     </div>

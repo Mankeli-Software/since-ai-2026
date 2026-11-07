@@ -35,14 +35,14 @@ export function Studio() {
         className="grid min-h-0 flex-1 transition-[grid-template-columns] duration-500"
         style={{ gridTemplateColumns: revealed ? '3fr 1fr' : '1fr 1fr' }}
       >
-        <section className="min-w-0 bg-secondary">
+        <section className="min-w-0 bg-[radial-gradient(ellipse_at_50%_40%,var(--color-surface-dark-3),var(--color-surface-dark)_70%)] text-washed-white">
           <StageBoundary>
             <div className="h-full">
               <StagePanel />
             </div>
           </StageBoundary>
         </section>
-        <aside className="flex min-h-0 min-w-0 flex-col border-l border-border">
+        <aside className="flex min-h-0 min-w-0 flex-col border-l border-border bg-background">
           <ChatColumn />
         </aside>
       </div>

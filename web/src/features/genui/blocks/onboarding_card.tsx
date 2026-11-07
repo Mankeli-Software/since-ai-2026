@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { inputCls, labelCls } from '../ui'
+import { answeredCls, btnCls, inputCls, labelCls, promptCls } from '../ui'
 import type { BlockProps } from '../types'
 
 export const type = 'onboarding_card'
@@ -27,8 +27,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   }
   return (
     <div className="flex flex-col gap-3">
-      <p className="font-semibold">{block.prompt}</p>
-      <div className="grid grid-cols-2 gap-3">
+      <p className={promptCls}>{block.prompt}</p>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
         <label className={labelCls}>Age
           <input type="number" min={8} max={100} className={inputCls} value={age} disabled={off} onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))} />
         </label>
@@ -56,9 +56,9 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         </label>
       </div>
       {interactive ? (
-        <Button className="self-start" disabled={off || !ready} onClick={submit}>Continue</Button>
+        <Button className={`self-start ${btnCls}`} disabled={off || !ready} onClick={submit}>Continue</Button>
       ) : (
-        answer && <p className="text-sm">Answered: <strong>{answer.displayText}</strong></p>
+        answer && <p className={answeredCls}>Answered: <strong>{answer.displayText}</strong></p>
       )}
     </div>
   )

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { inputCls } from '../ui'
+import { answeredCls, btnCls, chipCls, inputCls, promptCls } from '../ui'
 import type { BlockProps } from '../types'
 
 export const type = 'body_measure'
@@ -23,19 +23,19 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     respond({ field: block.field, value_cm: Math.round(cm * 10) / 10, unit, raw: n }, `${n} ${unit}`)
   }
   return (
-    <div className="flex flex-col gap-2">
-      <p className="font-semibold">{block.prompt}</p>
-      <p className="text-xs text-muted-foreground">{HINTS[block.field]}</p>
+    <div className="flex flex-col gap-3">
+      <p className={promptCls}>{block.prompt}</p>
+      <p className="text-sm text-ink-500">{HINTS[block.field]}</p>
       <div className="flex items-center gap-2">
-        <input type="number" min={0} step="0.1" className={`${inputCls} w-28`} value={raw} disabled={off} onChange={(e) => setRaw(e.target.value)} />
+        <input type="number" min={0} step="0.1" className={`${inputCls} w-28 font-display text-lg font-semibold`} value={raw} disabled={off} onChange={(e) => setRaw(e.target.value)} />
         {units.map((u) => (
-          <Button key={u} size="sm" variant={unit === u ? 'default' : 'secondary'} disabled={off} onClick={() => setUnit(u)}>{u}</Button>
+          <button key={u} type="button" className={`${chipCls(unit === u)} px-3 uppercase`} disabled={off} onClick={() => setUnit(u)}>{u}</button>
         ))}
       </div>
       {interactive ? (
-        <Button className="self-start" disabled={off || !(n > 0)} onClick={submit}>Confirm</Button>
+        <Button className={`self-start ${btnCls}`} disabled={off || !(n > 0)} onClick={submit}>Confirm</Button>
       ) : (
-        answer && <p className="text-sm">Answered: <strong>{answer.displayText}</strong></p>
+        answer && <p className={answeredCls}>Answered: <strong>{answer.displayText}</strong></p>
       )}
     </div>
   )

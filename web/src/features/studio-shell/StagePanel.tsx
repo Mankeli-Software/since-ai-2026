@@ -49,7 +49,7 @@ export function StagePanel() {
     <button
       type="button"
       onClick={() => setView(v)}
-      className={`rounded px-3 py-1 text-sm ${stage.view === v ? 'bg-background font-medium shadow-sm' : 'text-muted-foreground'}`}
+      className={`rounded px-3 py-1 font-display text-xs font-semibold uppercase tracking-[0.12em] transition-colors ${stage.view === v ? 'bg-surface-dark-3 text-washed-white' : 'text-ink-300 hover:text-washed-white'}`}
     >
       {label}
     </button>
@@ -59,15 +59,15 @@ export function StagePanel() {
     <div className="flex h-full flex-col">
       <div className="flex gap-1 p-2">{tab('club', 'Club')}{tab('flight', 'Flight')}</div>
       <div className="min-h-0 flex-1">
-        <Suspense fallback={<p className="p-4">Loading stage...</p>}>
+        <Suspense fallback={<p className="p-4 text-ink-300">Loading stage...</p>}>
           {stage.view === 'flight' ? (
             hasFlag('flight-fixture') ? (
               <div className="p-4">
-                <p className="mb-2 text-xs text-muted-foreground">Example flight</p>
+                <p className="mb-2 text-xs text-ink-300">Example flight</p>
                 <FlightSvg data={flightTwoHeads} recommendedSlug={spec?.head} />
               </div>
             ) : (
-              <p className="m-4 rounded border border-border bg-background p-4 text-sm text-muted-foreground">
+              <p className="m-4 rounded border border-border-dark bg-surface-dark-2 p-4 text-sm text-ink-300">
                 Ball flight shows here after the fit.
               </p>
             )
