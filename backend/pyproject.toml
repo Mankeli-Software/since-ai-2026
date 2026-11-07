@@ -1,0 +1,56 @@
+[project]
+name = "fitter-backend"
+version = "0.1.0"
+description = "Takomo Fitter Studio backend (FastAPI + Genkit), Since AI Hackathon 2026"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.135",
+    "uvicorn[standard]",
+    "pydantic>=2.11",
+    "pydantic-settings",
+    "numpy>=2",
+    # AI pins: Genkit's tested lock. DO NOT UPGRADE (AGENTS.md §5.1).
+    "genkit==0.13.0",
+    "genkit-anthropic==0.13.0",
+    "genkit-fastapi==0.13.0",
+    "anthropic==0.112.0",
+    "httpx",
+    "python-multipart",
+    "pillow",
+    "slowapi",
+]
+
+[dependency-groups]
+# pandas is dev-only: takomo_fit.score imports it, and backend/app/ must never import either.
+dev = [
+    "ruff",
+    "pyright",
+    "import-linter",
+    "pandas",
+]
+
+[tool.uv]
+required-version = ">=0.13,<0.14"
+# No [build-system]: the backend is an application, not an installable package.
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "ASYNC"]
+# B008: FastAPI's Depends()/Query() defaults are idiomatic.
+ignore = ["B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+known-third-party = ["takomo_fit"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
+extraPaths = ["../vendor"]
+include = ["app"]
+typeCheckingMode = "basic"
