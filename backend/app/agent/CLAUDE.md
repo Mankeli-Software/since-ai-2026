@@ -126,6 +126,9 @@ never invents them. `ui_*` tools are generated from `schemas/ui/`, never hand-wr
   A string like `$state.best` or `$run_fit.best.head_score` in a step is filled from the state or an earlier
   tool output of the same turn, so display blocks quote the tools' numbers.
 - Personas: Mikko (spine), Hannu, Lars, Anders. No others (L8). Must work with zero API keys.
+- `own.yaml` is not a persona: it is the Flow v3 walkthrough for an own fitting (no demo golfer).
+- Scripts never branch, so a skipped import must still leave a sane fit. Bind result cards to `$state`
+  (e.g. `spec: $state.best`) instead of copying specs into the YAML.
 - `just record <persona>` writes `web/public/mock/<persona>.jsonl` (gitignored, never hand-edited).
 - Traces: `just genkit`, then the Dev UI at `localhost:4000`.
 - Tone (L18): mild language, no swing tips, no practice advice, never name competitors.
