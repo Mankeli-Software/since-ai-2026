@@ -3,7 +3,7 @@ import { ClubImage, Eyebrow, SpecPartIcon, type ClubImageVariant, type SpecPart 
 import { cn } from '@/lib/utils'
 import rawProductVideos from '../../../../fixtures/product_videos.json'
 import { Text } from '../chat/Text'
-import { ResultsAside, ViewLink, useResultsChrome, type ResultsView } from './chrome'
+import { ExamplePill, ResultsAside, ViewLink, useResultsChrome, type ResultsView } from './chrome'
 import { ConfirmWithShots } from './ConfirmWithShots'
 import { PURCHASE_COPY, STATUS_TOOLTIP } from './fixtures/commerce'
 import type { HeadSlug, HeadVideoData, VideoItem } from './ProductVideo'
@@ -59,13 +59,16 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
         <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-washed-white">
           {why ? <Text text={why} /> : 'Every part of this build has a reason. Each one is a tap away below.'}
         </p>
-        <ul title={STATUS_TOOLTIP} className="m-0 flex list-none flex-wrap gap-x-[22px] gap-y-1 p-0 pt-0.5 pb-1">
+        <ul title={STATUS_TOOLTIP} className="m-0 flex list-none flex-wrap items-center gap-x-[22px] gap-y-1 p-0 pt-0.5 pb-1">
           {copy.ticks.map((t) => (
             <li key={t} className="inline-flex items-center gap-2 text-[15px] text-washed-white">
               <Check />
               {t}
             </li>
           ))}
+          <li className="inline-flex items-center">
+            <ExamplePill />
+          </li>
         </ul>
       </div>
     </div>
@@ -254,6 +257,7 @@ export function R1Summary() {
 
   const runnerUp = data.runnerUp && data.runnerUp.head !== best.head ? data.runnerUp : null
   const measured = !data.noSim
+  const sameShaft = !runnerUp || runnerUp.shaft === best.shaft
 
   return (
     <>
@@ -262,7 +266,7 @@ export function R1Summary() {
       {runnerUp && (
         <section aria-labelledby="two-best" className="mt-7 flex flex-col gap-2.5">
           <Eyebrow as="h2" id="two-best" className="m-0 text-grey-8f">
-            Your two best heads, same shaft
+            {sameShaft ? 'Your two best heads, same shaft' : 'Your two best heads'}
           </Eyebrow>
           <div className="flex gap-3">
             <HeadCard spec={best} rank={1} score={scoreOf(data, best.head)} />

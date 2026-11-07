@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, ClubImage } from '@/components/studio'
 import { host } from '@/host/standalone'
 import { cn } from '@/lib/utils'
+import { ExamplePill } from './chrome'
 import { EXAMPLE_PRICE_EUR, EXAMPLE_PRICE_TOOLTIP, PURCHASE_COPY, STATUS_TOOLTIP, formatPrice } from './fixtures/commerce'
 import { specTitle } from './specLabel'
 import type { Spec } from './types'
@@ -52,14 +53,16 @@ export function BuyBar({ spec, nextRef }: BuyBarProps) {
               className={cn('size-2 flex-none rounded-full', copy.tone === 'green' ? 'bg-status-green' : 'bg-status-amber')}
             />
             <span className="line-clamp-2">{copy.status}</span>
+            <ExamplePill />
           </span>
         )}
       </span>
       <span className="ml-auto flex flex-none items-center gap-[18px]">
         <span ref={nextRef} className="contents" />
         {/* Example price (fixtures/commerce.ts), not from the shop. */}
-        <span title={EXAMPLE_PRICE_TOOLTIP} className="font-display text-[32px] font-extrabold tabular-nums">
-          {formatPrice(EXAMPLE_PRICE_EUR)}
+        <span title={EXAMPLE_PRICE_TOOLTIP} className="inline-flex items-center gap-2 font-display text-[32px] font-extrabold tabular-nums">
+          <span>{formatPrice(EXAMPLE_PRICE_EUR)}</span>
+          <ExamplePill />
           <span className="sr-only"> (example price)</span>
         </span>
         <Button variant="primary" size="lg" disabled={!spec || cart.state === 'busy'} onClick={() => void add()}>

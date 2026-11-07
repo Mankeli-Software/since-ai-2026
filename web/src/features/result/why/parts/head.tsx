@@ -7,12 +7,12 @@ const EXAMPLE = {
   provenance: { kind: 'measured', text: 'From your strike pattern and what you want' } as const,
   reason: 'You asked for higher, softer shots with some shape. The 201T gives you that and still forgives the thin ones you hit now and then.',
   stats: [
-    { label: 'Peak height', value: '27 m', accent: true },
+    { label: 'Peak height', value: '27 yd', accent: true },
     { label: 'Lands at', value: '47°' },
-    { label: 'Side spread', value: '±9 m' },
+    { label: 'Side spread', value: '±9 yd' },
     { label: 'Fit score', value: '84' },
   ],
-  aside: 'Two heads were close. I picked the 201T because you want the ball higher and to land soft. The 201 is 3 m longer but flatter.',
+  aside: 'Two heads were close. I picked the 201T because you want the ball higher and to land soft. The 201 is 3 yd longer but flatter.',
   line2: 'Thin topline',
 }
 
@@ -27,9 +27,9 @@ export function headContent(ctx: PartCtx): PartContent {
   if (!example) {
     const row = data.compare?.heads.find((h) => h.head === best.head)
     if (row) {
-      stats.push({ label: 'Peak height', value: `${fmt(row.apex, 0)} m`, accent: true })
+      stats.push({ label: 'Peak height', value: `${fmt(row.apex, 0)} yd`, accent: true })
       stats.push({ label: 'Lands at', value: `${fmt(row.land_angle, 0)}°` })
-      stats.push({ label: 'Side spread', value: `±${fmt(row.side_sd, 0)} m` })
+      stats.push({ label: 'Side spread', value: `±${fmt(row.side_sd, 0)} yd` })
     }
     const score = num(item, 'head_score') ?? row?.score_total ?? null
     if (score != null) stats.push({ label: 'Fit score', value: fmt(score, 0) })

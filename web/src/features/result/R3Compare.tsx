@@ -26,17 +26,17 @@ function chipsFor(shown: string[]): string[] {
 
 function flightSummary(sel: CompareRow, other: CompareRow | null) {
   const line = (r: CompareRow) =>
-    `${headName(r.head)} carries ${num(r.carry)} metres, apex ${num(r.apex)} metres, lands at ${num(r.land_angle)} degrees.`
+    `${headName(r.head)} carries ${num(r.carry)} yards, apex ${num(r.apex)} yards, lands at ${num(r.land_angle)} degrees.`
   return `Estimated side view. ${line(sel)}${other ? ` ${line(other)}` : ''}`
 }
 
 function CompareTiles({ sel, other }: { sel: CompareRow; other: CompareRow | null }) {
   return (
     <div className="grid grid-cols-4 gap-2.5">
-      <StatTile tone="dark" label="Carry" value={num(sel.carry)} compare={other ? num(other.carry) : undefined} unit="m" />
-      <StatTile tone="dark" label="Apex" value={num(sel.apex)} compare={other ? num(other.apex) : undefined} unit="m" />
+      <StatTile tone="dark" label="Carry" value={num(sel.carry)} compare={other ? num(other.carry) : undefined} unit="yd" />
+      <StatTile tone="dark" label="Apex" value={num(sel.apex)} compare={other ? num(other.apex) : undefined} unit="yd" />
       <StatTile tone="dark" label="Landing" value={`${num(sel.land_angle)}°`} compare={other ? `${num(other.land_angle)}°` : undefined} />
-      <StatTile tone="dark" label="Side spread" value={`±${num(sel.side_sd)}`} compare={other ? `±${num(other.side_sd)}` : undefined} unit="m" />
+      <StatTile tone="dark" label="Side spread" value={`±${num(sel.side_sd)}`} compare={other ? `±${num(other.side_sd)}` : undefined} unit="yd" />
     </div>
   )
 }

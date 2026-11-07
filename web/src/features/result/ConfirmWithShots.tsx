@@ -1,7 +1,7 @@
 import { Button, Eyebrow } from '@/components/studio'
 import { useSession } from '@/store/session'
 import sims from '../../../../fixtures/simulators.json'
-import { CONFIRM_COPY, EXAMPLE_PROJECTED_CONFIDENCE } from './fixtures/commerce'
+import { CONFIRM_COPY } from './fixtures/commerce'
 
 type Sim = { name: string; city: string; kind: string; has_takomo_test_clubs: boolean; example: boolean }
 const all = sims as Record<string, Sim>
@@ -35,7 +35,8 @@ export function ConfirmWithShots({ confidence, simulatorIds }: { confidence: num
     .slice(0, 3)
 
   const now = confidence ?? 0
-  const projected = Math.max(now, EXAMPLE_PROJECTED_CONFIDENCE)
+  const gain = useSession((s) => s.state?.next_question?.expected_gain ?? null)
+  const projected = gain != null ? Math.min(1, now + gain) : null
 
   return (
     <section
@@ -85,22 +86,29 @@ export function ConfirmWithShots({ confidence, simulatorIds }: { confidence: num
       <div
         className="flex items-center gap-2.5"
         role="img"
-        aria-label={`Fit confidence ${pct(now)} percent now, about ${pct(projected)} percent with real shots (example)`}
-        title="Example projection"
+        aria-label={
+          projected != null
+            ? `Fit confidence ${pct(now)} percent now, about ${pct(projected)} percent with real shots`
+            : `Fit confidence ${pct(now)} percent now`
+        }
       >
         <span className="font-display text-[18px] font-bold tabular-nums text-grey-a3">{pct(now)}%</span>
         <div className="relative h-1.5 flex-1 rounded-[3px] bg-grey-26">
           <div className="absolute inset-y-0 left-0 rounded-[3px] bg-tiger-orange" style={{ width: `${pct(now)}%` }} />
-          <div
-            className="absolute inset-y-0 rounded-r-[3px] opacity-60"
-            style={{
-              left: `${pct(now)}%`,
-              width: `${pct(projected) - pct(now)}%`,
-              background: 'repeating-linear-gradient(90deg,#FF6E01 0 4px,transparent 4px 7px)',
-            }}
-          />
+          {projected != null && (
+            <div
+              className="absolute inset-y-0 rounded-r-[3px] opacity-60"
+              style={{
+                left: `${pct(now)}%`,
+                width: `${pct(projected) - pct(now)}%`,
+                background: 'repeating-linear-gradient(90deg,#FF6E01 0 4px,transparent 4px 7px)',
+              }}
+            />
+          )}
         </div>
-        <span className="font-display text-[18px] font-bold tabular-nums">~{pct(projected)}%</span>
+        {projected != null && (
+          <span className="font-display text-[18px] font-bold tabular-nums">~{pct(projected)}%</span>
+        )}
       </div>
       <Button variant="lightOnDark" className="min-h-[46px] text-[17px]" disabled={!sessionId} onClick={() => void save()}>
         Save fit and pick a simulator
