@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import rawProductVideos from '../../../../fixtures/product_videos.json'
 import { Text } from '../chat/Text'
 import { ExamplePill, ResultsAside, ViewLink, useResultsChrome, type ResultsView } from './chrome'
+import { DriverTeaserView } from './Cards'
 import { ConfirmWithShots } from './ConfirmWithShots'
 import { PURCHASE_COPY, STATUS_TOOLTIP } from './fixtures/commerce'
 import type { HeadSlug, HeadVideoData, VideoItem } from './ProductVideo'
@@ -334,6 +335,9 @@ export function R1Summary() {
       )}
 
       <SeeItHit head={best.head} />
+
+      {/* L13: irons only, so every result ends with the static driver teaser (the driver_teaser block may never be emitted). */}
+      <DriverTeaserView className="mt-9 border border-grey-26 bg-grey-12 px-6 py-5 max-md:mt-6" />
 
       {/* Phones (M-R1b): with no simulator shots the fitter's suggestion sits inline, not in the closed sheet. */}
       {data.noSim && (

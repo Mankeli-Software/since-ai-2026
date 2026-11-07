@@ -1,14 +1,19 @@
 import forge from '../../../../fixtures/forge_topics.json'
 import videos from '../../../../fixtures/product_videos.json'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { btnCls, cardCls, eyebrowCls } from '../genui/ui'
 
 const topics = forge as Record<string, { title: string; blurb: string }>
 const vids = videos as Record<string, { youtube_id: string; start_s?: number; title: string }>
 
-export function DriverTeaserView() {
+/** L13: the static "Driver fitting is next" card. The gen-UI block and the end of R1 both render it. */
+export function DriverTeaserView({ className }: { className?: string }) {
   return (
-    <section className="flex flex-col gap-1.5 rounded-lg bg-surface-dark px-5 py-4 text-washed-white">
+    <section
+      aria-label="Driver fitting is coming next"
+      className={cn('flex flex-col gap-1.5 rounded-lg bg-surface-dark px-5 py-4 text-washed-white', className)}
+    >
       <span className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-orange-300">Coming next</span>
       <h3 className="font-display text-3xl uppercase leading-none">Driver fitting is coming next</h3>
       <p className="text-sm text-ink-300">Scoring irons first. Takomo Ignis driver fittings follow soon.</p>
