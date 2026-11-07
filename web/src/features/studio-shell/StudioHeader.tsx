@@ -8,6 +8,12 @@ export interface StudioHeaderProps {
   step?: number
 }
 
+/** The C1 welcome, keeping `?ff=` so the logo does not drop out of the v3 flow. */
+function welcomeHref() {
+  const ff = new URLSearchParams(location.search).get('ff')
+  return ff ? `/studio.html?ff=${encodeURIComponent(ff).replace(/%2C/g, ',')}` : '/studio.html'
+}
+
 /** Shared v3 header for both shells: logo, rule, steps (chat), fit confidence, Save to myTakomo. */
 export function StudioHeader({ variant, step }: StudioHeaderProps) {
   const { state, demo, saved, save } = useSession()
@@ -15,7 +21,7 @@ export function StudioHeader({ variant, step }: StudioHeaderProps) {
 
   return (
     <header className="flex shrink-0 items-center gap-5 px-14 pt-7">
-      <a href="/studio.html" aria-label="Takomo Fitter Studio, start" className="flex flex-none items-center gap-3.5 no-underline">
+      <a href={welcomeHref()} aria-label="Takomo Fitter Studio, start" className="flex flex-none items-center gap-3.5 no-underline">
         <LogoMark />
         <Wordmark />
       </a>
