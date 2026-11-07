@@ -2,6 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.agent import flow
 from app.agent.tools._common import (
     NOT_AVAILABLE,
     commit_state,
@@ -32,6 +33,9 @@ class RunFitOut(BaseModel):
     confidence: str = Field(
         default=NOT_AVAILABLE, description="Overall confidence score if available"
     )
+    least_certain: dict[str, str] | None = Field(
+        default=None, description="The part more data would firm up next, and why"
+    )
 
 
 @fitter_tool("run_fit")
@@ -44,6 +48,8 @@ async def run_fit(ctx: ToolContext, args: RunFitIn) -> RunFitOut:
         return RunFitOut(status="needs_info", missing=missing)
 
     recompute_session_state(ctx.session)
+    if flow.REVEALED not in ctx.session.profile:  # the offer after the reveal: from next turn
+        flow.mark(ctx.session, **{flow.REVEALED: ctx.session.active_turn_id or "revealed"})
     fit = last_fit(ctx)
     best = fit.recs[0] if fit and fit.recs else None
     runner = fit.recs[1] if fit and len(fit.recs) > 1 else None
@@ -70,4 +76,5 @@ async def run_fit(ctx: ToolContext, args: RunFitIn) -> RunFitOut:
         ranking=ranking,
         provenance=answers.provenance,
         confidence=conf_str,
+        least_certain=flow.least_certain(ctx.session),
     )

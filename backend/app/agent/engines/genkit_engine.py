@@ -12,13 +12,13 @@ from typing import Any
 from genkit import Message, Part, Role
 from pydantic import BaseModel
 
-from app.agent import opening
+from app.agent import flow, opening
 from app.agent.ai import CHAT, ai
 from app.agent.engines.base import answer_of, stored, user_text
 from app.agent.guard import bind
 from app.agent.metering import meter
 from app.agent.settings import settings
-from app.confidence.next_question import INTAKE
+from app.agent.tools._common import recompute_session_state
 from app.core.tooling import ToolContext, ToolSpec, get_tool, list_tools, ui_tool_specs
 from app.schemas.chat import TextEvent, TextMessage, TurnRequest, UiEvent
 from app.schemas.fit import FitResult
@@ -80,6 +80,7 @@ def _digest(ctx: ToolContext) -> str:
         "gate": st.gate,
         "confidence": st.confidence,
         "missing": st.missing,
+        "simulated_golfer": ctx.session.demo_golfer_id is not None,
     }
     verdict = _clubs_verdict(ctx.session)
     if verdict is not None:  # only then may the reply say "your clubs are fine" (prompt rule 1)
@@ -91,38 +92,72 @@ def _dump(m: Message) -> dict[str, Any]:
     return m.model_dump(mode="json", exclude_none=True)
 
 
-def _profile_value(value: Any) -> Any:
-    """The answer as a profile value, or None when it is not a plain known answer."""
-    if isinstance(value, dict):  # slider with toggle, or body_measure / glove
-        value = value["value_cm"] if "value_cm" in value else value.get("value")
-    if isinstance(value, str) and value.isdigit():
-        return int(value)  # bucket chips send "1".."5"
-    return value
+# The golfer is waiting for words before the next card (the model tends to only think them).
+SPEAK = {"speak_first": True}
 
 
-async def _presave(ctx: ToolContext, request: TurnRequest, value: Any, block_field: Any) -> dict:
-    """Do the two steps the model would do after a plain intake answer: save it, then ask
-    next_question. Returns {} on any doubt, so the model does the steps itself."""
-    hint = ctx.session.state.next_question
-    if isinstance(request.message, TextMessage) or hint is None or hint.kind != "intake":
-        return {}
-    entry = next((e for e in INTAKE if e[1] == hint.field), None)
-    if entry is None or entry[2].field != block_field:  # the pending block is not the hinted one
-        return {}
-    val = _profile_value(value)
-    if val is None:  # "Not sure": leave it to the model
-        return {}
-    try:
-        up = get_tool("update_profile")
-        args = up.input_model.model_validate({hint.field: val})
-    except ValueError:
-        return {}
-    saved = await up.fn(ctx, args)
+async def _next(ctx: ToolContext) -> dict:
     nq = get_tool("next_question")
-    return {
-        "saved": json.loads(saved.model_dump_json()),
-        "next_question": json.loads((await nq.fn(ctx, nq.input_model())).model_dump_json()),
-    }
+    return json.loads((await nq.fn(ctx, nq.input_model())).model_dump_json())
+
+
+async def _run(ctx: ToolContext, name: str, args: dict[str, Any]) -> dict | None:
+    """Run one domain tool for the model; None when the args do not validate."""
+    spec = get_tool(name)
+    try:
+        parsed = spec.input_model.model_validate(args)
+    except ValueError:
+        return None
+    return json.loads((await spec.fn(ctx, parsed)).model_dump_json())
+
+
+def _shots_line(report: dict | None) -> str | None:
+    """The studio's own line after the golfer's 7-iron import, so the shots are never skipped
+    in silence: fixed copy, numbers only from the import report. G11 adds the ego-carry line."""
+    summary = (report or {}).get("shots_summary") or {}
+    carry, speed = summary.get("carry_yd_mean"), summary.get("club_speed_mph_median")
+    if not report or not report.get("shots_count") or carry is None:
+        return None
+    line = f"{report['shots_count']} shots in: **{carry:.1f} yd** average carry"
+    line += f" at **{speed:.1f} mph** club speed." if speed is not None else "."
+    g11 = next((f for f in report.get("flags", []) if f.get("code") == "G11"), None)
+    if g11 and isinstance(g11.get("value"), int | float) and not g11.get("resolved"):
+        line += f" You said {g11['value']:.0f} yd. That gap is the ego tax, and everybody pays it."
+    return line
+
+
+async def _presave(
+    ctx: ToolContext, request: TurnRequest, tool: str, block: dict[str, Any], value: Any
+) -> dict:
+    """Do the steps the model would do after a tapped answer (`agent/flow.py`): save it, apply an
+    outlier review, read an import's report, then ask next_question. Returns {} on any doubt
+    (free text, "Not sure"), so the model does the steps itself."""
+    if isinstance(request.message, TextMessage):
+        return {}
+    s = ctx.session
+    if tool == "ui_outlier_review" and isinstance(value, dict) and "action" in value:
+        resolved = await _run(ctx, "resolve_flags", value)
+        if resolved is None:
+            return {}
+        recompute_session_state(s)
+        return {"resolved": resolved, "next_question": await _next(ctx), **SPEAK}
+    if tool == "ui_data_import" and isinstance(value, dict) and value.get("import_id"):
+        report = await _run(ctx, "get_import_report", {"import_id": value["import_id"]})
+        flow.mark(s, **{flow.LAST: "import"})  # a precision offer may follow it straight away
+        said = _shots_line(report) if block.get("club_hint") == "own_7i" else None
+        out = {"import_report": report, **SPEAK, **({"said": said} if said else {})}
+        if s.state.pending_flags:  # the golfer reviews the flags before anything else
+            return {**out, "review_flags_first": True}
+        return {**out, "next_question": await _next(ctx)}
+    fields = flow.answer_fields(tool, block, value, s)
+    if fields is None:
+        return {}
+    marks = {k: fields.pop(k) for k in list(fields) if k == flow.SIM_BRAND}
+    saved = await _run(ctx, "update_profile", fields) if fields else {"saved": []}
+    if saved is None:
+        return {}
+    flow.mark(s, **marks)
+    return {"saved": saved, "next_question": await _next(ctx), **SPEAK}
 
 
 def _offer(ctx: ToolContext, block: dict[str, Any]) -> dict:
@@ -169,20 +204,14 @@ async def _open(ctx: ToolContext, request: TurnRequest) -> list[StoredMessage]:
 
 
 async def _opening_answer(ctx: ToolContext, value: Any) -> dict:
-    """Save the card's picks, then ask next_question, as `_presave` does for one intake answer.
-    Free text instead of a card answer: just the text, the model does the steps itself."""
+    """Save the card's picks, then ask next_question (the opener), as `_presave` does for one
+    answer. Free text instead of a card answer: just the text, the model does the steps itself."""
     choice = opening.picked(value)
     if not choice:
         return {"value": value}
-    up = get_tool("update_profile")
     fields = opening.profile_fields(choice, _profile(ctx.session))
-    saved = await up.fn(ctx, up.input_model.model_validate(fields))
-    nq = get_tool("next_question")
-    return {
-        "value": choice,
-        "saved": json.loads(saved.model_dump_json()),
-        "next_question": json.loads((await nq.fn(ctx, nq.input_model())).model_dump_json()),
-    }
+    saved = await _run(ctx, "update_profile", fields)
+    return {"value": choice, "saved": saved, "next_question": await _next(ctx), **SPEAK}
 
 
 class GenkitEngine:
@@ -202,6 +231,7 @@ class GenkitEngine:
         if not msgs:  # first turn: the fixed opening, no model call
             return await _open(ctx, request)
         kwargs: dict[str, Any] = {}
+        extra: dict[str, Any] = {}
         answer = answer_of(s, request)
         resume = answer is not None and s.pending_ui_id != opening.OPENING_ID
         out = [stored("user", "live", user_text(request))]
@@ -215,10 +245,10 @@ class GenkitEngine:
             mine = next(
                 p for p in pending if (p.tool_request.ref or p.tool_request.name) == s.pending_ui_id
             )
-            block = mine.tool_request.input or {}
-            field = block.get("field") if isinstance(block, dict) else None
-            offer = _offer(ctx, block) if isinstance(block, dict) else {}
-            extra = offer or await _presave(ctx, request, value, field)
+            block = mine.tool_request.input if isinstance(mine.tool_request.input, dict) else {}
+            imported = isinstance(value, dict) and bool(value.get("import_id"))
+            offer = {} if imported else _offer(ctx, block)
+            extra = offer or await _presave(ctx, request, mine.tool_request.name, block, value)
             result = json.dumps({"value": value, "display_text": display, **extra})
             kwargs["resume_respond"] = [
                 p.respond(result if p is mine else IGNORED) for p in pending
@@ -245,6 +275,9 @@ class GenkitEngine:
             **kwargs,
         )
         texts: list[str] = []
+        if resume and (said := extra.get("said")):  # the studio's own line goes first
+            texts.append(said + "\n\n")
+            await ctx.emit(TextEvent(seq=0, msg_id=f"{s.active_turn_id}-said", delta=said))
         async for chunk in sr.stream:
             if chunk.text:  # chunk.text never includes reasoning
                 texts.append(chunk.text)
