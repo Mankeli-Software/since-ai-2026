@@ -220,6 +220,36 @@ def compute_priors(train_dir: Path) -> dict[str, Any]:
     pred_spd = intercept + slope * carry_reps["reported_7i_carry_yd"]
     carry_fit_sd = round(float((carry_reps["true_7i_speed_mph"] - pred_spd).std()), 2)
 
+    # Multi-variable demographic carry fit on train (carry, sex, age, score_bucket)
+    is_fem = (carry_reps["sex"] == "female").astype(float)
+    age = carry_reps["age"].fillna(40).astype(float)
+    sb = carry_reps["score_bucket"].fillna(3).astype(float)
+    X_carry = pd.DataFrame(
+        {
+            "intercept": 1.0,
+            "carry": carry_reps["reported_7i_carry_yd"],
+            "is_female": is_fem,
+            "age": age,
+            "score_bucket": sb,
+        }
+    )
+    w_carry_mv = np.linalg.lstsq(X_carry, carry_reps["true_7i_speed_mph"], rcond=None)[0]
+    pred_spd_mv = X_carry @ w_carry_mv
+    carry_multivar_sd = round(
+        float((carry_reps["true_7i_speed_mph"] - pred_spd_mv).std()), 2
+    )
+    carry_multivar_weights = [round(float(x), 4) for x in w_carry_mv]
+
+    # Hand length slope from height on train
+    h_slope = round(
+        float(
+            np.linalg.lstsq(
+                labels[["true_height_cm"]], labels["true_hand_length_cm"], rcond=None
+            )[0][0]
+        ),
+        4,
+    )
+
     # Body biases and sigmas
     h_diff = m_q["height_cm"] - m_q["true_height_cm"]
     height_self_bias_cm = round(float(h_diff.mean()), 1)
@@ -245,23 +275,26 @@ def compute_priors(train_dir: Path) -> dict[str, Any]:
     video_speed_sd_mph = round(float(vid_diff.std()), 1)
 
     biases = {
-        "session_bias_mph": session_biases,
-        "self_speed_bias_mph": self_speed_bias_mph,
-        "self_height_bias_cm": height_self_bias_cm,
         "carry_speed_fit_line": [round(float(intercept), 3), round(float(slope), 4)],
+        "carry_speed_multivar_weights": carry_multivar_weights,
+        "hand_from_height_slope": h_slope,
+        "self_height_bias_cm": height_self_bias_cm,
+        "self_speed_bias_mph": self_speed_bias_mph,
+        "session_bias_mph": session_biases,
     }
     sigmas = {
-        "self_speed_sd_mph": self_speed_sd_mph,
-        "video_speed_sd_mph": video_speed_sd_mph,
+        "ball_line_reading_sd": ball_line_reading_sd,
         "carry_speed_fit_sd_mph": carry_fit_sd,
-        "height_self_sd_cm": height_self_sd_cm,
-        "height_photo_sd_cm": height_photo_sd_cm,
-        "wtf_self_sd_cm": wtf_self_sd_cm,
-        "wtf_photo_sd_cm": wtf_photo_sd_cm,
+        "carry_speed_multivar_sd_mph": carry_multivar_sd,
         "hand_photo_sd_cm": hand_photo_sd_cm,
+        "height_photo_sd_cm": height_photo_sd_cm,
+        "height_self_sd_cm": height_self_sd_cm,
         "lie_delivery_sd": lie_delivery_sd,
         "own_7i_lie_reading_sd": own_7i_lie_reading_sd,
-        "ball_line_reading_sd": ball_line_reading_sd,
+        "self_speed_sd_mph": self_speed_sd_mph,
+        "video_speed_sd_mph": video_speed_sd_mph,
+        "wtf_photo_sd_cm": wtf_photo_sd_cm,
+        "wtf_self_sd_cm": wtf_self_sd_cm,
     }
 
     # 7. Delivery priors and skill-based adjustments
