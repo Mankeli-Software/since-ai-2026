@@ -1,0 +1,9 @@
+{
+  "type": "yes_no_fork",
+  "prompt": "Have you hit in a simulator lately?",
+  "options": [
+    {"id": "sim", "title": "Yes, I have sim data", "body": "Bring real shots in. It's the biggest upgrade to your fit, and you'll see confidence jump.", "illustration": "sim_data"},
+    {"id": "by_hand", "title": "I'll answer myself", "body": "No problem. A few more questions instead. Guesses are marked as guesses, and you can add shots later.", "illustration": "by_hand"}
+  ],
+  "footnote": "Never hit in one? There are 3 simulators near Turku"
+}

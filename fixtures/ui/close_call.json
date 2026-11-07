@@ -1,0 +1,8 @@
+{
+  "type": "close_call",
+  "part": "head",
+  "a": {"label": "201T", "share": 53},
+  "b": {"label": "201", "share": 47},
+  "tradeoff": "The 201 gives you **+3 m** but lands flatter and runs out. For holding greens, the 201T wins.",
+  "next_step": "Hit both in a bay"
+}
