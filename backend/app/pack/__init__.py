@@ -217,3 +217,9 @@ def pick_shaft(head_slug: HeadSlug, answers: MappedAnswers) -> tuple[str, list[s
     trace: list[str] = []
     sh = _bl.pick_shaft(head_slug, _answers(answers), trace)
     return str(sh["slug"]), [str(t) for t in trace]
+
+
+def static_lie_deg(height_cm: float, wrist_to_floor_cm: float) -> float:
+    """The static lie chart before rounding (degrees from standard, + upright). The pack's
+    `lie_for` rounds this; lie fusion needs the continuous value."""
+    return _f(_bl.lie_continuous(float(height_cm), float(wrist_to_floor_cm)))

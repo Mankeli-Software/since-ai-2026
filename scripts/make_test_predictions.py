@@ -1,11 +1,13 @@
 """Write the test-split predictions CSV (plan §12).
 
-    just preds --mapping b2                      # data/test -> mankeli_takomo_test_predictions.csv
-    just preds --mapping b2 --data <lab>/data/dev --out /tmp/dev_preds.csv   # also scores dev
+    just preds                                   # data/test -> mankeli_takomo_test_predictions.csv
+    just preds --data <lab>/data/dev --out /tmp/dev_preds.csv   # also scores dev
+    just preds --mapping b2                      # the B2 insurance file instead
 
-`--mapping b2` wraps the organisers' B2 baseline (`examples.baselines.predict`): the pack's
-rules with every answer that has a phone or launch-monitor measurement swapped for it. It is
-the insurance file; it is replaced only when `just score` on dev beats the committed number.
+`--mapping app` (default) is the app's own `fitting.mapping.build_answers` + `recommend_fit`,
+via `scripts/score_dev.py`. `--mapping b2` wraps the organisers' B2 baseline
+(`examples.baselines.predict`). The committed file is replaced only when `just score` on dev
+beats the number it was made with.
 
 The file is checked before it is written: one row per golfer in the split, required columns,
 and every row buildable (an unbuildable spec or a missing golfer scores 0).
@@ -39,7 +41,14 @@ def predict_b2(d: Path) -> pd.DataFrame:
     )
 
 
-MAPPINGS = {"b2": predict_b2}
+def predict_app(d: Path) -> pd.DataFrame:
+    """The app's own build_answers + recommend_fit (scripts/score_dev.py): dev 85.59 vs B2 83.58."""
+    import score_dev  # scripts/ is on sys.path when this script runs
+
+    return score_dev.predict(d)
+
+
+MAPPINGS = {"app": predict_app, "b2": predict_b2}
 
 
 def validate(pred: pd.DataFrame, golfer_ids: pd.Series) -> list[str]:
@@ -59,7 +68,7 @@ def validate(pred: pd.DataFrame, golfer_ids: pd.Series) -> list[str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--mapping", choices=sorted(MAPPINGS), default="b2")
+    ap.add_argument("--mapping", choices=sorted(MAPPINGS), default="app")
     ap.add_argument("--data", type=Path, default=LAB / "data" / "test", help="split folder")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     a = ap.parse_args()
