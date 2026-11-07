@@ -33,6 +33,10 @@ const EMPTY_STAGE: StageState = { view: 'club', focus: null, spec: null, heads: 
 let seqCounter = 0
 const nextSeq = () => ++seqCounter
 
+/** The in-flight `start()`. React StrictMode runs the Studio mount effect twice in dev; without this the second
+ *  session replaced `sessionId` while the opening turn's cards belonged to the first, so answers got 422 (#162). */
+let starting: Promise<void> | null = null
+
 interface SessionStore {
   sessionId: string | null
   engine: 'scripted' | 'live' | null
@@ -116,6 +120,23 @@ export const useSession = create<SessionStore>()((set, get) => {
     }
   }
 
+  const startSession = async ({ engine, demo }: Parameters<SessionStore['start']>[0]) => {
+    const { data, error } = await api.POST('/api/sessions', {
+      body: { engine: engine ?? null, demo_golfer_id: demo ?? null, host: { platform: 'standalone' } },
+    })
+    if (!data) {
+      set({ error: `session failed: ${JSON.stringify(error)}` })
+      return
+    }
+    set({ sessionId: data.session_id, engine: engine ?? null, state: null, demo: demo ?? null, stage: EMPTY_STAGE })
+    if (data.notice?.fallback === 'form') {
+      set({ mode: 'form' })
+    }
+    get().mergeState(data.state)
+    // A turn needs a message: a hidden "Hi" opens the scripted/live conversation.
+    await turn({ message: { kind: 'text', text: 'Hi' } })
+  }
+
   return {
     sessionId: null,
     engine: null,
@@ -131,21 +152,11 @@ export const useSession = create<SessionStore>()((set, get) => {
     mode: 'chat',
     setMode: (mode) => set({ mode }),
     mergeState: (next) => set((s) => (!s.state || next.version > s.state.version ? { state: next } : {})),
-    async start({ engine, demo }) {
-      const { data, error } = await api.POST('/api/sessions', {
-        body: { engine: engine ?? null, demo_golfer_id: demo ?? null, host: { platform: 'standalone' } },
+    start(opts) {
+      starting ??= startSession(opts).finally(() => {
+        starting = null
       })
-      if (!data) {
-        set({ error: `session failed: ${JSON.stringify(error)}` })
-        return
-      }
-      set({ sessionId: data.session_id, engine: engine ?? null, state: null, demo: demo ?? null, stage: EMPTY_STAGE })
-      if (data.notice?.fallback === 'form') {
-        set({ mode: 'form' })
-      }
-      get().mergeState(data.state)
-      // A turn needs a message: a hidden "Hi" opens the scripted/live conversation.
-      await turn({ message: { kind: 'text', text: 'Hi' } })
+      return starting
     },
     async resume(token: string) {
       set({ busy: true, error: null })
