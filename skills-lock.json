@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "developing-genkit-python": {
+      "source": "genkit-ai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/developing-genkit-python/SKILL.md",
+      "computedHash": "07bd4272ec6e9133d7ad01b301f2aa54a55814450320023434473b6b1fb7a1d2"
+    },
+    "fastapi": {
+      "source": "fastapi/fastapi",
+      "sourceType": "github",
+      "skillPath": "fastapi/.agents/skills/fastapi/SKILL.md",
+      "computedHash": "c486e812131d4cc185a3ba0e551fca52369d286ba9e31d5493124295d6fde49f"
+    },
+    "r3f-fundamentals": {
+      "source": "enzed/r3f-skills",
+      "sourceType": "github",
+      "skillPath": "skills/r3f-fundamentals/SKILL.md",
+      "computedHash": "b2ceee76273a7b3dbfef647ce0b2c7977c65f4a7196daebd0a528252b930fd2e"
+    },
+    "r3f-interaction": {
+      "source": "enzed/r3f-skills",
+      "sourceType": "github",
+      "skillPath": "skills/r3f-interaction/SKILL.md",
+      "computedHash": "863d6b7752219964cb38ca50a02f2201ebb7e7cab8d234e02d15667b447f9e7d"
+    },
+    "tailwind-4-docs": {
+      "source": "lombiq/tailwind-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/tailwind-4-docs/SKILL.md",
+      "computedHash": "de756f5f03cc20a029983875b00b9dfef9d0ba8567d242c5cbb0262037d0a134"
+    },
+    "zustand": {
+      "source": "lobehub/lobehub",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/zustand/SKILL.md",
+      "computedHash": "2912a699fe18dad73b16512ffd856ab20e098bd5237b4a25163b22a16f1ce7fb"
+    }
+  }
+}
