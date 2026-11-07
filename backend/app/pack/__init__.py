@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import copy
 from functools import lru_cache
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 import numpy as np
 from takomo_fit import baseline as _bl
@@ -223,3 +223,31 @@ def static_lie_deg(height_cm: float, wrist_to_floor_cm: float) -> float:
     """The static lie chart before rounding (degrees from standard, + upright). The pack's
     `lie_for` rounds this; lie fusion needs the continuous value."""
     return _f(_bl.lie_continuous(float(height_cm), float(wrist_to_floor_cm)))
+
+
+@lru_cache(maxsize=1)
+def length_height_edges_cm() -> tuple[float, ...]:
+    """The length chart's height edges (`below_cm`). Two heights with the same
+    `bisect_right(edges, h)` get the same length from the rules, so callers can cache on it."""
+    rows = _products()["current_tool_rules"]["length_by_height_cm"]
+    return tuple(float(r["below_cm"]) for r in rows if r["below_cm"] is not None)
+
+
+def static_lie_deg_many(height_cm: np.ndarray, wrist_to_floor_cm: np.ndarray) -> np.ndarray:
+    """`static_lie_deg` over arrays (Monte Carlo samples). numpy in, numpy out: for `confidence`
+    internals only, never returned to clients. The pack annotates floats, but the chart is plain
+    arithmetic and broadcasts over arrays."""
+    h = cast(Any, np.asarray(height_cm, float))
+    w = cast(Any, np.asarray(wrist_to_floor_cm, float))
+    return np.asarray(_bl.lie_continuous(h, w), float)
+
+
+def gloves_from_hand_lengths(cm: np.ndarray) -> list[str]:
+    """`glove_from_hand_length` over an array of hand lengths."""
+    idx = np.digitize(np.asarray(cm, float), GLOVE_EDGES_CM)
+    return [GLOVE_ORDER[int(i)] for i in idx]
+
+
+def swing_buckets_from_speeds(mph: np.ndarray) -> list[int]:
+    """`swing_bucket_from_speed` over an array of speeds."""
+    return [int(_bl.swing_bucket_from_speed(float(x))) for x in np.asarray(mph, float)]
