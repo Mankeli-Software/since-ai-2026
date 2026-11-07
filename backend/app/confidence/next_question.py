@@ -182,8 +182,9 @@ def next_question(
             part="lie",
             reason_code="lie_ball_line",
             component=DataImport(
-                prompt="Your lie comes from a size chart. A 5-shot ball-line test on a mat shows "
-                "which way to lean. Want to try it?",
+                prompt="Want to check your lie angle? It's optional. Right now it comes from "
+                "your height and wrist-to-floor. A quick ball-line test on a mat checks it "
+                "with real shots.",
                 sources=["ball_line", "skip"],
                 club_hint="own_7i",
                 reason_code="lie_ball_line",
