@@ -1,5 +1,8 @@
 # since-ai-2026
 
+
+[https://fitteri.mankelisolutions.fi](https://fitteri.mankelisolutions.fi)
+
 Challenge summary
 ```
 Buying golf clubs online should not mean choosing blindly. In a fitting studio, a skilled professional asks the
