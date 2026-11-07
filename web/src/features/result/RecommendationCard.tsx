@@ -46,7 +46,7 @@ export function RecommendationCardView(p: {
       {rec && (
         <>
           <div className="flex items-center gap-2">
-            <h3 className="font-display text-3xl uppercase">{p.spec.head}</h3>
+            <h3 className="font-display text-3xl uppercase">{p.spec.head.replace('-', ' ')}</h3>
             <span className="rounded bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">
               {p.purchase === 'stock' ? 'Stock' : 'Custom'}
             </span>
@@ -61,7 +61,7 @@ export function RecommendationCardView(p: {
           </dl>
           {p.runner_up && (
             <p className="text-xs text-muted-foreground">
-              Runner-up: {p.runner_up.head}, {p.runner_up.flex}, {p.runner_up.length_in} in, lie {signed(p.runner_up.lie_deg)}°
+              Runner-up: {p.runner_up.head.replace('-', ' ')}, {p.runner_up.flex}, {p.runner_up.length_in} in, lie {signed(p.runner_up.lie_deg)}°
             </p>
           )}
         </>
