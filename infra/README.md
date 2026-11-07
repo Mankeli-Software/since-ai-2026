@@ -42,7 +42,8 @@ Sign in with your private Gmail (check the account switcher, top right).
 - Secret `anthropic-api-key`:
   <https://console.cloud.google.com/security/secret-manager/secret/anthropic-api-key/versions?project=takomo-fitter>
 - Docker images: <https://console.cloud.google.com/artifacts/docker/takomo-fitter/europe-north1/app?project=takomo-fitter>
-- Live app: <https://fitter-n3x3h3wroq-lz.a.run.app> (health check: `/api/health`)
+- Live app: <https://fitteri.mankelisolutions.fi> (custom domain, see below) or
+  <https://fitter-n3x3h3wroq-lz.a.run.app> (Cloud Run URL). Health check: `/api/health`.
 
 ### CLI
 
@@ -83,6 +84,35 @@ The second command makes the running service pick up the new key; the next deplo
 - **Costs:** a €10 budget alert on the project emails Jesse (billing-account budgets aren't visible to project Admins).
   Cloud Run is capped at 1 instance, and the image registry keeps only the newest 5 images.
 - **Freeze at Sun 06:00:** set the GitHub variable `DEPLOY_ENABLED` to `false` (see "Freeze" below).
+
+## Custom domain: `fitteri.mankelisolutions.fi`
+
+The whole app (studio, API and SSE) is served at <https://fitteri.mankelisolutions.fi> through a **Cloud Run domain
+mapping** to the `fitter` service. It is free and uses a Google-managed certificate. The `*.run.app` URL keeps working,
+and every deploy updates both.
+
+| Where | What |
+|---|---|
+| Cloud Run | Domain mapping `fitteri.mankelisolutions.fi` → service `fitter`, region `europe-north1` (created Sat 7 Nov) |
+| Cloudflare (`mankelisolutions.fi` zone) | `CNAME fitteri → ghs.googlehosted.com`, **DNS only (grey cloud)** |
+| Google Search Console | `mankelisolutions.fi` is verified; `jesse.m.lappalainen@gmail.com` was added as an Owner so it can create mappings |
+
+Keep the Cloudflare record **DNS only**. With the proxy on, Google can't renew the certificate and Cloudflare may
+buffer SSE. The mapping is a Cloud Run **preview** feature: fine for the demo, but Google recommends a load balancer for
+production (about €18 a month, so not used here).
+
+```sh
+gcloud beta run domain-mappings describe --domain fitteri.mankelisolutions.fi --region europe-north1   # status, cert
+just smoke https://fitteri.mankelisolutions.fi
+```
+
+To recreate it, as an account that is a verified owner of `mankelisolutions.fi` in Search Console:
+
+```sh
+gcloud beta run domain-mappings create --service fitter --domain fitteri.mankelisolutions.fi --region europe-north1
+```
+
+The certificate usually takes about 15 minutes after DNS is in place (up to 24 hours).
 
 ## One-time GCP setup (issue #11)
 
