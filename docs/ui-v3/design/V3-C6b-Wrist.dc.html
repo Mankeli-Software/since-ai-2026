@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fitter chat, wrist to floor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0B0B}
+a{color:inherit}a:hover{color:#FF8A33}
+.tk{font-family:'Barlow',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.c{font-family:'Barlow Condensed','Barlow',sans-serif}
+.eb{font-family:'Barlow Condensed','Barlow',sans-serif;font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase}
+.num{font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;border:0;cursor:pointer}
+.bp{background:#FF6E01;color:#0B0B0B}.bp:hover{background:#FF8A33;color:#0B0B0B}
+.bd{background:#0B0B0B;color:#F8F8F8}.bd:hover{color:#FFFFFF}
+.bo{background:transparent;color:#0B0B0B;box-shadow:inset 0 0 0 1px #C8C8C8}
+.seg{width:10px;height:5px;border-radius:1px;background:#3D3D3D}
+.seg.on{background:#FF6E01}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border-radius:6px;background:#EDEDED;font:600 14px 'Barlow',sans-serif;color:#333333}
+.opt{display:flex;align-items:center;gap:16px;min-height:60px;padding:0 18px;border-radius:12px;border:1px solid #D9D9D9;background:#FFFFFF;color:#0B0B0B;font:500 19px 'Barlow',sans-serif;cursor:pointer;text-align:left}
+.opt.on{border:2px solid #0B0B0B}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF6E01}
+.ring{display:inline-block;width:8px;height:8px;border-radius:50%;box-sizing:border-box;border:1.5px solid currentColor}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+input[type=range]{accent-color:#FF6E01;width:100%;margin:0}
+</style>
+</helmet>
+<div class="tk" style="width:100%;min-height:900px;position:relative;overflow:hidden;display:flex;flex-direction:column;background-color:#0B0B0B;background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);background-size:56px 56px;color:#F8F8F8">
+<div aria-hidden="true" style="position:absolute;right:-90px;top:190px;width:408px;height:442px;background:radial-gradient(ellipse at 50% 60%,rgba(255,110,1,.14),transparent 65%)"></div><img src="/_blob/a662f59b74c03bb070ca6f49f1829f14" alt="" style="position:absolute;right:-30px;top:230px;height:340px;opacity:0.6;filter:drop-shadow(0 30px 40px rgba(0,0,0,.7))">
+  <header style="display:flex;align-items:center;gap:20px;padding:28px 56px 0;box-sizing:border-box">
+    <a href="V2-01-Welcome.dc.html" aria-label="Takomo Fitter Studio, start" style="display:flex;align-items:center;gap:14px;text-decoration:none;flex:none"><svg width="34" height="31" viewBox="0 0 40 36" fill="none" stroke="#F8F8F8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15 C 14 13 26 8 38 3"></path><path d="M27 2 L 14.5 33"></path><path d="M3 15 C 10 16 14 22 14.5 33"></path></svg><span style="font-weight:600;font-size:19px;letter-spacing:.3em">TAKOMO</span></a>
+    <span class="eb" style="color:#F8F8F8;flex:none">Fitter Studio</span>
+    <div style="flex:1;height:1px;background:#3D3D3D"></div>
+    <span style="display:flex;align-items:center;gap:10px;flex:none"><span class="eb" style="color:#A3A3A3">Step 3 of 4</span><span style="width:24px;height:4px;border-radius:2px;background:#FF6E01"></span><span style="width:24px;height:4px;border-radius:2px;background:#FF6E01"></span><span style="width:24px;height:4px;border-radius:2px;background:#FF6E01"></span><span style="width:24px;height:4px;border-radius:2px;background:#3D3D3D"></span></span>
+    <span style="display:flex;align-items:center;gap:10px;flex:none" aria-label="Fit confidence 78 percent"><span class="eb" style="color:#A3A3A3">Fit confidence</span><span style="display:flex;gap:2px"><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg"></span><span class="seg"></span></span><span class="c num" style="font-weight:700;font-size:20px">78%</span></span>
+    <button type="button" style="display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 14px;border-radius:6px;border:0;box-shadow:inset 0 0 0 1px #3D3D3D;background:transparent;color:#F8F8F8;cursor:pointer;flex:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg><span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:1"><span style="font:500 11px 'Barlow',sans-serif;color:#A3A3A3">Save to</span><span style="font:600 15px 'Barlow',sans-serif">myTakomo</span></span></button>
+  </header>
+  <main style="position:relative;flex:1;width:100%;max-width:960px;margin:0 auto;padding:32px 40px 28px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="eb" style="color:#5F5F5F;margin-right:6px">You told me</span><span title="Your game" style="display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:999px;background:#161616;border:1px solid #262626;font-size:15px;color:#C8C8C8">Fade, a bit low</span><span title="Real shots" style="display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:999px;background:#161616;border:1px solid #262626;font-size:15px;color:#C8C8C8"><span class="dot" style="width:7px;height:7px"></span>142 m carry, measured</span><span title="Height" style="display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:999px;background:#161616;border:1px solid #262626;font-size:15px;color:#C8C8C8">181 cm</span></div>
+    <div style="display:flex;gap:16px;align-items:flex-start"><span style="width:44px;height:44px;border-radius:50%;background:#FF6E01;display:inline-flex;align-items:center;justify-content:center;flex:none"><svg width="24" height="22" viewBox="0 0 40 36" fill="none" stroke="#0B0B0B" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15 C 14 13 26 8 38 3"></path><path d="M27 2 L 14.5 33"></path><path d="M3 15 C 10 16 14 22 14.5 33"></path></svg></span><p style="margin:6px 0 0;font-size:24px;line-height:1.45;color:#F8F8F8;font-weight:500">Now wrist-to-floor. Grab someone, or a wall and a tape measure.</p></div>
+    <section style="background:#F8F8F8;color:#0B0B0B;border-radius:20px;padding:26px 30px 28px;display:flex;flex-direction:column;gap:18px;box-shadow:0 30px 60px rgba(0,0,0,.5)"><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:stretch"><div style="border-radius:14px;background:#EDEDED;display:flex;align-items:center;justify-content:center;min-height:300px"><svg viewBox="0 0 240 280" style="height:280px" role="img" aria-label="Person standing relaxed, measured from wrist crease to the floor"><circle cx="100" cy="40" r="16" fill="none" stroke="#0B0B0B" stroke-width="2.5"></circle><path d="M100 56 V150 M100 150 L84 262 M100 150 L116 262 M100 76 L74 150 M100 76 L126 150" fill="none" stroke="#0B0B0B" stroke-width="2.5" stroke-linecap="round"></path><line x1="40" y1="264" x2="200" y2="264" stroke="#0B0B0B" stroke-width="2.5"></line><circle cx="126" cy="150" r="5" fill="#FF6E01"></circle><line x1="160" y1="150" x2="160" y2="262" stroke="#FF6E01" stroke-width="2.5"></line><path d="M152 158 L160 150 L168 158 M152 254 L160 262 L168 254" fill="none" stroke="#FF6E01" stroke-width="2.5"></path><line x1="130" y1="150" x2="156" y2="150" stroke="#FF6E01" stroke-dasharray="3 4"></line><text x="170" y="212" fill="#C24F00" font-family="Barlow Condensed" font-weight="700" font-size="18">86 CM</text></svg></div><div style="display:flex;flex-direction:column;gap:16px;justify-content:center"><ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px"><li style="display:flex;gap:12px;align-items:center"><span class="c num" style="width:28px;height:28px;border-radius:50%;background:#0B0B0B;color:#F8F8F8;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none">1</span><span style="font-size:16px">Shoes on, stand tall</span></li><li style="display:flex;gap:12px;align-items:center"><span class="c num" style="width:28px;height:28px;border-radius:50%;background:#0B0B0B;color:#F8F8F8;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none">2</span><span style="font-size:16px">Let your arms hang loose</span></li><li style="display:flex;gap:12px;align-items:center"><span class="c num" style="width:28px;height:28px;border-radius:50%;background:#0B0B0B;color:#F8F8F8;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none">3</span><span style="font-size:16px">Measure wrist crease to floor</span></li></ol>
+<div style="display:flex;align-items:flex-end;gap:10px"><div style="flex:1;display:flex;flex-direction:column;gap:6px"><label for="wf" style="font-weight:600;font-size:16px">Wrist to floor</label><input id="wf" type="text" inputmode="numeric" value="86" style="width:100%;height:64px;box-sizing:border-box;padding:0 16px;border-radius:10px;border:2px solid #0B0B0B;font:800 36px 'Barlow Condensed',sans-serif"></div><span style="font-size:18px;color:#555555;padding-bottom:18px">cm</span></div>
+<a href="#" style="font-size:15px;color:#C24F00;font-weight:600">Measure with my camera instead</a>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><button class="btn bo" type="button">Not sure</button><a class="btn bd" href="V3-C6-Body.dc.html" style="min-height:52px;padding:0 24px">Next →</a></div></div></div></section>
+    <div style="margin-top:auto"><form style="display:flex;align-items:center;gap:10px;height:60px;padding:0 8px 0 22px;border-radius:999px;background:#141414;border:1px solid #2A2A2A">
+          <label for="msg" class="sr">Message the fitter</label>
+          <input id="msg" type="text" placeholder="Or ask the fitter anything…" style="flex:1;min-width:0;height:100%;border:0;background:transparent;color:#F8F8F8;font:400 17px 'Barlow',sans-serif;outline:none">
+          <button type="button" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border-radius:999px;border:0;background:#262626;color:#F8F8F8;font:700 15px 'Barlow Condensed',sans-serif;letter-spacing:.05em;text-transform:uppercase;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF6E01" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>Say it</button>
+          <button type="submit" aria-label="Send" style="width:44px;height:44px;border-radius:50%;border:0;background:#3D3D3D;display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F8F8F8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+        </form></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
