@@ -14,7 +14,8 @@ INTAKE_FIELDS = frozenset(IntakeAnswers.model_fields)
 PHONE_FIELDS = frozenset(PhoneMeasurements.model_fields)
 # Answers to offers (not profile values): recorded so the same offer is not asked again.
 OFFER_FIELDS = frozenset({"ball_line_offer", "precision_offer"})
-PROFILE_FIELDS = INTAKE_FIELDS | PHONE_FIELDS | OFFER_FIELDS
+EVIDENCE_FIELDS = frozenset({"ball_line_tilt_deg"})
+PROFILE_FIELDS = INTAKE_FIELDS | PHONE_FIELDS | OFFER_FIELDS | EVIDENCE_FIELDS
 
 
 def _values(session: FitSession, names: frozenset[str]) -> dict[str, object]:
@@ -26,11 +27,21 @@ def intake_of(session: FitSession) -> IntakeAnswers:
 
 
 def evidence_of(session: FitSession) -> FitEvidence:
-    """Evidence known to the session. TODO(EVIDENCE #30-#32): add shots and ball-line readings
-    from confirmed imports once the import routes land; today only phone values and flags."""
+    """Evidence known to the session."""
     phone = _values(session, PHONE_FIELDS)
+    ball_line_pv = session.profile.get("ball_line_tilt_deg")
+    ball_line_tilt_deg: list[float] = []
+    if ball_line_pv and ball_line_pv.value is not None:
+        val = ball_line_pv.value
+        if isinstance(val, list):
+            ball_line_tilt_deg = [float(x) for x in val]
+        elif isinstance(val, (int, float)):
+            ball_line_tilt_deg = [float(val)]
+
     return FitEvidence(
         phone=PhoneMeasurements.model_validate(phone) if phone else None,
+        shots=list(session.state.shots),
+        ball_line_tilt_deg=ball_line_tilt_deg,
         flags=list(session.flags),
     )
 
