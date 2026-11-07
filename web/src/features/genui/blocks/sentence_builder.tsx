@@ -1,5 +1,5 @@
-import { Fragment, useId, useState } from 'react'
-import { Button, OptTile, useNumberKeys } from '@/components/studio'
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { Button, Kbd, OptTile, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockOf, BlockProps } from '../types'
 
@@ -40,6 +40,49 @@ function nextUnfilled(tokens: Token[], values: Values, from = -1): string | null
   return null
 }
 
+const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+const EASE = 'cubic-bezier(0, 0, 0.58, 1)'
+
+/** Fades and lifts its child in after `delay` ms, once on mount (the next word's tiles arrive one after another). */
+function StaggerIn({ delay, children }: { delay: number; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (reducedMotion()) return
+    ref.current?.animate(
+      [
+        { opacity: 0, transform: 'translateY(8px)' },
+        { opacity: 1, transform: 'none' },
+      ],
+      { duration: 260, delay, easing: 'cubic-bezier(0.33, 1, 0.68, 1)', fill: 'backwards' },
+    )
+  }, [delay])
+  return (
+    <div ref={ref} className="grid">
+      {children}
+    </div>
+  )
+}
+
+/** Enter submits while the sentence is complete (not while typing, and not on a focused button, which Enter clicks). */
+function useEnterKey(onEnter: () => void, enabled: boolean) {
+  const enter = useRef(onEnter)
+  useEffect(() => {
+    enter.current = onEnter
+  })
+  useEffect(() => {
+    if (!enabled) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
+      const t = e.target
+      if (t instanceof Element && t.closest('input, textarea, select, button, a, [contenteditable="true"]')) return
+      e.preventDefault()
+      enter.current()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [enabled])
+}
+
 const pillBase =
   'mx-0.5 inline-flex h-[52px] cursor-pointer items-center gap-2 rounded-full px-[22px] align-middle font-sans text-[32px] font-medium transition-ui disabled:cursor-not-allowed'
 
@@ -48,8 +91,25 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   const { tokens } = block
   const parts = parseTemplate(block.template, tokens)
   const [values, setValues] = useState<Values>(() => initialValues(tokens))
-  const [active, setActive] = useState<string | null>(() => nextUnfilled(tokens, initialValues(tokens)))
+  const [active, setActiveState] = useState<string | null>(() => nextUnfilled(tokens, initialValues(tokens)))
   const gridId = useId()
+  // The choices box eases from its old height to the new one (2 options vs 6) instead of jumping.
+  const boxRef = useRef<HTMLDivElement>(null)
+  const fromHeight = useRef<number | null>(null)
+  const setActive = (id: string | null) => {
+    fromHeight.current = boxRef.current?.getBoundingClientRect().height ?? null
+    setActiveState(id)
+  }
+  useLayoutEffect(() => {
+    const el = boxRef.current
+    const from = fromHeight.current
+    fromHeight.current = null
+    if (!el || from === null || reducedMotion()) return
+    el.getAnimations().forEach((a) => a.cancel())
+    const to = el.getBoundingClientRect().height
+    if (Math.abs(to - from) < 1) return
+    el.animate([{ height: `${from}px` }, { height: `${to}px` }], { duration: 240, easing: EASE })
+  }, [active])
 
   const live = interactive && !answer
   const activeToken = tokens.find((t) => t.id === active) ?? null
@@ -63,7 +123,16 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     setActive(nextUnfilled(tokens, next, tokens.indexOf(activeToken)))
   }
 
+  // Long labels ("2–3 rounds a month") get two wide columns so a label never wraps beside its key.
+  const wide = options.some((o) => o.label.length > 14)
+
+  const submit = () => {
+    const value = Object.fromEntries(tokens.map((t) => [t.id, values[t.id] as string]))
+    respond(value, sentenceText(parts, values))
+  }
+
   useNumberKeys(options.length, (i) => pick(options[i].id), live && !busy && activeToken !== null)
+  useEnterKey(submit, live && !busy && allFilled && activeToken === null)
 
   if (!live) {
     const shown: Values =
@@ -81,11 +150,6 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         )}
       </p>
     )
-  }
-
-  const submit = () => {
-    const value = Object.fromEntries(tokens.map((t) => [t.id, values[t.id] as string]))
-    respond(value, sentenceText(parts, values))
   }
 
   return (
@@ -121,32 +185,40 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         })}
       </p>
 
-      {activeToken && (
-        <div
-          id={gridId}
-          role="group"
-          aria-label={`Choose ${activeToken.placeholder}`}
-          className="grid grid-cols-4 gap-3"
-        >
-          {options.map((o, i) => (
-            <OptTile
-              key={o.id}
-              kbd={i < 9 ? i + 1 : undefined}
-              aria-keyshortcuts={i < 9 ? String(i + 1) : undefined}
-              selected={values[activeToken.id] === o.id}
-              disabled={busy}
-              onClick={() => pick(o.id)}
-            >
-              {o.label}
-            </OptTile>
-          ))}
-        </div>
-      )}
+      {/* Carries its own top gap, so it folds to nothing once every word is set. */}
+      <div ref={boxRef} className="-mt-[18px] overflow-hidden">
+        {activeToken && (
+          <div
+            key={activeToken.id}
+            id={gridId}
+            role="group"
+            aria-label={`Choose ${activeToken.placeholder}`}
+            className={cn('grid gap-3 pt-[18px]', wide ? 'grid-cols-2' : 'grid-cols-4')}
+          >
+            {options.map((o, i) => (
+              <StaggerIn key={o.id} delay={30 * i}>
+                <OptTile
+                  kbd={i < 9 ? i + 1 : undefined}
+                  aria-keyshortcuts={i < 9 ? String(i + 1) : undefined}
+                  selected={values[activeToken.id] === o.id}
+                  disabled={busy}
+                  onClick={() => pick(o.id)}
+                >
+                  {o.label}
+                </OptTile>
+              </StaggerIn>
+            ))}
+          </div>
+        )}
+      </div>
 
-      {allFilled && (
+      {allFilled && activeToken === null && (
         <div className="flex justify-end">
-          <Button variant="dark" disabled={busy} onClick={submit}>
+          <Button variant="dark" disabled={busy} aria-keyshortcuts="Enter" onClick={submit} className="pr-3">
             That's me
+            <Kbd onDark className="ml-1.5 normal-case tracking-normal">
+              Enter ↵
+            </Kbd>
           </Button>
         </div>
       )}
