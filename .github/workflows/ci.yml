@@ -186,6 +186,13 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Service $SERVICE does not exist yet: first deploy creates it with traffic"
           fi
+      - name: Drop tags of revisions without traffic (frees CPU quota)
+        if: steps.tag.outputs.exists == 'true'
+        run: |
+          # Tagged revisions keep min-instances=1 and eat the regional CPU quota, so drop tags of idle ones.
+          OLD=$(gcloud run services describe "$SERVICE" --region "$REGION" --format=json \
+            | jq -r '[.status.traffic[] | select(.tag and ((.percent // 0) == 0)) | .tag] | join(",")')
+          if [ -n "$OLD" ]; then gcloud run services update-traffic "$SERVICE" --region "$REGION" --remove-tags "$OLD"; fi
       - uses: google-github-actions/deploy-cloudrun@v3
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
