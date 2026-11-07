@@ -183,12 +183,11 @@ def explain_fit(
             is_measured
             and intake
             and intake.claimed_7i_carry_yd is not None
-            and claimed is not None
             and answers.est_7i_speed_mph
         ):
             flex_plain = (
                 f"{rec.flex.capitalize()} flex fits your measured swing speed. "
-                f"Your {claimed:g} yd claim was higher than your shots show."
+                f"Your {intake.claimed_7i_carry_yd:g} yd claim was higher than your shots show."
             )
         elif is_measured and answers.est_7i_speed_mph:
             flex_plain = (

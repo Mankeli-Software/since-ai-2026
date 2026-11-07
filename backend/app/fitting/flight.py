@@ -18,9 +18,10 @@ import numpy as np
 from app import pack
 from app.fitting import priors
 from app.fitting.mapping import build_answers
+from app.fitting.recommend import lie_from_need
 from app.fitting.session_inputs import evidence_of, intake_of
 from app.fitting.trajectory import trajectory
-from app.schemas.common import HeadSlug
+from app.schemas.common import HeadSlug, Spec
 from app.schemas.evidence import Shot
 from app.schemas.fit import (
     CarryStats,
@@ -38,6 +39,26 @@ from app.schemas.session import FitSession
 CURRENT_CLUBS_GAIN_THRESHOLD_YD: float = 3.0
 
 
+def _is_own(s: Shot) -> bool:
+    return s.club == "own_7i" or not s.club.startswith("takomo_")
+
+
+def _own_carries(shots: Sequence[Shot]) -> list[float]:
+    return [float(s.carry_yd) for s in shots if s.carry_yd is not None and _is_own(s)]
+
+
+def _lie_need(intake: IntakeAnswers, evidence: FitEvidence) -> float | None:
+    """The continuous lie need: evidence override if any, else the static chart. None when the
+    answers cannot be mapped yet."""
+    try:
+        answers = build_answers(intake, evidence)
+    except Exception:
+        return None
+    if answers.lie_override_deg is not None:
+        return float(answers.lie_override_deg)
+    return pack.static_lie_deg(answers.height_cm, answers.wrist_to_floor_cm)
+
+
 def own_shots_carry_gain(
     shots: Sequence[Shot],
     per_head: Sequence[HeadFlight],
@@ -50,11 +71,7 @@ def own_shots_carry_gain(
     if lie_change_deg != 0:
         return None
 
-    own_carries = [
-        float(s.carry_yd)
-        for s in shots
-        if s.carry_yd is not None and (s.club == "own_7i" or not s.club.startswith("takomo_"))
-    ]
+    own_carries = _own_carries(shots)
     if not own_carries:
         return None
 
@@ -86,7 +103,7 @@ def simulate_flight(
     *,
     recommended_head: HeadSlug | None = None,
     lie_error_deg: float | Sequence[float] = 0.0,
-    lie_change_deg: int | float = 0,
+    lie_change_deg: int | None = None,
     n_samples: int = 200,
     session_id: str = "default",
     evidence_version: int = 0,
@@ -94,7 +111,8 @@ def simulate_flight(
     """Simulate ball flight and top/side dispersion for heads.
 
     Returns FlightResult containing per-head summaries, ellipses, trajectories,
-    and any raw own-shot points for comparison.
+    and any raw own-shot points for comparison. `lie_change_deg` is the recommended spec's lie
+    (pass `best.lie_deg`; `flight_for_spec` does); None falls back to the buildable lie need.
     """
     ev = evidence or FitEvidence()
     shots = ev.shots
@@ -338,22 +356,16 @@ def simulate_flight(
     own_shots = [
         (round(float(s.carry_yd), 1), round(float(s.side_yd or 0.0), 1))
         for s in shots
-        if s.carry_yd is not None and (s.club == "own_7i" or not s.club.startswith("takomo_"))
+        if s.carry_yd is not None and _is_own(s)
     ]
 
-    actual_lie_change = lie_change_deg
-    if actual_lie_change == 0:
-        with contextlib.suppress(Exception):
-            answers = build_answers(intake, ev)
-            lie_need = (
-                answers.lie_override_deg
-                if answers.lie_override_deg is not None
-                else pack.static_lie_deg(answers.height_cm, answers.wrist_to_floor_cm)
-            )
-            if round(lie_need) != 0:
-                actual_lie_change = round(lie_need)
-
-    gain = own_shots_carry_gain(shots, per_head, lie_change_deg=actual_lie_change)
+    # The verdict compares against the recommended spec's lie as built (clipped, fused or
+    # overridden by evidence), never the raw chart need re-derived here.
+    lie_change = lie_change_deg
+    if lie_change is None:
+        need = _lie_need(intake, ev)
+        lie_change = lie_from_need(need) if need is not None else 0
+    gain = own_shots_carry_gain(shots, per_head, lie_change_deg=lie_change)
     verdict = gain if gain is not None and gain < CURRENT_CLUBS_GAIN_THRESHOLD_YD else None
 
     return FlightResult(
@@ -363,37 +375,67 @@ def simulate_flight(
     )
 
 
+def flight_for_spec(
+    intake: IntakeAnswers,
+    evidence: FitEvidence | None,
+    best: Spec | None,
+    heads: Sequence[HeadSlug] | None = None,
+    *,
+    session_id: str = "default",
+    evidence_version: int = 0,
+) -> FlightResult:
+    """Flight with `best` (the recommended spec) marked: its head is the recommended one, its
+    lie sets the lie error and the current-clubs verdict. Without a spec, the buildable chart or
+    evidence lie stands in."""
+    ev = evidence or FitEvidence()
+    need = _lie_need(intake, ev)
+    rec_lie = 0 if need is None else lie_from_need(need)
+    if best is not None:
+        rec_lie = best.lie_deg
+    lie_error_deg = float(rec_lie - need) if need is not None else 0.0
+    return simulate_flight(
+        intake,
+        ev,
+        heads,
+        recommended_head=best.head if best is not None else None,
+        lie_error_deg=lie_error_deg,
+        lie_change_deg=rec_lie,
+        session_id=session_id,
+        evidence_version=evidence_version,
+    )
+
+
+def current_clubs_verdict(
+    intake: IntakeAnswers,
+    evidence: FitEvidence | None,
+    best: Spec | None,
+    *,
+    session_id: str = "default",
+    evidence_version: int = 0,
+) -> float | None:
+    """The "your clubs are fine" verdict: the recommended head's carry gain over the golfer's
+    own 7-iron shots (yd) when it is under `CURRENT_CLUBS_GAIN_THRESHOLD_YD` and the
+    recommended spec needs no lie change, else None. Same seed and inputs as `flight_for_spec`,
+    so it equals that flight's `current_clubs_verdict`. Skips the simulation when it cannot
+    apply."""
+    ev = evidence or FitEvidence()
+    if best is None or best.lie_deg != 0 or not _own_carries(ev.shots):
+        return None
+    return flight_for_spec(
+        intake, ev, best, session_id=session_id, evidence_version=evidence_version
+    ).current_clubs_verdict
+
+
 def simulate_session_flight(
     session: FitSession, heads: Sequence[HeadSlug] | None = None
 ) -> FlightResult:
-    """Convenience wrapper to simulate flight directly from session state."""
-    intake = intake_of(session)
-    evidence = evidence_of(session)
-    rec_head = session.state.best.head if session.state.best else None
-    lie_error_deg = 0.0
-    rec_lie = session.state.best.lie_deg if session.state.best else 0
-    with contextlib.suppress(Exception):
-        answers = build_answers(intake, evidence)
-        lie_need = (
-            answers.lie_override_deg
-            if answers.lie_override_deg is not None
-            else pack.static_lie_deg(answers.height_cm, answers.wrist_to_floor_cm)
-        )
-        if session.state.best is None:
-            rec_lie = round(lie_need)
-        lie_error_deg = float(rec_lie - lie_need)
-    res = simulate_flight(
-        intake,
-        evidence,
+    """Flight straight from the session (its intake, evidence and best spec). Reads only: the
+    verdict reaches `session.state` through `analyze` -> `refresh_state`, never from here."""
+    return flight_for_spec(
+        intake_of(session),
+        evidence_of(session),
+        session.state.best if session.state is not None else None,
         heads,
-        recommended_head=rec_head,
-        lie_error_deg=lie_error_deg,
-        lie_change_deg=rec_lie,
         session_id=session.id,
         evidence_version=session.evidence_version,
     )
-    if session.state is not None:
-        session.state = session.state.model_copy(
-            update={"current_clubs_verdict": res.current_clubs_verdict}
-        )
-    return res
