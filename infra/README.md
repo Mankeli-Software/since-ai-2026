@@ -97,6 +97,15 @@ gcloud run services update fitter --update-secrets=ANTHROPIC_API_KEY=anthropic-a
 
 The second command makes the running service pick up the new key; the next deploy also picks it up.
 
+### ElevenLabs key (voice, #51)
+
+Secret `elevenlabs-api-key` exists. `fitter-runtime@` has `secretAccessor` on it. CI mounts it as
+`ELEVENLABS_API_KEY`; without it the voice falls back to the browser's own voice. Rotate the key:
+
+```sh
+ printf %s 'NEW_KEY' | gcloud secrets versions add elevenlabs-api-key --data-file=- --project=takomo-fitter
+```
+
 ### Gemini key (optional provider)
 
 Secret `gemini-api-key` exists. `fitter-runtime@` has `secretAccessor` on it.
@@ -232,7 +241,7 @@ gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA" \
   --member="serviceAccount:$DEPLOY_SA" --role=roles/iam.serviceAccountUser
 
 # fitter-runtime@: secretAccessor on the Anthropic secret only, plus logWriter.
-# (Add elevenlabs-api-key only if voice ships; add roles/datastore.user only if Firestore is enabled.)
+# (elevenlabs-api-key has the same binding, see "ElevenLabs key"; add roles/datastore.user only if Firestore is enabled.)
 gcloud secrets add-iam-policy-binding anthropic-api-key \
   --member="serviceAccount:$RUNTIME_SA" --role=roles/secretmanager.secretAccessor
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
