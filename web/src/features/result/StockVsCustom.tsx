@@ -106,7 +106,7 @@ export function StockVsCustomView(p: {
     {
       id: 'stock' as const,
       title: 'Stock',
-      strike: 'Standard lie. Strikes stay where they are.',
+      strike: 'Standard lie. Misses stay where they are.',
       returns: p.stockReturnDays > 0 ? `${p.stockReturnDays} days` : 'Not returnable',
       returnsOk: p.stockReturnDays > 0,
       delivery: '2–3 days',

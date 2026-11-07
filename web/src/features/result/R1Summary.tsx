@@ -15,8 +15,8 @@ import type { Spec } from './types'
 const productVideos = rawProductVideos as unknown as Record<HeadSlug, HeadVideoData>
 
 const R1B_MESSAGE =
-  "This fit is built on what you told me, and it's a solid start. Want to be sure before you buy? Hit a few shots in a simulator and I'll confirm it."
-const R1B_CHIPS = ['What changes with real shots?', 'Buy it now anyway']
+  "We built this off your questionnaire answers—solid baseline, but still an estimate. If you want to be dead certain before dropping cash, hit 10 balls in a simulator and let real numbers lock it down."
+const R1B_CHIPS = ['What do real shots change?', "Looks good, I'll take it now"]
 
 const firstSentence = (s: string) => s.trim().split(/(?<=[.!?])\s+/)[0] ?? s
 
@@ -58,7 +58,7 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
       <div className="flex min-w-0 flex-col gap-2.5">
         <h1 className="m-0 font-display text-[104px] leading-[.84] font-extrabold uppercase">{name}</h1>
         <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-washed-white">
-          {why ? <Text text={why} /> : 'Every part of this build has a reason. Each one is a tap away below.'}
+          {why ? <Text text={why} /> : 'No guesswork, no marketing fluff. Every single spec has a reason below.'}
         </p>
         <ul title={STATUS_TOOLTIP} className="m-0 flex list-none flex-wrap items-center gap-x-[22px] gap-y-1 p-0 pt-0.5 pb-1">
           {copy.ticks.map((t) => (
@@ -281,7 +281,7 @@ export function R1Summary() {
           view="why"
           n={1}
           title="Why each part"
-          text={measured ? 'Every spec with its reason. Shaft and head come from your shots.' : 'Every spec with its reason, and how sure I am of each.'}
+          text={measured ? 'Every spec backed by data. Head and shaft dialled in from what you actually hit.' : 'Every spec backed by data, and how sure we are of each.'}
           cta="See the reasons →"
           preview={<PartsPreview measured={measured} />}
         />
@@ -297,7 +297,7 @@ export function R1Summary() {
           view="ar"
           n={3}
           title="In your hands"
-          text="Your club on your floor at real size."
+          text="Drop the 7-iron on your carpet at 1:1 scale."
           cta="Open AR →"
           preview={<ArPreview head={best.head} />}
         />
@@ -311,7 +311,7 @@ export function R1Summary() {
           <span className="size-2 flex-none rounded-full bg-status-amber" aria-hidden="true" />
           <span className="flex flex-col gap-0.5">
             <span className="font-display text-[22px] font-bold uppercase">Stock or custom?</span>
-            <span className="text-sm text-grey-c8">Your shots point to a custom build. See both side by side before you decide.</span>
+            <span className="text-sm text-grey-c8">Your strike pattern calls for custom lie. See the tradeoff before giving up 30-day returns.</span>
           </span>
           <span className="ml-auto font-display text-[15px] font-bold uppercase tracking-[0.04em] text-orange-hover">Compare builds →</span>
         </ViewLink>

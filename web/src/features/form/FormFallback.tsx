@@ -133,9 +133,9 @@ export function FormFallback() {
     <div className="flex h-full flex-col overflow-y-auto p-6 text-foreground">
       <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
         <div>
-          <span className={eyebrowCls}>Fitting Form</span>
+          <span className={eyebrowCls}>Quick Intake</span>
           <h2 className="font-display text-xl font-bold uppercase tracking-wide">
-            {showRec ? 'Your Recommendation' : 'Quick Questionnaire'}
+            {showRec ? 'Your Recommendation' : 'Dial In Your Specs'}
           </h2>
         </div>
         <Button
@@ -144,13 +144,13 @@ export function FormFallback() {
           className="font-display text-xs font-semibold uppercase tracking-wider"
           onClick={() => setMode('chat')}
         >
-          Switch to Chat
+          Chat with Fitter
         </Button>
       </div>
 
       {loading && !nq && (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-ink-500">Loading next question...</p>
+          <p className="text-sm text-ink-500">Checking next spec...</p>
         </div>
       )}
 
@@ -205,7 +205,7 @@ export function FormFallback() {
                 className="text-xs text-ink-500 hover:text-foreground"
                 onClick={() => setNq({ kind: 'none' })}
               >
-                Skip further questions and view recommendation
+                Skip to my recommendation →
               </Button>
             </div>
           )}

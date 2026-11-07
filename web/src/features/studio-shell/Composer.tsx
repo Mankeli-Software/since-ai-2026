@@ -37,7 +37,7 @@ export function Composer({
   onSend,
   disabled,
   tone = 'dark',
-  placeholder = 'Or ask the fitter anything…',
+  placeholder = 'Ask about heads, shafts, or why your 7-iron goes 125…',
   label = 'Message the fitter',
 }: ComposerProps) {
   const [draft, setDraft] = useState('')

@@ -8,7 +8,7 @@ export const type = 'onboarding_card'
 
 const ROUNDS = ['Under 10', '10-30', '31-50', 'Over 50']
 const SCORES = [
-  [1, 'Under 71'], [2, '71-77'], [3, '78-84'], [4, '85-92'], [5, 'Over 92'],
+  [1, 'Scratch / Under 72'], [2, 'Low 70s (72–77)'], [3, 'Broke 80 (78–84)'], [4, 'Mid 80s to low 90s (85–92)'], [5, '93+ (Still chasing it)'],
 ] as const
 
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'onboarding_card'>) {
@@ -35,14 +35,14 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         <label className={labelCls}>Age
           <input type="number" min={8} max={100} className={inputCls} value={age} disabled={off} onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))} />
         </label>
-        <label className={labelCls}>Sex
+        <label className={labelCls}>Club build
           <select className={inputCls} value={sex} disabled={off} onChange={(e) => setSex(e.target.value)}>
-            <option value="">Choose</option><option value="male">Male</option><option value="female">Female</option>
+            <option value="">Choose</option><option value="male">Men's standard</option><option value="female">Women's standard</option>
           </select>
         </label>
-        <label className={labelCls}>Handedness
+        <label className={labelCls}>How do you swing?
           <select className={inputCls} value={hand} disabled={off} onChange={(e) => setHand(e.target.value)}>
-            <option value="">Choose</option><option value="right">Right</option><option value="left">Left</option>
+            <option value="">Choose</option><option value="right">Right-handed</option><option value="left">Left-handed</option>
           </select>
         </label>
         <label className={labelCls}>Rounds a year
@@ -51,7 +51,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
             {ROUNDS.map((r) => <option key={r}>{r}</option>)}
           </select>
         </label>
-        <label className={`${labelCls} col-span-2`}>Typical score for 18 holes
+        <label className={`${labelCls} col-span-2`}>Typical 18-hole score
           <select className={inputCls} value={score} disabled={off} onChange={(e) => setScore(e.target.value === '' ? '' : Number(e.target.value))}>
             <option value="">Choose</option>
             {SCORES.map(([n, l]) => <option key={n} value={n}>{l}</option>)}
@@ -64,7 +64,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
           <EnterKbd />
         </Button>
       ) : (
-        answer && <p className={answeredCls}>Answered: <strong>{answer.displayText}</strong></p>
+        answer && <p className={answeredCls}>You told me: <strong>{answer.displayText}</strong></p>
       )}
     </div>
   )

@@ -40,15 +40,15 @@ export function ArQrButton({ slug }: { slug: string }) {
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={`${btnCls} rounded-md border border-ink-900 bg-card text-foreground hover:bg-ink-100`}>
-        See it in AR
+        View at Address (AR)
       </button>
       {open && (
-        <div role="dialog" aria-modal="true" aria-label="Scan to see it in AR" onClick={() => setOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/60 p-4">
+        <div role="dialog" aria-modal="true" aria-label="Scan to view at address in AR" onClick={() => setOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/60 p-4">
           <div onClick={(e) => e.stopPropagation()} className="flex w-80 flex-col items-center gap-3 rounded-lg bg-card p-6 text-center">
-            <h2 className="font-display text-2xl font-semibold uppercase">{headLabel(slug)} in AR</h2>
-            <p className="text-sm text-ink-500">Scan with your phone camera to place the head in your space.</p>
+            <h2 className="font-display text-2xl font-semibold uppercase">{headLabel(slug)} at Address</h2>
+            <p className="text-sm text-ink-500">Aim your phone camera at the carpet to inspect the topline, offset, and look at address.</p>
             <div ref={box} className="h-56 w-56" />
-            {failed && <p className="text-sm text-orange-ink">QR could not load. Open this link on your phone instead.</p>}
+            {failed && <p className="text-sm text-orange-ink">QR glitch. Open this link on your phone instead:</p>}
             <a href={url} target="_blank" rel="noreferrer" className="break-all text-xs text-ink-500 underline">{url}</a>
             <button type="button" onClick={() => setOpen(false)} className={`${btnCls} rounded-md bg-ink-900 text-washed-white`}>Close</button>
           </div>

@@ -30,11 +30,11 @@ createRoot(document.getElementById('root')!).render(
             slot="ar-button"
             className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-ink-900 px-5 py-3 font-display text-sm font-semibold uppercase tracking-[0.1em] text-washed-white"
           >
-            View in your space
+            Drop Club at Address
           </button>
         </model-viewer>
       )}
-      <p className="text-sm text-ink-500">AR works on a phone. Synthetic preview model, not a scan.</p>
+      <p className="text-sm text-ink-500">Works best on mobile. Real 1:1 scale model.</p>
     </main>
   </StrictMode>,
 )

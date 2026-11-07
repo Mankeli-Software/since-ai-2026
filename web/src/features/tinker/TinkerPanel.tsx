@@ -111,10 +111,10 @@ export function TinkerPanel({
       <div className="flex items-center justify-between border-b border-border-dark pb-3">
         <div>
           <h2 className="font-display text-xl font-bold uppercase tracking-wider text-washed-white">
-            Tinker Specs
+            Tinker & Test
           </h2>
           <p className="text-xs text-ink-300">
-            Adjust club specs live. The 3D model and ball flight update instantly.
+            Tweak lie, length, and shaft specs. The 3D club and ball flight adjust in real time.
           </p>
         </div>
         <button
@@ -127,14 +127,14 @@ export function TinkerPanel({
               : 'border-border-dark text-ink-500 opacity-50 cursor-not-allowed'
           }`}
         >
-          Reset to Recommended
+          Reset to fitter's pick
         </button>
       </div>
 
       {/* Diff Badges */}
       {tinkerResult?.diff_labels && tinkerResult.diff_labels.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded bg-surface-dark-2 p-2.5">
-          <span className="font-display text-xs font-bold uppercase text-ink-300">Diff vs Rec:</span>
+          <span className="font-display text-xs font-bold uppercase text-ink-300">Custom overrides:</span>
           {tinkerResult.diff_labels.map((diff, i) => (
             <span
               key={i}
@@ -412,7 +412,7 @@ export function TinkerPanel({
       {isCustom && (
         <div className="rounded-lg border border-amber-600/40 bg-surface-dark-2 p-4 text-washed-white">
           <StockVsCustomView
-            question="Your changes require a Custom Order. Stock sets include a 30-day trial return; custom builds are non-returnable."
+            question="Heads up: these changes trigger a custom build. Stock sets include 30-day returns; custom builds are built just for you and non-returnable."
             reasons={tinkerResult?.reasons && tinkerResult.reasons.length > 0 ? tinkerResult.reasons : ['Lie, length, or material deviates from standard stock specs.']}
             stockReturnDays={30}
             customReturnable={false}
@@ -430,14 +430,14 @@ export function TinkerPanel({
       {/* Unmodelled Simulator Details */}
       {tinkerResult?.not_modelled && tinkerResult.not_modelled.length > 0 && (
         <div className="text-[11px] text-ink-400 italic">
-          * Radical honesty: {tinkerResult.not_modelled.join(', ')}.
+          * Full transparency: {tinkerResult.not_modelled.join(', ')} aren't simulated in 3D.
         </div>
       )}
 
       {/* Buildability check feedback if invalid */}
       {tinkerResult?.buildable === false && (
         <div className="rounded border border-destructive bg-destructive/15 p-3 text-xs text-destructive">
-          <p className="font-bold">Not buildable as configured:</p>
+          <p className="font-bold">We can't build this combination:</p>
           <ul className="list-disc pl-4 mt-1">
             {tinkerResult.reasons?.map((r, i) => (
               <li key={i}>{r}</li>

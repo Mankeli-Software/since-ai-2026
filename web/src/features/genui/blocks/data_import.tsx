@@ -15,7 +15,7 @@ const CLUBS: [string, string][] = [
   ['takomo_101-mkii_kbs-tour-lite-regular_std', 'Takomo 101 MKII test club'],
 ]
 const LINE_STEPS = diagrams.ball_line_test.steps
-const UNAVAILABLE = 'Import is not available yet. You can skip for now.'
+const UNAVAILABLE = "Couldn't parse that CSV. Ensure it's an unedited TrackMan export, or skip for now."
 
 // Local minimal types: these demo routes are not in the generated client yet.
 interface Sample { sample_id: string; kind?: string; label?: string }
@@ -184,12 +184,12 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
                   id={`${clubId}-link`}
                   type="url"
                   disabled
-                  placeholder="Paste your TrackMan share link"
+                  placeholder="TrackMan share link (coming soon)"
                   className="h-[58px] min-w-0 flex-1 cursor-not-allowed rounded-10 border-2 border-grey-c8 bg-grey-ed px-[18px] font-sans text-[18px] text-grey-6b placeholder:text-grey-8f"
                 />
                 <Button variant="outline" disabled className="min-h-[58px]">Coming soon</Button>
               </div>
-              <span className="text-[14px] text-grey-55">Share links are coming soon. For now, upload the CSV export.</span>
+              <span className="text-[14px] text-grey-55">Direct share links are coming soon. For now, drop in your exported CSV file.</span>
             </div>
           )}
 
@@ -214,7 +214,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
               }}
             />
             <Button variant="primary" className="min-h-12 pr-3" disabled={off} aria-keyshortcuts="Enter" onClick={() => fileRef.current?.click()}>
-              {working ? 'Bringing them in…' : 'Upload TrackMan CSV'}
+              {working ? 'Crunching your shots…' : 'Upload TrackMan CSV'}
               <EnterKbd tone="primary" />
             </Button>
           </div>
@@ -245,7 +245,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
               </li>
             ))}
           </ol>
-          <span className="text-[14px] text-grey-55">{diagrams.ball_line_test.caption}. Enter degrees; at least 3 readings.</span>
+          <span className="text-[14px] text-grey-55">{diagrams.ball_line_test.caption}. Enter degrees (e.g. +2 for toe-up, -1 for flat). At least 3 shots.</span>
           <div className="flex flex-wrap items-center gap-2">
             {readings.map((v, i) => (
               <input

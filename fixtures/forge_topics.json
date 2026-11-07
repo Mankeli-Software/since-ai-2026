@@ -1,8 +1,8 @@
 {
-  "lie_angle": {"title": "Lie angle", "blurb": "How the club sits on the ground at impact, and why a small change matters for where the ball starts."},
-  "shaft_flex": {"title": "Shaft flex", "blurb": "What flex means, how it relates to swing speed, and why the middle of a range is often a close call."},
-  "club_length": {"title": "Club length", "blurb": "How length is chosen from your height and wrist-to-floor measure, and what a half inch changes."},
-  "grip_size": {"title": "Grip size", "blurb": "How hand size maps to grip size, and why most golfers fit the standard grip."},
-  "head_choice": {"title": "Head choice", "blurb": "The difference between cavity back and muscle back heads, and who each one suits."},
-  "custom_vs_stock": {"title": "Custom vs stock", "blurb": "Stock sets can be returned within 30 days. Custom-built sets cannot. Here is how to decide."}
+  "lie_angle": {"title": "Lie angle", "blurb": "Why a 1-degree tilt starts your ball in the trees. How dynamic lie at turf impact governs your starting line."},
+  "shaft_flex": {"title": "Shaft flex", "blurb": "Forget the macho stiff-flex trap. How clubhead speed dictating load, launch, and stopping power actually works."},
+  "club_length": {"title": "Club length", "blurb": "Why taller doesn't always mean longer clubs. Finding center-face contact through height and wrist-to-floor."},
+  "grip_size": {"title": "Grip size", "blurb": "Grip size isn't just glove size—it's hand action. When standard works, and when midsize saves your joints."},
+  "head_choice": {"title": "Head choice", "blurb": "Blades vs cavities without the marketing BS. Workability vs perimeter forgiveness for real golf swings."},
+  "custom_vs_stock": {"title": "Custom vs stock", "blurb": "The custom build dilemma: dialed-in specs vs 30-day returns. When bending is worth losing returnability."}
 }

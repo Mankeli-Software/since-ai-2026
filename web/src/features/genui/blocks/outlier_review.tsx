@@ -29,14 +29,14 @@ function headline(f: Flag) {
   const val = f.value != null ? `${num(f.value)}${unitOf(f.field)}` : null
   if (f.shot_index != null) {
     const shot = `Shot ${f.shot_index + 1}`
-    if (!val) return `${shot} looks odd.`
+    if (!val) return `${shot} looks like an outlier.`
     return /carry|total|distance/.test(f.field ?? '') ? `${shot} went ${val}.` : `${shot}: ${nameOf(f.field).toLowerCase()} ${val}.`
   }
-  if (!val) return 'Something in this import looks odd.'
+  if (!val) return 'One shot looks like an outlier.'
   if (/carry/.test(f.field ?? '')) return `Your shots carry ${val}.`
   return `${nameOf(f.field) || 'Your shots'}: ${val}.`
 }
-const detail = (f: Flag) => (f.expected ? `Expected ${f.expected}.` : 'That is far outside the rest of your shots.')
+const detail = (f: Flag) => (f.expected ? `Expected ${f.expected}.` : "That's way outside your normal strike window.")
 
 /**
  * C5 / K4 odd-shot check: orange-tint callout, Keep it / Drop it (number keys 1-3), "N other shots stay in".
@@ -51,8 +51,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   const label = (a: Action) =>
     a === 'confirm_value'
       ? suggested != null ? `Use ${num(suggested)}${unit}` : 'Use the measured value'
-      : a === 'keep' ? (shotLevel ? 'Keep it' : 'Keep my number')
-      : shotLevel ? 'Drop it'
+      : a === 'keep' ? (shotLevel ? 'Count this shot' : 'Keep my number')
+      : shotLevel ? 'Toss it out'
       : flags.every((f) => f.code.startsWith('S')) ? 'Drop these shots' : "Don't use my number"
   const order: Action[] = ['keep', 'exclude', 'confirm_value']
   const actions = order.filter((a) => block.actions.includes(a))

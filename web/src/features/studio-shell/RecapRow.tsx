@@ -21,7 +21,7 @@ export function RecapRow({ items }: { items: UiItem[] }) {
   if (items.length === 0) return null
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Eyebrow className="mr-1.5 text-grey-5f">You told me</Eyebrow>
+      <Eyebrow className="mr-1.5 text-grey-5f">Logged so far</Eyebrow>
       {items.map((u) => (
         <RecapChip key={u.id} label={u.answer?.displayText ?? ''} title={promptOf(u)} measured={isMeasured(u)} />
       ))}

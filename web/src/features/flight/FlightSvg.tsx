@@ -171,7 +171,7 @@ export function FlightSvg({ data, recommendedSlug, className }: FlightSvgProps) 
       ))}
 
       {/* TOP VIEW */}
-      <text x={ML} y={topY0 - 8} className="mut">TOP VIEW (yd) · right of target is down</text>
+      <text x={ML} y={topY0 - 8} className="mut">OVERHEAD DISPERSION (yd) · right of target is down</text>
       {ticks(xMax, 25).filter((v) => v >= xMin).map((v) => (
         <g key={`tx${v}`}>
           <line x1={TX(v)} x2={TX(v)} y1={topY0} y2={topY0 + topH} stroke="var(--fl-grid)" />
@@ -222,7 +222,7 @@ export function FlightSvg({ data, recommendedSlug, className }: FlightSvgProps) 
           </g>
         );
       })}
-      <text x={ML + PW} y={H - 4} textAnchor="end" className="mut">solid = 1σ · dashed = 2σ · simulated estimate</text>
+      <text x={ML + PW} y={H - 4} textAnchor="end" className="mut">solid = 68% dispersion · dashed = 95% dispersion · simulated flight</text>
     </svg>
   );
 }

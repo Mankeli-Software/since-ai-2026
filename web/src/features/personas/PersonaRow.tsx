@@ -5,9 +5,9 @@ import { ownFittingHref, PERSONAS, personaHref } from './personas'
 export function PersonaRow() {
   return (
     <section aria-labelledby="try-as">
-      <h2 id="try-as" className="font-display text-3xl font-bold uppercase tracking-wide">Try it as a golfer</h2>
+      <h2 id="try-as" className="font-display text-3xl font-bold uppercase tracking-wide">Try a simulated golfer</h2>
       <p className="mt-2 max-w-2xl text-ink-300">
-        These four golfers are simulated. They are not real customers. Pick one and talk to the fitter as that golfer.
+        Four simulated golfers, zero marketing fluff. No real customer data harmed. Pick a profile to see how the fitter handles ego, weird strikes, and close calls.
       </p>
       <ul className="mt-6 grid grid-cols-4 gap-4">
         {PERSONAS.map((p) => (
@@ -24,7 +24,7 @@ export function PersonaRow() {
         ))}
       </ul>
       <Button href={ownFittingHref} variant="primary" size="md" className="mt-8">
-        Start my own fitting
+        Start my fitting
       </Button>
     </section>
   )

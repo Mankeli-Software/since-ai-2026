@@ -6,7 +6,7 @@ export const type = 'heard_summary'
 
 type Fact = BlockOf<'heard_summary'>['facts'][number]
 
-const LEAD = 'One thing would sharpen it:'
+const LEAD = 'One detail would sharpen this:'
 
 /** "wrist_to_floor_cm" + "cm" -> "Wrist to floor in cm". */
 function fieldLabel(field: string, unit: string) {
@@ -112,7 +112,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       )}
       <div className="flex items-center justify-between gap-4 border-t border-grey-e4 pt-1.5">
         <span className="text-[15px] text-grey-55">
-          {skipped > 0 && `I skipped ${skipped} ${skipped === 1 ? 'question' : 'questions'} you already answered.`}
+          {skipped > 0 && `Already logged ${skipped} ${skipped === 1 ? 'answer' : 'answers'} from what you said above.`}
         </span>
         <Button type="submit" size="xl" disabled={busy} aria-keyshortcuts="Enter" className="min-h-[58px] pr-4 pl-7 text-[22px]">
           Show my fit

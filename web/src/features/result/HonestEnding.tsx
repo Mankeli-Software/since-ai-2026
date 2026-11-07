@@ -5,8 +5,8 @@ import type { Gate } from './types'
 export function HonestEnding({ gate }: { gate: Gate }) {
   const text =
     gate === 'provisional'
-      ? 'This is a starting point, not a final answer. Some parts are still a close call. A simulator session with a Takomo test club gives the number that settles it.'
-      : 'We do not have enough to recommend a build yet. A simulator session with a Takomo test club, or a few more measured shots, gives us the numbers we need.'
+      ? "This is an honest starting point, not gospel. A couple of specs are right on the edge. Hit 10 balls with a Takomo test club in a simulator bay and we'll settle the debate with cold hard numbers."
+      : "We don't have enough real data to recommend a build without guessing—and at Takomo, we don't guess. Hit a few balls in a simulator bay or import launch monitor shots, and we'll dial you in properly."
   return (
     <p className={calloutCls} role="note">
       {text}

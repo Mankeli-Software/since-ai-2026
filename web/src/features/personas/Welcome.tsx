@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { ownFittingHrefV3, PERSONAS, personaHrefV3 } from './personas'
 
 const STEPS = [
-  { n: '01', title: 'Talk', text: "How's your game? Type, tap or just say it." },
+  { n: '01', title: 'Talk', text: "How's your game? Type, tap, or voice it." },
   { n: '02', title: 'Bring proof', text: 'TrackMan shots, a screenshot, or your honest guess.' },
   { n: '03', title: 'See it fly', text: 'Your club in 3D, your carry, your dispersion.' },
   { n: '04', title: 'Decide', text: 'Every reason shown, close calls included.' },
@@ -34,21 +34,20 @@ export function Welcome() {
         <Eyebrow className="flex-none text-grey-a3">Honestly better golf</Eyebrow>
       </header>
       <main className="relative flex flex-1 flex-col gap-[30px] px-14 pt-16 pb-14 [@media(max-height:860px)]:gap-6 [@media(max-height:860px)]:pt-9 [@media(max-height:860px)]:pb-8">
-        <Eyebrow className="text-orange-hover">Welcome to the studio</Eyebrow>
+        <Eyebrow className="text-orange-hover">Takomo Fitter Studio</Eyebrow>
         <h1 className="m-0 max-w-[820px] font-display text-[length:clamp(112px,16.7vh,150px)] leading-[.84] font-extrabold tracking-normal uppercase">
-          Let's find your fit.
+          Let's find your fit. Honestly.
         </h1>
         <p className="m-0 max-w-[640px] text-[21px] leading-normal text-grey-c8">
-          This is a fitter's first ten minutes, online. You talk, we measure what we can, and you see the reason for every part
-          of your club before you decide anything.
+          A candid fitter in your pocket. Talk through your game, drop in real numbers if you have them, and see the exact reason for every spec before you spend a cent.
         </p>
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-[22px]">
             <Button href={ownFittingHrefV3()} variant="primary" size="xl" aria-keyshortcuts="Enter" className="pr-5">
-              I'm ready. Let's start
+              Start fitting
               <EnterKbd tone="primary" />
             </Button>
-            <span className="text-[16px] text-grey-a3">About 4 minutes. Save any time.</span>
+            <span className="text-[16px] text-grey-a3">About 4 minutes. Save progress anytime.</span>
           </div>
           <nav aria-labelledby="try-as" className="flex flex-wrap items-center gap-2">
             <span id="try-as" className="mr-1.5 text-[15px] text-grey-a3">
