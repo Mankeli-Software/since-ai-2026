@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { ClubImage, Eyebrow } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import { ExamplePill } from '../chrome'
@@ -20,20 +19,15 @@ export interface HeadSelectorProps {
   onSelect(head: string): void
   /** The fit's shaft, for the example availability line. */
   shaft: Spec['shaft'] | undefined
-  /** The "Show all five heads" toggle, rendered in the header row. */
-  rowToggle?: ReactNode
 }
 
 /** R3 "Tap a head to see it fly": two toggle buttons (aria-pressed) with image, rank, score, example stock line. */
-export function HeadSelector({ options, selected, onSelect, shaft, rowToggle }: HeadSelectorProps) {
+export function HeadSelector({ options, selected, onSelect, shaft }: HeadSelectorProps) {
   return (
     <section aria-labelledby="head-selector" className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-4">
-        <Eyebrow as="h2" id="head-selector" className="m-0 text-on-page-3">
-          Tap a head to see it fly
-        </Eyebrow>
-        {rowToggle}
-      </div>
+      <Eyebrow as="h2" id="head-selector" className="m-0 text-on-page-3">
+        Tap a head to see it fly
+      </Eyebrow>
       <div className="flex gap-3 max-md:flex-col max-md:gap-2.5">
         {options.map((o) => {
           const on = o.head === selected
