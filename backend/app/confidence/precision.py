@@ -51,8 +51,8 @@ def _measured(note: str) -> Provenance:
     return Provenance(source="derived", note=note)
 
 
-def _lie_rung(est: InputEstimates) -> Rung | None:
-    """static chart -> ball-line (5) -> 5 more readings -> own-7i TrackMan -> test club."""
+def _lie_rung(est: InputEstimates, share: float | None = None) -> Rung | None:
+    """static chart -> ball-line (5) -> simulator / 5 more -> own-7i -> test club."""
     assert est.height and est.wrist_to_floor
     lie = est.lie
     need = lie.value if lie else pack.static_lie_deg(est.height.value, est.wrist_to_floor.value)
@@ -68,6 +68,15 @@ def _lie_rung(est: InputEstimates) -> Rung | None:
             "Your lie comes from the static chart only. "
             "The ball-line test shows which way to lean.",
             estimates=with_lie("ball_line", priors.BALL_LINE_READING_SD, 0.5),
+        )
+    if lie.kind == "ball_line" and share is not None and share < 0.5:
+        return Rung(
+            "lie_simulator",
+            "Find a simulator near me",
+            "Your lie remains a close call after the ball-line test. "
+            "Shots with a Takomo test club on a simulator settle it.",
+            needs_simulator=True,
+            estimates=with_lie("test_club", 0.19, 1.0),
         )
     if lie.kind == "ball_line" and (lie.prov.n or 0) <= 5:
         return Rung(
@@ -253,11 +262,31 @@ def best_offer(
 
     seen: set[str] = set()
     candidates: list[tuple[Part, Rung]] = []
+
+    # After a ball-line import, if lie share is under 0.5, offer the simulator rung directly.
+    lie_pc = per_part.get("lie")
+    if (
+        "lie" not in done
+        and est.lie is not None
+        and est.lie.kind == "ball_line"
+        and lie_pc is not None
+        and lie_pc.share < 0.5
+    ):
+        rung = _lie_rung(est, share=lie_pc.share)
+        if rung is not None and rung.estimates is not None:
+            after = simulate(rung.estimates, answers, best, np.random.default_rng(seed), n)
+            gain = max(round(after.confidence - confidence, 4), MIN_GAIN)
+            return PrecisionOffer("lie", rung, gain)
+
     for p in sorted(per_part, key=importance, reverse=True):
         part = ladder_part(p)
         if part in done or part not in LADDERS:
             continue
-        rung = LADDERS[part](est)
+        rung = (
+            _lie_rung(est, share=per_part["lie"].share if "lie" in per_part else None)
+            if part == "lie"
+            else LADDERS[part](est)
+        )
         if rung is None or rung.estimates is None or rung.code in seen:
             continue
         seen.add(rung.code)
