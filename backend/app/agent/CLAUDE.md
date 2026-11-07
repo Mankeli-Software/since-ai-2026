@@ -111,6 +111,8 @@ reasoning parts are not interchangeable across a provider switch.
 - An input `ui_*` tool (`kind="ui_input"`) **interrupts** the turn. At most one per turn: any later input tool in
   the same response gets `"ignored: one input component per turn"`.
 - The reply `{kind: "ui_response", component_id, value, display_text}` resumes that `tool_use` as its `tool_result`.
+- Live first turn = the fixed opening (`agent/opening.py`): greeting + `sentence_builder` card, no model call,
+  prefilled for personas. Its answer is saved by the engine and opens the model's first turn as an `[answer]` line.
 - Per-session lock (409 if busy); the turn runs in a background task and commits messages + state atomically.
 - 8 SSE events with monotonic `seq`: `turn_start, text, ui, stage, state, mascot, done, error`. No GZip on SSE.
 
