@@ -5,7 +5,7 @@
 # branches: any answer (or free text) moves it on.
 #
 # Turn  Screen  Blocks
-#  1    C2      text x2 -> sentence_builder (years / often / hand / sex / age)
+#  1    C2      text x2 -> sentence_builder (years / often / hand / sex / age); also the live opening, agent/opening.py
 #  2    C3a     update_profile -> text -> source_picker (round trackers, fallback "I'll just tell you")
 #  3    C3b     text -> slider (7-iron carry in m, guess toggle)
 #  4    C4a     update_profile -> text -> yes_no_fork (sim_data / by_hand)
