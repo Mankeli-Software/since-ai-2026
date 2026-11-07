@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { api, type FittingState, type MascotMood, type StreamEvent, type UIBlock } from '@/api/client'
+import type { components } from '@/api/schema.gen'
 import { streamTurn } from '@/api/stream'
+
+type Schemas = components['schemas']
 
 export interface ChatMessage {
   id: string
@@ -19,6 +22,14 @@ export interface UiItem {
   answer?: { value: unknown; displayText: string }
 }
 
+export interface StageState {
+  view: 'club' | 'flight' | 'row'
+  focus: NonNullable<Schemas['StageEvent']['part']> | null
+  spec: Schemas['Spec'] | null
+  heads: string[] | null
+}
+const EMPTY_STAGE: StageState = { view: 'club', focus: null, spec: null, heads: null }
+
 let seqCounter = 0
 const nextSeq = () => ++seqCounter
 
@@ -29,6 +40,8 @@ interface SessionStore {
   /** Set for persona sessions (L16): drives the "Simulated golfer" badge. */
   demo: string | null
   mascot: MascotMood
+  /** What the left stage shows; driven by SSE `stage` events. */
+  stage: StageState
   /** null = never tried; 'ok' = saved; 'unavailable' = the save endpoint is missing or failed. */
   saved: { status: 'ok' | 'unavailable'; resumeUrl?: string } | null
   messages: ChatMessage[]
@@ -64,10 +77,25 @@ export const useSession = create<SessionStore>()((set, get) => {
       case 'mascot':
         set({ mascot: ev.mood })
         break
+      case 'stage':
+        set((s) => {
+          const st = s.stage
+          switch (ev.action) {
+            case 'focus_part':
+              return { stage: { ...st, view: 'club', focus: ev.part ?? st.focus } }
+            case 'set_spec':
+              return { stage: { ...st, view: 'club', spec: ev.spec ?? st.spec } }
+            case 'show_flight':
+              return { stage: { ...st, view: 'flight', heads: ev.heads ?? st.heads } }
+            case 'show_row':
+              return { stage: { ...st, view: 'row', heads: ev.heads ?? st.heads } }
+          }
+        })
+        break
       case 'error':
         set({ error: `${ev.code}: ${ev.message}` })
         break
-      default: // turn_start, stage, done: not used by the scaffold
+      default: // turn_start, done: not used by the scaffold
     }
   }
 
@@ -90,6 +118,7 @@ export const useSession = create<SessionStore>()((set, get) => {
     state: null,
     demo: null,
     mascot: 'idle',
+    stage: EMPTY_STAGE,
     saved: null,
     messages: [],
     ui: [],
@@ -104,7 +133,7 @@ export const useSession = create<SessionStore>()((set, get) => {
         set({ error: `session failed: ${JSON.stringify(error)}` })
         return
       }
-      set({ sessionId: data.session_id, engine: engine ?? null, state: null, demo: demo ?? null })
+      set({ sessionId: data.session_id, engine: engine ?? null, state: null, demo: demo ?? null, stage: EMPTY_STAGE })
       get().mergeState(data.state)
       // A turn needs a message: a hidden "Hi" opens the scripted/live conversation.
       await turn({ message: { kind: 'text', text: 'Hi' } })
