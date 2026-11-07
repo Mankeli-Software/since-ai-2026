@@ -11,14 +11,14 @@ export function StepBars({ step, total = 4, className }: StepBarsProps) {
   const n = Math.max(0, Math.min(total, step))
   return (
     <span className={cn('inline-flex flex-none items-center gap-2.5', className)}>
-      <span className="font-display text-[13px] font-semibold uppercase tracking-[0.16em] text-grey-a3">
+      <span className="font-display text-[13px] font-semibold uppercase tracking-[0.16em] text-on-page-2">
         Step {n} of {total}
       </span>
       {Array.from({ length: total }, (_, i) => (
         <span
           key={i}
           aria-hidden="true"
-          className={cn('h-1 w-6 rounded-[2px] transition-ui', i < n ? 'bg-tiger-orange' : 'bg-grey-3d')}
+          className={cn('h-1 w-6 rounded-[2px] transition-ui', i < n ? 'bg-tiger-orange' : 'bg-page-line-2')}
         />
       ))}
     </span>

@@ -42,7 +42,7 @@ export function ClubImage({ slug, variant = 'hero', alt = '', className, style }
         aria-hidden={alt ? undefined : true}
         style={style}
         className={cn(
-          'inline-flex aspect-square items-center justify-center rounded-12 bg-grey-1a text-grey-5f',
+          'inline-flex aspect-square items-center justify-center rounded-12 bg-panel-2 text-on-page-3',
           className,
         )}
       >

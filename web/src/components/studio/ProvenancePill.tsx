@@ -23,7 +23,7 @@ const tones: Record<'light' | 'dark', Record<Provenance, string>> = {
     chart: 'bg-grey-ed text-grey-44',
   },
   dark: {
-    measured: 'bg-selected-dark text-orange-hover shadow-[inset_0_0_0_1px_#FF6E01]',
+    measured: 'bg-selected-dark text-orange-hover shadow-[inset_0_0_0_1px_var(--color-tiger-orange,#FF6E01)]',
     guess: 'border border-dashed border-grey-8f text-grey-c8',
     chart: 'bg-grey-26 text-grey-c8',
   },

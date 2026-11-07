@@ -35,7 +35,7 @@ const scoreOf = (data: ResultsData, head: string) => {
 
 function Check() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF6E01" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-tiger-orange,#FF6E01)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M4 12.5 L9.5 18 L20 6" />
     </svg>
   )
@@ -47,7 +47,7 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
   const copy = PURCHASE_COPY[best.purchase]
   return (
     <div className="mt-2 grid grid-cols-[270px_minmax(0,1fr)] items-center gap-9 max-md:mt-0 max-md:grid-cols-1 max-md:gap-4">
-      <div className="relative flex h-[270px] items-center justify-center rounded-18 border border-grey-26 bg-[radial-gradient(ellipse_80%_60%_at_50%_65%,rgba(255,110,1,.22),#121212_70%)] max-md:h-[220px]">
+      <div data-surface="dark" className="relative flex h-[270px] items-center justify-center rounded-18 border border-grey-26 bg-[radial-gradient(ellipse_80%_60%_at_50%_65%,rgba(255,110,1,.22),#121212_70%)] max-md:h-[220px]">
         <ClubModel
           slug={best.head}
           alt={`Takomo ${name} 7-iron`}
@@ -57,12 +57,12 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
       </div>
       <div className="flex min-w-0 flex-col gap-2.5">
         <h1 className="m-0 font-display text-[104px] leading-[.84] font-extrabold uppercase max-md:text-[56px] max-md:leading-[.88]">{name}</h1>
-        <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-washed-white max-md:text-[17px]">
+        <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-on-page max-md:text-[17px]">
           {why ? <Text text={why} /> : 'No guesswork, no marketing fluff. Every single spec has a reason below.'}
         </p>
         <ul title={STATUS_TOOLTIP} className="m-0 flex list-none flex-wrap items-center gap-x-[22px] gap-y-1 p-0 pt-0.5 pb-1 max-md:gap-x-4">
           {copy.ticks.map((t) => (
-            <li key={t} className="inline-flex items-center gap-2 text-[15px] text-washed-white max-md:text-[14px]">
+            <li key={t} className="inline-flex items-center gap-2 text-[15px] text-on-page max-md:text-[14px]">
               <Check />
               {t}
             </li>
@@ -83,20 +83,20 @@ function HeadCard({ spec, rank, score, strength }: { spec: Spec; rank: 1 | 2; sc
     <ViewLink
       view="compare"
       className={cn(
-        'flex min-w-0 flex-1 items-center gap-3.5 rounded-14 px-4 py-3 text-washed-white no-underline transition-ui',
-        first ? 'border-2 border-tiger-orange bg-selected-dark' : 'border border-grey-26 bg-grey-12 hover:border-grey-3d',
+        'flex min-w-0 flex-1 items-center gap-3.5 rounded-14 px-4 py-3 text-on-page no-underline transition-ui',
+        first ? 'border-2 border-tiger-orange bg-selected-dark' : 'border border-page-line bg-panel hover:border-page-line-2',
       )}
     >
       <ClubImage slug={spec.head} className="h-[62px] w-auto flex-none max-md:hidden" />
       <span className="flex min-w-0 flex-col gap-[3px]">
-        <Eyebrow className={first ? 'text-orange-hover' : 'text-grey-8f'}>{label}</Eyebrow>
+        <Eyebrow className={first ? 'text-orange-on-page' : 'text-on-page-3'}>{label}</Eyebrow>
         <span className="font-display text-[22px] font-bold uppercase">{headName(spec.head)}</span>
-        <span className="truncate text-[14px] text-grey-c8">{headBlurb(spec.head)}</span>
+        <span className="truncate text-[14px] text-on-page-2">{headBlurb(spec.head)}</span>
       </span>
       {score != null && (
         <span
           title="Fit score"
-          className={cn('ml-auto font-display text-[28px] font-extrabold tabular-nums', first ? 'text-orange-hover' : 'text-grey-c8')}
+          className={cn('ml-auto font-display text-[28px] font-extrabold tabular-nums', first ? 'text-orange-on-page' : 'text-on-page-2')}
         >
           <span className="sr-only">Fit score </span>
           {score}
@@ -111,21 +111,21 @@ function DrillCard({ view, n, title, text, cta, preview }: { view: ResultsView; 
   return (
     <ViewLink
       view={view}
-      className="relative flex min-w-0 flex-col gap-2.5 rounded-16 border border-grey-26 bg-grey-12 p-3.5 text-washed-white no-underline transition-ui hover:border-grey-3d max-md:gap-1 max-md:rounded-12 max-md:py-4 max-md:pr-11 max-md:pl-4"
+      className="relative flex min-w-0 flex-col gap-2.5 rounded-16 border border-page-line bg-panel p-3.5 text-on-page no-underline transition-ui hover:border-page-line-2 max-md:gap-1 max-md:rounded-12 max-md:py-4 max-md:pr-11 max-md:pl-4"
     >
-      <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-10 bg-midnight max-md:hidden">{preview}</div>
+      <div data-surface="dark" className="relative flex h-28 items-center justify-center overflow-hidden rounded-10 bg-midnight max-md:hidden">{preview}</div>
       <span className="flex items-baseline gap-2">
         <span className="font-display text-[18px] font-extrabold tabular-nums text-orange-text">{n}</span>
         <span className="font-display text-[22px] leading-none font-bold uppercase max-md:text-[20px]">{title}</span>
       </span>
-      <span className="flex-1 text-[14px] leading-[1.4] text-grey-c8">{text}</span>
-      <span className="font-display text-[15px] font-bold tracking-[0.04em] text-orange-hover uppercase max-md:hidden">{cta}</span>
+      <span className="flex-1 text-[14px] leading-[1.4] text-on-page-2">{text}</span>
+      <span className="font-display text-[15px] font-bold tracking-[0.04em] text-orange-on-page uppercase max-md:hidden">{cta}</span>
       <svg
         width="18"
         height="18"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#FF8A33"
+        stroke="var(--color-orange-on-page,#ff8a33)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -198,10 +198,10 @@ function SeeItHit({ head }: { head: string }) {
         <h2 id="see-it-hit" className="m-0 font-display text-[26px] font-extrabold uppercase">
           See it hit
         </h2>
-        <Eyebrow className="text-grey-8f">
+        <Eyebrow className="text-on-page-3">
           {videos.length} {videos.length === 1 ? 'video' : 'videos'} of the {name}
         </Eyebrow>
-        <span className="min-w-0 truncate text-[13px] text-grey-a3 max-md:hidden">Picked for you: {videos[0].title}</span>
+        <span className="min-w-0 truncate text-[13px] text-on-page-2 max-md:hidden">Picked for you: {videos[0].title}</span>
       </span>
       {playing && (
         <div className="flex flex-col gap-2">
@@ -213,14 +213,14 @@ function SeeItHit({ head }: { head: string }) {
             referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
           />
-          <span className="flex items-center gap-3 text-[13px] text-grey-a3">
+          <span className="flex items-center gap-3 text-[13px] text-on-page-2">
             <span className="min-w-0 flex-1 truncate">
               {playing.title} · {playing.creator || playing.channel}
             </span>
             <button
               type="button"
               onClick={() => setPlaying(null)}
-              className="cursor-pointer border-0 bg-transparent text-[13px] text-washed-white underline hover:text-orange-hover"
+              className="cursor-pointer border-0 bg-transparent text-[13px] text-on-page underline hover:text-orange-on-page"
             >
               Close video
             </button>
@@ -237,12 +237,12 @@ function SeeItHit({ head }: { head: string }) {
               aria-label={`Play ${v.title}`}
               aria-pressed={playing?.id === v.id}
               onClick={() => setPlaying(v)}
-              className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1.5 border-0 bg-transparent p-0 text-left text-washed-white max-md:w-[200px] max-md:flex-none"
+              className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1.5 border-0 bg-transparent p-0 text-left text-on-page max-md:w-[200px] max-md:flex-none"
             >
               <span
                 className={cn(
                   'relative block h-[150px] w-full overflow-hidden rounded-12 max-md:h-[130px] bg-[radial-gradient(ellipse_at_70%_40%,#2A2A2A,#0B0B0B_70%)]',
-                  on ? 'shadow-[inset_0_0_0_2px_#FF6E01]' : 'shadow-[inset_0_0_0_1px_#262626]',
+                  on ? 'shadow-[inset_0_0_0_2px_#FF6E01]' : 'shadow-[inset_0_0_0_1px_var(--color-page-line)]',
                 )}
               >
                 <ClubImage slug={head} variant={THUMBS[i % THUMBS.length]} className="absolute top-1.5 right-2 h-[136px] w-auto opacity-85" />
@@ -270,7 +270,7 @@ function SeeItHit({ head }: { head: string }) {
 export function R1Summary() {
   const { data } = useResultsChrome()
   const best = data.best
-  if (!best) return <p className="text-grey-a3">Your fit is on its way.</p>
+  if (!best) return <p className="text-on-page-2">Your fit is on its way.</p>
 
   const runnerUp = data.runnerUp && data.runnerUp.head !== best.head ? data.runnerUp : null
   const measured = !data.noSim
@@ -282,7 +282,7 @@ export function R1Summary() {
 
       {runnerUp && (
         <section aria-labelledby="two-best" className="mt-7 flex flex-col gap-2.5">
-          <Eyebrow as="h2" id="two-best" className="m-0 text-grey-8f">
+          <Eyebrow as="h2" id="two-best" className="m-0 text-on-page-3">
             {sameShaft ? 'Your two best heads, same shaft' : 'Your two best heads'}
           </Eyebrow>
           <div className="flex gap-3 max-md:flex-col max-md:gap-2.5">
@@ -322,14 +322,14 @@ export function R1Summary() {
       {data.latest('stock_vs_custom') && (
         <ViewLink
           view="stock"
-          className="mt-5 flex items-center gap-4 rounded-14 max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-2 border border-status-amber/60 bg-grey-12 px-5 py-4 text-washed-white no-underline transition-ui hover:border-status-amber"
+          className="mt-5 flex items-center gap-4 rounded-14 max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-2 border border-status-amber/60 bg-panel px-5 py-4 text-on-page no-underline transition-ui hover:border-status-amber"
         >
           <span className="size-2 flex-none rounded-full bg-status-amber max-md:hidden" aria-hidden="true" />
           <span className="flex flex-col gap-0.5">
             <span className="font-display text-[22px] font-bold uppercase">Stock or custom?</span>
-            <span className="text-sm text-grey-c8">Your strike pattern calls for custom lie. See the tradeoff before giving up 30-day returns.</span>
+            <span className="text-sm text-on-page-2">Your strike pattern calls for custom lie. See the tradeoff before giving up 30-day returns.</span>
           </span>
-          <span className="ml-auto font-display text-[15px] font-bold uppercase tracking-[0.04em] text-orange-hover">Compare builds →</span>
+          <span className="ml-auto font-display text-[15px] font-bold uppercase tracking-[0.04em] text-orange-on-page">Compare builds →</span>
         </ViewLink>
       )}
 
@@ -337,7 +337,7 @@ export function R1Summary() {
 
       {/* Phones (M-R1b): with no simulator shots the fitter's suggestion sits inline, not in the closed sheet. */}
       {data.noSim && (
-        <section aria-label="Confirm your fit with shots" className="mt-6 flex flex-col gap-3 md:hidden">
+        <section aria-label="Confirm your fit with shots" data-surface="dark" className="mt-6 flex flex-col gap-3 md:hidden">
           <div className="flex items-start gap-2.5">
             <FitterAvatar size={28} className="mt-0.5" />
             <p className="m-0 text-[16px] leading-[1.45] text-washed-white">{R1B_MESSAGE}</p>

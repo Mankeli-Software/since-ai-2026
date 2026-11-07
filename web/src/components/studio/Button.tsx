@@ -11,9 +11,9 @@ const base =
 const variants: Record<ButtonVariant, string> = {
   primary: 'bg-tiger-orange text-midnight hover:bg-orange-hover hover:text-midnight',
   dark: 'bg-midnight text-washed-white hover:text-white',
-  outline: 'bg-transparent text-midnight shadow-[inset_0_0_0_1px_#C8C8C8] hover:shadow-[inset_0_0_0_1px_#0B0B0B]',
+  outline: 'bg-transparent text-midnight shadow-[inset_0_0_0_1px_var(--color-grey-c8,#C8C8C8)] hover:shadow-[inset_0_0_0_1px_var(--color-midnight,#0B0B0B)]',
   lightOnDark: 'bg-washed-white text-midnight hover:bg-white',
-  ghostOnDark: 'bg-transparent text-washed-white shadow-[inset_0_0_0_1px_#3D3D3D] hover:shadow-[inset_0_0_0_1px_#8F8F8F]',
+  ghostOnDark: 'bg-transparent text-washed-white shadow-[inset_0_0_0_1px_var(--color-grey-3d,#3D3D3D)] hover:shadow-[inset_0_0_0_1px_var(--color-grey-8f,#8F8F8F)]',
 }
 
 // sm = in-card 40/15px, md = `.btn` 48/18px, lg = buy bar 54/21px, xl = big CTA 64/24px.

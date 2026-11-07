@@ -16,7 +16,7 @@ export function RecapChip({ label, title, measured = false, className }: RecapCh
     <span
       title={title}
       className={cn(
-        'inline-flex h-[34px] max-w-full items-center gap-2 rounded-full border border-grey-26 bg-grey-16 px-3.5 font-sans text-[15px] text-grey-c8',
+        'inline-flex h-[34px] max-w-full items-center gap-2 rounded-full border border-page-line bg-panel-2 px-3.5 font-sans text-[15px] text-on-page-2',
         className,
       )}
     >

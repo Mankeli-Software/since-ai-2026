@@ -32,19 +32,19 @@ export function Welcome() {
         alt="Takomo 201T MkII iron"
         className="absolute top-[70px] right-[20px] h-[680px] drop-shadow-club-hero [@media(max-height:960px)]:top-[44px] [@media(max-height:960px)]:right-[30px] [@media(max-height:960px)]:h-[610px] max-md:hidden"
       />
-      <header className="flex items-center gap-5 px-14 pt-7 max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0">
+      <header className="flex items-center gap-5 px-14 pt-7 text-on-page max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0">
         <a
           href="/"
           aria-label="Takomo Fitter Studio, start"
-          className="flex flex-none items-center gap-3.5 no-underline max-md:-ml-2 max-md:size-11 max-md:justify-center"
+          className="flex flex-none items-center gap-3.5 text-on-page no-underline max-md:-ml-2 max-md:size-11 max-md:justify-center"
         >
           <LogoMark className="max-md:h-6 max-md:w-[26px]" />
           <Wordmark className="max-md:hidden" />
         </a>
-        <Eyebrow className="flex-none text-washed-white">Fitter Studio</Eyebrow>
-        <div className="h-px flex-1 bg-grey-3d max-md:hidden" />
+        <Eyebrow className="flex-none text-on-page">Fitter Studio</Eyebrow>
+        <div className="h-px flex-1 bg-page-line-2 max-md:hidden" />
         <UnitsToggle className="max-md:hidden" />
-        <Eyebrow className="flex-none text-grey-a3 max-md:hidden">Honestly better golf</Eyebrow>
+        <Eyebrow className="flex-none text-on-page-2 max-md:hidden">Honestly better golf</Eyebrow>
       </header>
       {/* Phone hero: the club as a banner above the copy (M-01) instead of floating behind it. */}
       <div
@@ -57,7 +57,7 @@ export function Welcome() {
         <h1 className="m-0 max-w-[820px] font-display text-[length:clamp(112px,16.7vh,150px)] leading-[.84] font-extrabold tracking-normal uppercase max-md:text-[56px] max-md:leading-[.88]">
           Let's find your fit. Honestly.
         </h1>
-        <p className="m-0 max-w-[640px] text-[21px] leading-normal text-grey-c8 max-md:text-[17px] max-md:leading-[1.5]">
+        <p className="m-0 max-w-[640px] text-[21px] leading-normal text-on-page-2 max-md:text-[17px] max-md:leading-[1.5]">
           A candid fitter in your pocket. Talk through your game, drop in real numbers if you have them, and see the exact reason for every spec before you spend a cent.
         </p>
         <div className="flex flex-col gap-4">
@@ -68,7 +68,7 @@ export function Welcome() {
             </Button>
           </div>
           <nav aria-labelledby="try-as" className="flex flex-wrap items-center gap-2">
-            <span id="try-as" className="mr-1.5 text-[15px] text-grey-a3 max-md:w-full">
+            <span id="try-as" className="mr-1.5 text-[15px] text-on-page-2 max-md:w-full">
               Or try as a simulated golfer
             </span>
             {PERSONAS.map((p) => (
@@ -84,20 +84,20 @@ export function Welcome() {
               key={s.n}
               className={cn(
                 'flex flex-col gap-2 border-t-2 pt-5',
-                'max-md:grid max-md:grid-cols-[22px_minmax(0,1fr)] max-md:gap-x-3.5 max-md:gap-y-0.5 max-md:border-t max-md:border-grey-26 max-md:py-3',
-                i === 0 ? 'border-tiger-orange' : 'border-grey-3d',
+                'max-md:grid max-md:grid-cols-[22px_minmax(0,1fr)] max-md:gap-x-3.5 max-md:gap-y-0.5 max-md:border-t max-md:border-page-line max-md:py-3',
+                i === 0 ? 'border-tiger-orange' : 'border-page-line-2',
               )}
             >
               <span
                 className={cn(
-                  'font-display text-[18px] font-bold tabular-nums max-md:row-span-2 max-md:text-[16px] max-md:text-orange-hover',
-                  i === 0 ? 'text-orange-hover' : 'text-grey-8f',
+                  'font-display text-[18px] font-bold tabular-nums max-md:row-span-2 max-md:text-[16px] max-md:text-orange-on-page',
+                  i === 0 ? 'text-orange-on-page' : 'text-on-page-3',
                 )}
               >
                 {s.n}
               </span>
               <span className="font-display text-[28px] leading-tight font-bold uppercase max-md:text-[20px]">{s.title}</span>
-              <span className="text-[15px] leading-[1.45] text-grey-c8 max-md:leading-[1.4]">{s.text}</span>
+              <span className="text-[15px] leading-[1.45] text-on-page-2 max-md:leading-[1.4]">{s.text}</span>
             </li>
           ))}
         </ol>

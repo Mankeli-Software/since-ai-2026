@@ -53,7 +53,7 @@ export function LengthScale({ value, alt = null }: LengthScaleProps) {
               key={s}
               className={cn(
                 'flex h-12 flex-1 items-center justify-center rounded-8 font-display text-[18px] font-bold whitespace-nowrap',
-                s === value ? 'bg-[rgba(255,110,1,0.2)] text-orange-hover shadow-[inset_0_0_0_1.5px_#FF6E01]' : 'bg-grey-1f text-grey-8f',
+                s === value ? 'bg-[rgba(255,110,1,0.2)] text-orange-on-page shadow-[inset_0_0_0_1.5px_var(--color-tiger-orange,#FF6E01)]' : 'bg-panel-2 text-on-page-3',
               )}
             >
               {stepLabel(s)}
@@ -68,7 +68,7 @@ export function LengthScale({ value, alt = null }: LengthScaleProps) {
         />
         <span
           aria-hidden="true"
-          className="absolute top-0 font-display text-[16px] font-bold whitespace-nowrap text-orange-hover"
+          className="absolute top-0 font-display text-[16px] font-bold whitespace-nowrap text-orange-on-page"
           style={labelLeft ? { right: `calc(100% - ${left} + 8px)` } : { left: `calc(${left} + 8px)` }}
         >
           {onLine ? 'YOU, RIGHT ON THE LINE' : 'YOU'}

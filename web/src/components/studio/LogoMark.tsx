@@ -9,7 +9,7 @@ export interface LogoMarkProps {
   className?: string
 }
 
-export function LogoMark({ size = 34, color = '#F8F8F8', title, className }: LogoMarkProps) {
+export function LogoMark({ size = 34, color = 'var(--color-on-page)', title, className }: LogoMarkProps) {
   return (
     <svg
       width={size}

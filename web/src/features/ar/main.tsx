@@ -1,11 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { initTheme } from '@/lib/theme'
 import '@/styles/theme.css'
 import { arHead, headLabel } from './heads'
 
 const slug = arHead(new URLSearchParams(location.search).get('head'))
 const base = `/assets/clubs/ar/${slug}`
 const inFrame = window.self !== window.top
+
+initTheme()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

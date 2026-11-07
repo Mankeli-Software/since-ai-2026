@@ -22,10 +22,10 @@ const NAMES: Record<string, string> = {
 };
 
 // Monochrome brand palette on a dark simulator background: slot 0 = Tiger Orange (recommended), then white and grey.
-const SLOT = ["var(--color-tiger-orange,#ff6e01)", "#f8f8f8", "#c8c8c8", "#c8c8c8", "#c8c8c8"];
+const SLOT = ["var(--color-tiger-orange,#ff6e01)", "var(--color-on-page,#f8f8f8)", "var(--color-grey-c8,#c8c8c8)", "var(--color-grey-c8,#c8c8c8)", "var(--color-grey-c8,#c8c8c8)"];
 const css = SLOT.map((c, i) => `--fl-${i}:${c};`).join("");
 const STYLE = `
-.flight-svg{--fl-bg:#121212;--fl-ink:#f8f8f8;--fl-ink2:#c8c8c8;--fl-muted:#8f8f8f;--fl-grid:#262626;--fl-axis:#3d3d3d;${css}}
+.flight-svg{--fl-bg:var(--color-panel,#121212);--fl-ink:var(--color-on-page,#f8f8f8);--fl-ink2:var(--color-grey-c8,#c8c8c8);--fl-muted:var(--color-on-page-3,#8f8f8f);--fl-grid:var(--color-page-line,#262626);--fl-axis:var(--color-page-line-2,#3d3d3d);${css}}
 .flight-svg text{font-family:inherit;font-size:12px;fill:var(--fl-ink2)}
 .flight-svg .mut{fill:var(--fl-muted);font-size:11px}
 .flight-svg .strong{fill:var(--fl-ink);font-weight:600}
@@ -316,7 +316,7 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
                   cx={TX(cx)}
                   cy={TY(cz)}
                   r={3.5}
-                  fill="#c8c8c8"
+                  fill="var(--color-grey-c8,#c8c8c8)"
                   fillOpacity={0.7}
                   stroke="var(--fl-bg)"
                   strokeWidth={1}
@@ -327,14 +327,14 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
                 cy={TY(ownAvgSide)}
                 r={5.5}
                 fill="none"
-                stroke="#f8f8f8"
+                stroke="var(--color-on-page,#f8f8f8)"
                 strokeWidth={2}
               />
               <circle
                 cx={TX(ownAvgCarry)}
                 cy={TY(ownAvgSide)}
                 r={2}
-                fill="#f8f8f8"
+                fill="var(--color-on-page,#f8f8f8)"
               />
             </g>
           )}
@@ -375,7 +375,7 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
           {topLabels.map((l, k) => {
             const ly = labelYs[k];
             const lx = ML + PW + 14;
-            const dotCol = l.isOwn ? "#c8c8c8" : col(l.slot);
+            const dotCol = l.isOwn ? "var(--color-grey-c8,#c8c8c8)" : col(l.slot);
             return (
               <g key={`tg-${l.key}`}>
                 <polyline points={`${l.ax},${l.ay} ${lx - 4},${l.ay} ${lx},${ly}`} fill="none" stroke="var(--fl-axis)" />

@@ -45,7 +45,7 @@ export function BuyBar({ spec, nextRef }: BuyBarProps) {
   }
 
   return (
-    <div className="flex flex-none items-center gap-4 border-t border-grey-26 bg-grey-0e px-10 py-3 max-md:gap-2.5 max-md:px-4 max-md:pt-2.5 max-md:pb-[18px]">
+    <div data-surface="dark" className="flex flex-none items-center gap-4 border-t border-grey-26 bg-grey-0e px-10 py-3 max-md:gap-2.5 max-md:px-4 max-md:pt-2.5 max-md:pb-[18px]">
       {spec && <ClubImage slug={spec.head} className="h-[52px] w-auto flex-none max-md:hidden" />}
       <span className="flex min-w-0 flex-col gap-0.5 max-md:flex-1">
         <span className="truncate font-display text-[20px] font-bold uppercase max-md:text-[16px]">{spec ? specTitle(spec) : 'Your fit'}</span>

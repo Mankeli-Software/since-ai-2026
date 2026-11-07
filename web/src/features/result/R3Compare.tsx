@@ -197,7 +197,7 @@ export function R3Compare() {
   if (!sel) {
     return (
       <>
-        <p className="m-0 text-grey-a3">Your heads are on their way.</p>
+        <p className="m-0 text-on-page-2">Your heads are on their way.</p>
         {aside}
         {next}
       </>
@@ -210,7 +210,7 @@ export function R3Compare() {
       aria-expanded={showRow}
       aria-controls="all-heads"
       onClick={() => setShowRow((v) => !v)}
-      className="cursor-pointer border-0 bg-transparent p-0 text-[14px] text-grey-a3 underline transition-ui hover:text-orange-hover"
+      className="cursor-pointer border-0 bg-transparent p-0 text-[14px] text-on-page-2 underline transition-ui hover:text-orange-on-page"
     >
       {showRow ? 'Hide the other heads' : 'Show all five heads'}
     </button>
@@ -222,10 +222,10 @@ export function R3Compare() {
         <h1 className="m-0 font-display text-[26px] font-bold uppercase max-md:text-[36px] max-md:leading-[.9] max-md:font-extrabold">
           Swap the head, keep your shaft
         </h1>
-        {sub && <span className="text-[15px] text-grey-a3">{sub}</span>}
+        {sub && <span className="text-[15px] text-on-page-2">{sub}</span>}
       </div>
 
-      <div className="grid flex-[1_0_auto] grid-cols-[230px_minmax(0,1fr)] gap-4 max-md:flex-none max-md:grid-cols-1">
+      <div data-surface="dark" className="grid flex-[1_0_auto] grid-cols-[230px_minmax(0,1fr)] gap-4 max-md:flex-none max-md:grid-cols-1">
         <div className="flex flex-col gap-1.5 max-md:hidden">
           <HeadStage selected={sel.head} other={other?.head ?? null} />
           <span className="text-center text-[11px] text-grey-8f">Illustrative 3D model</span>
@@ -243,6 +243,7 @@ export function R3Compare() {
           id="all-heads"
           role="region"
           aria-label="All five heads"
+          data-surface="dark"
           className="relative h-[260px] flex-none overflow-hidden rounded-16 border border-grey-26 bg-grey-12"
         >
           <Suspense fallback={<p className="m-0 p-4 text-[14px] text-grey-a3">Loading the heads…</p>}>

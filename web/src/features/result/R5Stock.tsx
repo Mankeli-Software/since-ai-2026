@@ -28,17 +28,17 @@ function NothingCustom({ best }: { best: Spec | null }) {
   const custom = best?.purchase === 'custom'
   const delta = best ? customDelta(best) : []
   return (
-    <section className="flex flex-col items-start gap-3 rounded-16 border border-grey-26 bg-grey-12 p-8 max-md:p-5">
-      <Eyebrow className="text-orange-hover">Stock or custom</Eyebrow>
+    <section className="flex flex-col items-start gap-3 rounded-16 border border-page-line bg-panel p-8 max-md:p-5">
+      <Eyebrow className="text-orange-on-page">Stock or custom</Eyebrow>
       <h1 className="m-0 font-display text-[44px] leading-[.9] font-extrabold uppercase max-md:text-[36px]">
         {custom ? 'Your fit is already custom.' : 'Stock fits you. Nothing custom needed.'}
       </h1>
-      <p className="m-0 max-w-[560px] text-[17px] leading-[1.5] text-grey-c8">
+      <p className="m-0 max-w-[560px] text-[17px] leading-[1.5] text-on-page-2">
         {custom
           ? `It's built to your spec${delta.length ? ` (${delta.join(', ')})` : ''}, so there's no stock-or-custom choice to make here.`
           : "Your shots don't point to a custom build, so you keep the quick delivery and the returns. This page only shows up when custom is really worth it."}
       </p>
-      <ViewLink view="summary" className="text-[15px] font-semibold text-orange-hover max-md:inline-flex max-md:min-h-11 max-md:items-center">
+      <ViewLink view="summary" className="text-[15px] font-semibold text-orange-on-page max-md:inline-flex max-md:min-h-11 max-md:items-center">
         ← Back to your fit
       </ViewLink>
     </section>
@@ -108,10 +108,10 @@ export function R5Stock() {
       </div>
       <h1 className="m-0 font-display text-[56px] leading-[.88] font-extrabold uppercase max-md:text-[40px]">{block.question}</h1>
       {block.reasons && block.reasons.length > 0 && (
-        <ul className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-[15px] text-grey-c8">
+        <ul className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-[15px] text-on-page-2">
           {block.reasons.map((r) => (
             <li key={r} className="flex items-baseline gap-2">
-              <span aria-hidden="true" className="inline-block size-1.5 flex-none translate-y-[-2px] rounded-full bg-grey-8f" />
+              <span aria-hidden="true" className="inline-block size-1.5 flex-none translate-y-[-2px] rounded-full bg-on-page-3" />
               {convertProseUnits(r, units)}
             </li>
           ))}
@@ -119,14 +119,14 @@ export function R5Stock() {
       )}
 
       {stockadv && advice && (advice.lean === 'stock' || advice.lean === 'either') && (
-        <div className="flex flex-col gap-1.5 rounded-12 border border-grey-3d bg-grey-12 p-4 text-[15px] text-grey-c8">
-          <p className="m-0 font-medium text-washed-white">
+        <div className="flex flex-col gap-1.5 rounded-12 border border-page-line-2 bg-panel p-4 text-[15px] text-on-page-2">
+          <p className="m-0 font-medium text-on-page">
             Stock is a fine choice: you keep the {advice.stock_return_days}-day return. Custom builds cannot be returned.
           </p>
           {advice.reasons && advice.reasons.length > 0 && (
-            <p className="m-0 text-grey-a3">{advice.reasons[0]}</p>
+            <p className="m-0 text-on-page-2">{advice.reasons[0]}</p>
           )}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-grey-8f">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-on-page-3">
             {advice.lie_change_deg !== 0 && (
               <span>Lie change: {advice.lie_change_deg > 0 ? `+${advice.lie_change_deg}°` : `${advice.lie_change_deg}°`}</span>
             )}
@@ -138,8 +138,8 @@ export function R5Stock() {
       )}
 
       {stockadv && advice && advice.stock && (
-        <div className="flex flex-col gap-2 rounded-12 border border-grey-26 bg-grey-12 p-3.5">
-          <label className="flex cursor-pointer items-center gap-2.5 text-[15px] font-semibold text-washed-white">
+        <div className="flex flex-col gap-2 rounded-12 border border-page-line bg-panel p-3.5">
+          <label className="flex cursor-pointer items-center gap-2.5 text-[15px] font-semibold text-on-page">
             <input
               type="checkbox"
               checked={stayStock}
@@ -158,7 +158,7 @@ export function R5Stock() {
             <span>What if I stay stock?</span>
           </label>
           {stayStock && advice.side_delta_yd != null && (
-            <p className="m-0 text-[14px] text-grey-c8">
+            <p className="m-0 text-[14px] text-on-page-2">
               {advice.side_delta_yd === 0
                 ? 'Your start line stays on target.'
                 : `With stock lie, your start line shifts about ${Math.abs(advice.side_delta_yd).toFixed(1)} yards to the ${advice.side_delta_yd > 0 ? 'right' : 'left'}.`}
@@ -183,9 +183,9 @@ export function R5Stock() {
         customReturnable={block.custom_returnable ?? false}
         lean={lean}
       />
-      <span className="text-[15px] text-grey-a3">
+      <span className="text-[15px] text-on-page-2">
         Pick one. The buy bar below follows your choice. Not sure? Stock still plays fine for you.
-        <span className="text-grey-8f"> The strike pictures are illustrations.</span>
+        <span className="text-on-page-3"> The strike pictures are illustrations.</span>
       </span>
       <ResultsAside fallback={ASIDE_FALLBACK} chips={CHIPS} />
     </>

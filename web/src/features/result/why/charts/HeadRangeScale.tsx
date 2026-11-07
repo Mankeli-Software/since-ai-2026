@@ -34,14 +34,14 @@ export function HeadRangeScale({ best }: { best: string }) {
                 slug={slug}
                 className={cn('w-auto', yours ? 'h-[88px] drop-shadow-[0_10px_18px_rgba(255,110,1,.25)]' : 'h-[70px] opacity-45')}
               />
-              <span className={cn('font-display text-[16px] font-bold whitespace-nowrap', yours ? 'text-orange-hover' : 'text-grey-a3')}>
+              <span className={cn('font-display text-[16px] font-bold whitespace-nowrap', yours ? 'text-orange-on-page' : 'text-on-page-2')}>
                 {short(slug)}
               </span>
             </div>
           )
         })}
-        <div aria-hidden="true" className="absolute right-0 bottom-3 left-0 h-1 rounded-[2px] bg-[linear-gradient(90deg,#3D3D3D,#8F8F8F)]" />
-        <div aria-hidden="true" className="absolute right-0 -bottom-2 left-0 flex justify-between text-[13px] text-grey-a3">
+        <div aria-hidden="true" className="absolute right-0 bottom-3 left-0 h-1 rounded-[2px] bg-[linear-gradient(90deg,var(--color-page-line-2,#3D3D3D),var(--color-on-page-3,#8F8F8F))]" />
+        <div aria-hidden="true" className="absolute right-0 -bottom-2 left-0 flex justify-between text-[13px] text-on-page-2">
           <span>More forgiving</span>
           <span>More workable</span>
         </div>

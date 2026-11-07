@@ -67,7 +67,7 @@ export function ChatShell() {
         className="absolute top-[160px] -right-[26px] h-[460px] drop-shadow-club transition-[opacity] duration-[600ms] ease-out max-md:hidden"
         style={{ opacity: ghostOpacity(state?.confidence) }}
       />
-      <div className="hidden max-[1023px]:block border-b border-border-card bg-midnight px-4 py-2 text-center text-[13px] text-grey-c8">
+      <div className="hidden max-[1023px]:block border-b border-page-line bg-page px-4 py-2 text-center text-[13px] text-on-page-2">
         Best on a laptop for this demo.
       </div>
       <StudioHeader variant="chat" step={view.step} />
@@ -108,7 +108,7 @@ export function ChatShell() {
           busy && <Thinking />
         )}
         {error && (
-          <p role="alert" className="m-0 rounded-10 bg-grey-16 px-4 py-3 text-[15px] text-orange-light">
+          <p role="alert" className="m-0 rounded-10 bg-panel-2 px-4 py-3 text-[15px] text-orange-on-page">
             Something went wrong: {error}
           </p>
         )}
@@ -118,7 +118,7 @@ export function ChatShell() {
             <VoiceBar />
           </div>
         ) : (
-          <div className="sticky bottom-0 mt-auto bg-[linear-gradient(to_top,#0B0B0B_55%,transparent)] pt-4 pb-7 max-md:-mx-4 max-md:px-4 max-md:pt-2.5 max-md:pb-[18px]">
+          <div className="sticky bottom-0 mt-auto bg-[linear-gradient(to_top,var(--color-page)_55%,transparent)] pt-4 pb-7 max-md:-mx-4 max-md:px-4 max-md:pt-2.5 max-md:pb-[18px]">
             <VoiceBar className="mb-2.5" />
             <Composer onSend={(t) => void say(t)} disabled={sendDisabled} />
           </div>

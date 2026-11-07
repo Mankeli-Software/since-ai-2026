@@ -16,6 +16,7 @@ export { CloseCallBar, type CloseCallBarProps, type CloseCallSide } from './Clos
 export { SpecPartIcon, type SpecPart, type SpecPartIconProps } from './SpecPartIcon'
 export { RecapChip, type RecapChipProps } from './RecapChip'
 export { UnitsToggle, type UnitsToggleProps } from './UnitsToggle'
+export { ThemeToggle, type ThemeToggleProps } from './ThemeToggle'
 export { useNumberKeys } from './useNumberKeys'
 export { useEnterKey } from './useEnterKey'
 export { useArrowKeys } from './useArrowKeys'
