@@ -1,1 +1,10 @@
 .DS_Store
+.venv/
+.worktrees/
+__pycache__/
+*.pyc
+firebase-debug.log
+scripts/clubs/ref_images/
+scripts/clubs/textures/
+
+
