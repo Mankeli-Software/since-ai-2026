@@ -30,7 +30,7 @@ PUB = WEB / "public" / "takomo"
 LANDING = WEB / "src" / "features" / "landing"
 CACHE = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(tempfile.gettempdir()) / "takomo-mirror-cache"
 SITE = "https://takomogolf.com/"
-STUDIO = "/studio.html?ff=v3"
+STUDIO = "/studio.html"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
 ACCEPT_IMG = "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
 EXT = {"image/avif": "avif", "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif",

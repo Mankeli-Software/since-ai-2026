@@ -2,7 +2,7 @@
 // web/scripts/mirror-takomo-home.py. Every static link already points at the studio. This catches the rest:
 // forms, theme buttons (add to cart, newsletter, country picker) and links that the live reviews widget adds
 // at runtime, so nothing posts anywhere and every action lands in the Fitter Studio.
-const STUDIO = '/studio.html?ff=v3'
+const STUDIO = '/studio.html'
 
 const go = (e: Event) => {
   e.preventDefault()
