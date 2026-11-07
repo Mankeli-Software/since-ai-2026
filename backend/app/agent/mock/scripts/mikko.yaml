@@ -1,16 +1,169 @@
-# MINIMAL script that only proves the turn protocol (issue #15). Issue #17 replaces it with the
-# full Mikko spine (plan 5.3). Steps: text | tool_call {name, args} | ui {<UIBlock fields>}.
-# A `ui` step with an input component ends the turn; the next turn resumes at the next step.
 persona: mikko
 steps:
-  - text: "Hi, I'm your Takomo fitter. Let's find your irons. "
+  # Turn 1: Onboarding greeting, questionnaire review, initial fit and request for TrackMan CSV
+  - text: "Hi Mikko, welcome to Takomo Fitter Studio. Let's find your perfect irons."
+  - text: "From the questionnaire, you reported carrying your 7-iron 160 yards, playing to an 18.9 handicap, and standard body measurements. With self-reported data alone, our fit is provisional."
+  - tool_call:
+      name: run_fit
+      args: {}
+  - tool_call:
+      name: stage_focus
+      args: {part: lie}
+  - ui:
+      type: data_import
+      prompt: "To dial in your true speed and lie angle, import your 7-iron TrackMan data."
+      sources: ["csv", "skip"]
+      club_hint: own_7i
+      reason_code: swing_speed
+
+  # Turn 2: Review TrackMan CSV, surface G11 flag and loft difference
+  - tool_call:
+      name: get_import_report
+      args: {import_id: own_7i}
+  - text: "Thanks for importing your TrackMan session! The measured data gives us an honest baseline."
+  - text: "Your 10 shots averaged 124.7 yards carry at 72.1 mph club speed. That places you in swing bucket 3 (Regular flex) rather than Stiff."
+  - text: "Your stated 160 yd carry likely reflects your current 28° strong-lofted 7-iron, which is 4° stronger than Takomo's 32° 7-iron. That loft difference adds roughly 12 yards on loft alone."
+  - ui:
+      type: outlier_review
+      import_id: own_7i
+      flags:
+        - code: G11
+          severity: confirm
+          field: reported_7i_carry_yd
+          value: 160.0
+          expected: "124.7 yd"
+      shots_summary:
+        carry_yd: 124.7
+        club_speed_mph: 72.1
+        dynamic_lie_deg: 57.1
+      actions:
+        - confirm_value
+        - keep
+
+  # Turn 3: Precision follow-up offer for test club shots
+  - tool_call:
+      name: update_profile
+      args: {reported_7i_speed_mph: 72.1}
+  - text: "With measured speed locked in, confidence rises to 72%."
+  - text: "Your lie angle is currently based on static height and wrist-to-floor measurements (+2° upright). A test club session with a Takomo 201 MKII on a launch monitor will show your exact dynamic lie at impact."
   - ui:
       type: choice_chips
-      prompt: "Which hand do you swing with?"
-      field: handedness
+      prompt: "Your lie comes from a static chart (+2°). Would you like to import test-club shots to sharpen it?"
+      field: precision_offer
       options:
-        - {id: right, label: Right-handed}
-        - {id: left, label: Left-handed}
-  - tool_call: {name: stage_focus, args: {part: lie}}
-  - text: "Let me show you the lie angle first. "
-  - text: "Got it, noted. That is all for this short demo script."
+        - id: takomo_201
+          label: "Import Takomo 201 MKII test shots"
+        - id: happy
+          label: "I'm happy with +2°"
+
+  # Turn 4: Final fit recommendation after test-club import
+  - tool_call:
+      name: update_profile
+      args: {lie_override_deg: 3.0}
+  - tool_call:
+      name: run_fit
+      args: {}
+  - text: "Your test-club shots show an impact dynamic lie of 64.8° (+2.8° toe-up). That overrides the chart to +3° upright!"
+  - text: "Your recommended build is the Takomo 201T MKII with KBS Tour Lite Regular steel shafts, +0.5\" length, and +3° upright lie."
+  - ui:
+      type: recommendation_card
+      spec:
+        head: 201t-mkii
+        shaft: kbs-tour-lite-r
+        shaft_model: "KBS Tour Lite"
+        flex: regular
+        material: steel
+        length_in: 0.5
+        lie_deg: 3
+        grip: standard
+        handedness: right
+        purchase: custom
+      purchase: custom
+      confidence: 0.85
+      gate: confident
+      runner_up:
+        head: 201-mkii
+        shaft: kbs-tour-lite-r
+        shaft_model: "KBS Tour Lite"
+        flex: regular
+        material: steel
+        length_in: 0.5
+        lie_deg: 3
+        grip: standard
+        handedness: right
+        purchase: custom
+  - tool_call:
+      name: explain_part
+      args: {part: head}
+  - tool_call:
+      name: explain_part
+      args: {part: shaft_model}
+  - tool_call:
+      name: explain_part
+      args: {part: lie}
+  - ui:
+      type: why_panel
+      depth: standard
+      items:
+        - part: head
+          plain: "201T MKII delivers forged feel with distance control for your 18.9 handicap. Your 28° 7-iron is 4° stronger than Takomo's 32°, adding about 12 yd on loft alone."
+          numbers:
+            head_score: 16.0
+            runner_up_score: 14.0
+            own_7i_loft_deg: 28.0
+            takomo_7i_loft_deg: 32.0
+            loft_carry_diff_yd: 12.0
+          sources:
+            - source: questionnaire
+            - source: trackman
+        - part: shaft_model
+          plain: "KBS Tour Lite Regular steel matches your 72.1 mph club speed for mid launch and stability."
+          numbers:
+            weight_g: 105.0
+            club_speed_mph: 72.1
+          sources:
+            - source: trackman
+        - part: lie
+          plain: "lie: chart +2° -> evidence +3° from test-club shots showing consistent toe-up impact."
+          numbers:
+            dynamic_lie_deg: 64.8
+            lie_deg: 3.0
+          sources:
+            - source: trackman
+  - tool_call:
+      name: compare_specs
+      args: {heads: [201t-mkii, 201-mkii]}
+  - ui:
+      type: club_compare
+      highlight: 201t-mkii
+      heads:
+        - head: 201t-mkii
+          carry: 128.5
+          apex: 19.2
+          land_angle: 39.5
+          side_sd: 8.4
+          score_total: 16.0
+        - head: 201-mkii
+          carry: 126.8
+          apex: 18.5
+          land_angle: 38.2
+          side_sd: 9.1
+          score_total: 14.0
+  - tool_call:
+      name: simulate_flight
+      args: {heads: [201t-mkii, 201-mkii]}
+  - ui:
+      type: stock_vs_custom
+      question: "Because of your +3° upright lie, this requires a custom build. Custom clubs are non-returnable. Stock sets include a 30-day return policy. Which do you prefer?"
+      reasons:
+        - "Lie is +3° upright (standard is 0°)"
+        - "Length is +0.5 inch"
+      stock_return_days: 30
+      custom_returnable: false
+
+  # Turn 5: Confirmation and save
+  - text: "Excellent choice! Your custom 201T MKII specs are locked in."
+  - text: "You can tinker with any spec using the 3D Stage on the left, or save your session below to access your fit anytime."
+  - ui:
+      type: driver_teaser
+  - text: "Tap Save Session in the top bar to finish your fitting."

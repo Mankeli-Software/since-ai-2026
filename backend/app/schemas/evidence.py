@@ -17,6 +17,8 @@ class BallLineImportRequest(BaseModel):
     club: str = "own_7i"
     append_to: str | None = None
     synthetic: bool = False
+
+
 class ShotQualityReport(BaseModel):
     """Per-import quality summary; `quality` scales the launch-monitor weight (plan §5.3)."""
 

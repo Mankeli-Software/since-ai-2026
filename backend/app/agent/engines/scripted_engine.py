@@ -8,11 +8,14 @@ from typing import Any
 
 import yaml  # shortcut: transitive via uvicorn[standard], not a declared dependency
 
-from app.agent.engines.base import answer_of, stored, user_text
+from app.agent.engines.base import answer_of, load_tools, stored, user_text
 from app.agent.guard import REPLAY_TEXT
+from app.agent.tools._common import commit_state, recompute_session_state
 from app.core.tooling import ToolContext, get_tool
 from app.schemas.chat import StreamEvent, TextEvent, TextMessage, TurnRequest, UiEvent
 from app.schemas.session import StoredMessage
+
+load_tools()
 
 SCRIPTS = Path(__file__).resolve().parent.parent / "mock" / "scripts"
 PERSONAS = {"DEMO-01": "mikko", "DEMO-09": "hannu", "DEMO-04": "lars", "DEMO-13": "anders"}
@@ -43,6 +46,9 @@ class ScriptedEngine:
         )
         if answer_of(s, request) is not None and not replay_free_text:
             s.pending_ui_id = None
+            recompute_session_state(s)
+            await commit_state(ctx)
+
         steps = load_script(s.demo_golfer_id)
         texts: list[str] = []
         n = 0
@@ -91,6 +97,10 @@ class ScriptedEngine:
                     break
             else:
                 raise ValueError(f"unknown script step {step!r}")
+
+        recompute_session_state(s)
+        await commit_state(ctx)
+
         out = [user]
         if texts:
             out.append(stored("assistant", "scripted", " ".join(t.strip() for t in texts)))
