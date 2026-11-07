@@ -1,0 +1,72 @@
+{
+  "golfer_id": "DEMO-09",
+  "name": "Hannu",
+  "age": 60,
+  "teaser": "The chart says standard lie. His ball-line test disagrees.",
+  "synthetic": true,
+  "profile": {
+    "age": {
+      "value": 60,
+      "source": "questionnaire"
+    },
+    "sex": {
+      "value": "male",
+      "source": "questionnaire"
+    },
+    "handedness": {
+      "value": "right",
+      "source": "questionnaire"
+    },
+    "rounds_per_year": {
+      "value": "10-30",
+      "source": "questionnaire"
+    },
+    "score_bucket": {
+      "value": 3,
+      "source": "questionnaire"
+    },
+    "characteristics": {
+      "value": [
+        "distance",
+        "forgiveness"
+      ],
+      "source": "questionnaire"
+    },
+    "flight": {
+      "value": "mid",
+      "source": "questionnaire"
+    },
+    "tempo": {
+      "value": "quick",
+      "source": "questionnaire"
+    },
+    "height_cm": {
+      "value": 177.0,
+      "source": "questionnaire"
+    },
+    "wrist_to_floor_cm": {
+      "value": 86.5,
+      "source": "questionnaire"
+    },
+    "glove": {
+      "value": "S",
+      "source": "questionnaire"
+    },
+    "glove_was_guessed": {
+      "value": false,
+      "source": "questionnaire"
+    },
+    "reported_7i_carry_yd": {
+      "value": 125.0,
+      "source": "questionnaire"
+    }
+  },
+  "sample_imports": [
+    {
+      "sample_id": "ball_line",
+      "kind": "ball_line",
+      "club": "own_7i",
+      "label": "Hannu's 5 ball-line readings"
+    }
+  ]
+}
