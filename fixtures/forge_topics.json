@@ -1,0 +1,8 @@
+{
+  "lie_angle": {"title": "Lie angle", "blurb": "How the club sits on the ground at impact, and why a small change matters for where the ball starts."},
+  "shaft_flex": {"title": "Shaft flex", "blurb": "What flex means, how it relates to swing speed, and why the middle of a range is often a close call."},
+  "club_length": {"title": "Club length", "blurb": "How length is chosen from your height and wrist-to-floor measure, and what a half inch changes."},
+  "grip_size": {"title": "Grip size", "blurb": "How hand size maps to grip size, and why most golfers fit the standard grip."},
+  "head_choice": {"title": "Head choice", "blurb": "The difference between cavity back and muscle back heads, and who each one suits."},
+  "custom_vs_stock": {"title": "Custom vs stock", "blurb": "Stock sets can be returned within 30 days. Custom-built sets cannot. Here is how to decide."}
+}
