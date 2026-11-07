@@ -5,64 +5,11 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.schemas.flags import Flag, FlagCode, FlagSeverity
+from app.schemas.shots import Shot, ShotField, ShotSession
 from app.schemas.state import FittingState
 
-# The pack's shots.csv session values, plus our own imports.
-ShotSession = Literal["trackman_fitting", "home_radar", "import"]
-# Pack shots.csv metric columns (same names and units: mph, yd, deg, rpm, mm).
-ShotField = Literal[
-    "club_speed_mph",
-    "attack_angle_deg",
-    "dynamic_loft_deg",
-    "club_path_deg",
-    "face_angle_deg",
-    "face_to_path_deg",
-    "ball_speed_mph",
-    "smash_factor",
-    "launch_angle_deg",
-    "launch_direction_deg",
-    "spin_rate_rpm",
-    "spin_axis_deg",
-    "carry_yd",
-    "total_yd",
-    "side_yd",
-    "apex_yd",
-    "landing_angle_deg",
-    "impact_offset_mm",
-    "impact_height_mm",
-    "impact_toe_up_deg",
-]
 ImportKind = Literal["trackman_csv", "ball_line", "manual", "screenshot", "round_stats"]
 ImportStatus = Literal["pending", "confirmed", "discarded"]
-
-
-class Shot(BaseModel):
-    """One shot in the pack's shots.csv schema. Empty cells stay None (home radars)."""
-
-    session: ShotSession = "import"
-    club: str = Field(description="own_7i | takomo_<head>_<shaft>_std")
-    club_loft_deg: float | None = None
-    shot_no: int
-    club_speed_mph: float | None = None
-    attack_angle_deg: float | None = None
-    dynamic_loft_deg: float | None = None
-    club_path_deg: float | None = None
-    face_angle_deg: float | None = None
-    face_to_path_deg: float | None = None
-    ball_speed_mph: float | None = None
-    smash_factor: float | None = None
-    launch_angle_deg: float | None = None
-    launch_direction_deg: float | None = None
-    spin_rate_rpm: float | None = None
-    spin_axis_deg: float | None = None
-    carry_yd: float | None = None
-    total_yd: float | None = None
-    side_yd: float | None = None
-    apex_yd: float | None = None
-    landing_angle_deg: float | None = None
-    impact_offset_mm: float | None = None
-    impact_height_mm: float | None = None
-    impact_toe_up_deg: float | None = None
 
 
 class ShotQualityReport(BaseModel):
@@ -87,6 +34,20 @@ class ImportReport(BaseModel):
     report: ShotQualityReport = Field(default_factory=ShotQualityReport)
     status: ImportStatus = "pending"
     state: FittingState | None = None
+    clubs: dict[str, int] = Field(
+        default_factory=dict,
+        description="Shots per club slug (a CSV `Club` column can carry several)",
+    )
+    dropped_clubs: dict[str, int] = Field(
+        default_factory=dict,
+        description="Rows left out because their `Club` value is not a 7-iron (label capped)",
+    )
+    vendor: str | None = Field(default=None, description="Header alias set that matched")
+    units_seen: list[str] = Field(default_factory=list, description="Units row, as read (capped)")
+    dynamic_lie_absolute: bool = Field(
+        default=False,
+        description="Dynamic Lie was absolute (45-80 deg) and was converted to toe-up vs club lie",
+    )
 
 
 class Cell(BaseModel):

@@ -21,6 +21,10 @@ def parse_<name>(raw: bytes | dict, *, club: str | None = None) -> list[Shot]:
 - TrackMan CSV: parse the units row; group by a `Club` column if present; empty cells stay empty.
   **Dynamic Lie is absolute** (≈ 58–66°): if values sit in 45–80°, `impact_toe_up_deg = dynamicLie − club_lie`
   (62° + built lie for Takomo test clubs, 62° for an own club) before S1, or S1 rejects every real shot.
+- `parse_trackman_csv(raw, club=...)` (#30) returns `TrackmanCsv {shots, clubs, dropped_clubs, vendor, units_seen,
+  dynamic_lie_absolute}`. Routes: `POST /imports/trackman-csv` (pending import) and the generic
+  `POST /imports/{id}/confirm`, which appends the import's `parsed_shots_json` to `FittingState.shots` and bumps
+  `evidence_version`. Samples: `fixtures/trackman/` (synthetic, regenerate with its `generate.py`).
 - Ball-line (`parse_ball_line`): `BallLineEvidence {readings, mean, sd, n}`; + = line leans toward the toe,
   `lie_need = −mean`. It is fused with the chart, never an override. Copy says "readings", never "shots".
 
