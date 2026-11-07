@@ -1,0 +1,215 @@
+# CI/CD for Takomo Fitter Studio (plan §9.2). No test jobs (L17): lint, typecheck, build, and the
+# container/deploy health check (scripts/smoke.sh) only.
+#
+# Every job is safe to run before the rest of the repo exists:
+# - backend-checks / build-image skip their steps until backend/pyproject.toml is on main (L0 skeleton);
+# - frontend-checks skips until web/package.json is on main (#35);
+# - the image push and deploy run only on push to main once the GCP variables from #11 are set,
+#   and deploy also respects the DEPLOY_ENABLED freeze switch (§10.6).
+name: ci-deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }} # main: never kill a running deploy
+
+permissions:
+  contents: read
+
+env:
+  REGION: europe-north1
+  SERVICE: fitter
+  IMAGE: europe-north1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/app/fitter
+
+jobs:
+  backend-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - id: has
+        name: Detect backend
+        run: |
+          if [ -f backend/pyproject.toml ]; then
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "backend=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::backend/pyproject.toml not on this ref yet (L0 skeleton); skipping backend checks"
+          fi
+          if [ -f backend/.importlinter ]; then
+            echo "importlinter=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "importlinter=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.has.outputs.backend == 'true'
+        uses: astral-sh/setup-uv@v10.3.3 # no floating v10 tag upstream
+        with: { version: "0.13.x", enable-cache: true, python-version: "3.12" }
+      - if: steps.has.outputs.backend == 'true'
+        working-directory: backend
+        run: uv sync --locked
+      - if: steps.has.outputs.backend == 'true'
+        working-directory: backend
+        run: uv run ruff check .
+      - if: steps.has.outputs.backend == 'true'
+        working-directory: backend
+        run: uv run ruff format --check .
+      - if: steps.has.outputs.backend == 'true' && steps.has.outputs.importlinter == 'true'
+        working-directory: backend
+        env: { PYTHONPATH: ../vendor }
+        run: uv run lint-imports
+
+  frontend-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - id: has
+        name: Detect web app
+        run: |
+          if [ -f web/package.json ] && [ -f backend/pyproject.toml ]; then
+            echo "web=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "web=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::web/package.json or backend/pyproject.toml not on this ref yet (#35 / L0); skipping frontend checks"
+          fi
+      - if: steps.has.outputs.web == 'true'
+        uses: astral-sh/setup-uv@v10.3.3 # no floating v10 tag upstream
+        with: { version: "0.13.x", enable-cache: true, python-version: "3.12" }
+      - if: steps.has.outputs.web == 'true'
+        name: Export contracts (openapi.json + schemas) to generated/
+        run: |
+          uv sync --locked --project backend
+          cd backend && PYTHONPATH=../vendor uv run python -m app.core.export --out ../generated
+      - if: steps.has.outputs.web == 'true'
+        uses: pnpm/action-setup@v6
+        with: { package_json_file: web/package.json }
+      - if: steps.has.outputs.web == 'true'
+        uses: actions/setup-node@v7
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: web/pnpm-lock.yaml }
+      - if: steps.has.outputs.web == 'true'
+        run: pnpm -C web install --frozen-lockfile
+      - if: steps.has.outputs.web == 'true'
+        run: pnpm -C web gen && pnpm -C web typecheck && pnpm -C web lint && pnpm -C web build
+
+  build-image: # parallel with the checks; PRs build + smoke without pushing
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: { contents: read, id-token: write }
+    outputs:
+      pushed: ${{ steps.push.outcome == 'success' }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: has
+        name: Detect backend
+        run: |
+          if [ -f backend/pyproject.toml ]; then
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "backend=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::backend/pyproject.toml not on this ref yet (L0 skeleton); skipping the image build"
+          fi
+      - if: steps.has.outputs.backend == 'true'
+        uses: docker/setup-buildx-action@v4
+      - if: steps.has.outputs.backend == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/Dockerfile
+          load: true
+          tags: fitter:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - if: steps.has.outputs.backend == 'true'
+        name: Health check the container (health, one scripted /turn ends in done)
+        run: |
+          docker run -d --name app -p 8080:8080 fitter:ci
+          scripts/smoke.sh http://localhost:8080
+      - if: failure() && steps.has.outputs.backend == 'true'
+        name: Container logs
+        run: docker logs app || true
+      # Push only on main, and only once #11's variables exist, so the workflow is green before GCP is set up.
+      - if: >-
+          steps.has.outputs.backend == 'true'
+          && github.event_name == 'push' && github.ref == 'refs/heads/main'
+          && vars.GCP_PROJECT_ID != '' && vars.GCP_WIF_PROVIDER != '' && vars.GCP_DEPLOY_SA != ''
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+          token_format: access_token
+      - if: steps.auth.outcome == 'success'
+        uses: docker/login-action@v4
+        with:
+          registry: europe-north1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      - if: steps.auth.outcome == 'success'
+        id: push
+        run: docker tag fitter:ci "$IMAGE:$GITHUB_SHA" && docker push "$IMAGE:$GITHUB_SHA"
+
+  deploy:
+    needs: [backend-checks, frontend-checks, build-image]
+    if: >-
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
+      && vars.DEPLOY_ENABLED != 'false'
+      && vars.GCP_PROJECT_ID != '' && vars.GCP_WIF_PROVIDER != ''
+      && vars.GCP_DEPLOY_SA != '' && vars.GCP_RUNTIME_SA != ''
+      && needs.build-image.outputs.pushed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions: { contents: read, id-token: write }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v3
+        with: { project_id: "${{ vars.GCP_PROJECT_ID }}" }
+      - id: tag
+        name: Revision tag, and whether the service exists yet
+        run: |
+          echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          # --no-traffic is rejected when the service is created, so the very first deploy takes traffic
+          # directly (there is no earlier revision to protect); every later deploy is tagged + no-traffic.
+          if gcloud run services describe "$SERVICE" --region "$REGION" --format='value(metadata.name)' >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Service $SERVICE does not exist yet: first deploy creates it with traffic"
+          fi
+      - uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE }}:${{ github.sha }}
+          no_traffic: ${{ steps.tag.outputs.exists == 'true' }}
+          tag: ${{ steps.tag.outputs.tag }}
+          secrets: ANTHROPIC_API_KEY=anthropic-api-key:latest # add ,ELEVENLABS_API_KEY=elevenlabs-api-key:latest only if voice ships
+          # ALLOWED_FRAME_ANCESTORS is space-separated: env_vars splits on commas (§6.5).
+          env_vars: STORE=memory,LLM_MODE=${{ vars.PROD_LLM_MODE || 'mock' }},ALLOWED_FRAME_ANCESTORS=${{ vars.ALLOWED_FRAME_ANCESTORS || '''self''' }}
+          flags: >-
+            --min-instances=1 --max-instances=1 --cpu=1 --memory=1Gi --cpu-boost --timeout=3600 --concurrency=40
+            --service-account=${{ vars.GCP_RUNTIME_SA }} --allow-unauthenticated
+      - name: Smoke the tagged revision, then shift traffic
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          URL=$(gcloud run services describe "$SERVICE" --region "$REGION" --format=json \
+                | jq -r --arg t "$TAG" '.status.traffic[] | select(.tag==$t) | .url')
+          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+            echo "::error::No URL found for revision tag $TAG"; exit 1
+          fi
+          echo "Smoking $URL"
+          scripts/smoke.sh "$URL"
+          gcloud run services update-traffic "$SERVICE" --region "$REGION" --to-latest
+          echo "::notice::$TAG is live: $(gcloud run services describe "$SERVICE" --region "$REGION" --format='value(status.url)')"

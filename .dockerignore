@@ -1,0 +1,36 @@
+# Build context for infra/Dockerfile (plan §9.1). Order matters: the last matching line wins.
+
+# The pack is 50+ MB; the image needs only the takomo_fit package.
+data/**
+!data/TakomoGolf_SinceAI2026_FINAL/TAKOMO_FITTING_LAB_2026/takomo_fit/**
+
+# 3D asset tooling and QA renders (issue #3); the image ships only the served assets.
+assets/clubs/qa/
+scripts/clubs/
+
+# Generated files are regenerated inside the build (plan §10.3).
+generated/
+web/src/api/schema.gen.ts
+web/dist/
+web/public/mock/
+
+# Local environments, caches and secrets.
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/.venv
+**/*.egg-info
+**/.ruff_cache
+**/.pytest_cache
+**/.DS_Store
+.env
+.env.*
+.port
+
+# Repo metadata and docs.
+.git
+.github
+.claude
+.agents
+.worktrees
+docs/
