@@ -7,7 +7,10 @@ from app.schemas.ui._base import UIBlockBase, UIKind
 
 
 class OutlierReview(UIBlockBase):
-    """Show the plausibility flags found in an import with the key numbers, and let the golfer keep, exclude or confirm the measured value."""
+    """Show the plausibility flags found in an import with the key numbers.
+
+    The golfer can keep, exclude or confirm the measured value.
+    """
 
     kind: ClassVar[UIKind] = "ui_input"
 

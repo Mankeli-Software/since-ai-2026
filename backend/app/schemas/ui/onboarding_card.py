@@ -9,7 +9,10 @@ RoundsPerYear = Literal["Under 10", "10-30", "31-50", "Over 50"]  # pack questio
 
 
 class OnboardingCard(UIBlockBase):
-    """Ask the basics in one card: age, sex, handedness, rounds per year and typical score bucket. Prefill what the golfer already said."""
+    """Ask the basics in one card: age, sex, handedness, rounds per year, typical score.
+
+    Prefill what the golfer already said.
+    """
 
     kind: ClassVar[UIKind] = "ui_input"
 

@@ -10,7 +10,10 @@ ImportSource = Literal[
 
 
 class DataImport(UIBlockBase):
-    """Offer ways to add measured data: TrackMan CSV, ball-line test readings, a screenshot, or skip. Set reason_code when firming up one part."""
+    """Offer ways to add measured data: TrackMan CSV, ball-line readings, a screenshot, or skip.
+
+    Set reason_code when firming up one part.
+    """
 
     kind: ClassVar[UIKind] = "ui_input"
 
@@ -21,4 +24,8 @@ class DataImport(UIBlockBase):
         default=None, max_length=64, description="`own_7i` or `takomo_<head>_<shaft>_std`"
     )
     reason_code: str | None = Field(default=None, max_length=32, description="Part being firmed up")
-    append_to: str | None = Field(default=None, max_length=64, description="Earlier ball-line import id to pool into")
+    append_to: str | None = Field(
+        default=None,
+        max_length=64,
+        description="Earlier ball-line import id to pool into",
+    )
