@@ -1,0 +1,14 @@
+
+  .section-template--18621259579589__rich_text_8zeJfh-padding # {
+    scroll-margin-top: var(--header-height);
+  }
+  .section-template--18621259579589__rich_text_8zeJfh-padding {
+    padding-top: 80px;
+    padding-bottom: 28px;
+  }
+  @media screen and (min-width: 750px) {
+    .section-template--18621259579589__rich_text_8zeJfh-padding {
+      padding-top: 128px;
+      padding-bottom: 40px;
+    }
+  }

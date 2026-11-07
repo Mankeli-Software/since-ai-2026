@@ -1,0 +1,14 @@
+.section-template--18621259579589__image_with_text_GmMzwa-padding {
+      padding-top: 0px;
+      padding-bottom: 40px;
+    }
+    .section-template--18621259579589__image_with_text_GmMzwa-padding .image-with-text__media .video-section__media {
+      height: 100%;
+      padding-bottom: 0;
+    }
+    @media screen and (min-width: 750px) {
+      .section-template--18621259579589__image_with_text_GmMzwa-padding {
+        padding-top: 0px;
+        padding-bottom: 64px;
+      }
+    }
