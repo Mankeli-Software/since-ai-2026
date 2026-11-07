@@ -9,8 +9,9 @@ from typing import Any
 import yaml  # shortcut: transitive via uvicorn[standard], not a declared dependency
 
 from app.agent.engines.base import answer_of, stored, user_text
+from app.agent.guard import REPLAY_TEXT
 from app.core.tooling import ToolContext, get_tool
-from app.schemas.chat import StreamEvent, TextEvent, TurnRequest, UiEvent
+from app.schemas.chat import StreamEvent, TextEvent, TextMessage, TurnRequest, UiEvent
 from app.schemas.session import StoredMessage
 
 SCRIPTS = Path(__file__).resolve().parent.parent / "mock" / "scripts"
@@ -34,7 +35,13 @@ class ScriptedEngine:
         s = ctx.session
         turn_id = s.active_turn_id
         user = stored("user", "scripted", user_text(request))
-        if answer_of(s, request) is not None:
+        # Replay mode (#18, the daily cap downgraded this session): only taps move the script on.
+        replay_free_text = (
+            s.notice is not None
+            and s.script_cursor > 0
+            and isinstance(request.message, TextMessage)
+        )
+        if answer_of(s, request) is not None and not replay_free_text:
             s.pending_ui_id = None
         steps = load_script(s.demo_golfer_id)
         texts: list[str] = []
@@ -52,6 +59,11 @@ class ScriptedEngine:
             texts.append(text)
             n += 1
 
+        if replay_free_text:
+            await say(REPLAY_TEXT)
+            return [user, stored("assistant", "scripted", REPLAY_TEXT)]
+        if s.notice is not None and s.script_cursor == 0:
+            await say(s.notice.message)
         if s.script_cursor >= len(steps):
             await say("That is the end of this demo script.")
         while s.script_cursor < len(steps):
