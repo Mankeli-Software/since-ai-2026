@@ -6,7 +6,7 @@ Reference for agents and teammates working on **The Fitter in Your Pocket** (Tak
 
 - Everything here came from the organisers or Takomo. **No real customer data, and no video or images.** All golfers are synthetic.
 - Total size is about 48 MB, nearly all of it CSV.
-- `data/` is currently **untracked in git**. Treat it as read-only input: don't edit files in place. Put derived outputs somewhere else.
+- `data/` is **tracked in git**. Treat it as read-only input: don't edit files in place. Put derived outputs somewhere else.
 - Paths below are relative to `data/TakomoGolf_SinceAI2026_FINAL/`. The lab folder is abbreviated as `LAB/` = `TAKOMO_FITTING_LAB_2026/`.
 
 ```
