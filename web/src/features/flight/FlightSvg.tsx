@@ -151,11 +151,11 @@ export function FlightSvg({ data, recommendedSlug, className }: FlightSvgProps) 
         </g>
       ))}
       <line x1={ML} x2={ML + PW} y1={gy} y2={gy} stroke="var(--fl-axis)" strokeWidth={1.5} />
-      {order.map(({ h, rec, slot }) => {
+      {order.map(({ h, rec, slot, i }) => {
         const pts = h.trajectory?.map((p) => `${X(p[0]).toFixed(1)},${SY(p[1]).toFixed(1)}`).join(" ");
         const ax = h.trajectory?.reduce((m, p) => (p[1] > m[1] ? p : m))[0] ?? h.summary.carry.mean / 2;
         return (
-          <g key={`s${h.head}`} opacity={rec ? 1 : 0.8}>
+          <g key={`s${h.head}-${i}`} opacity={rec ? 1 : 0.8}>
             {pts && <polyline points={pts} fill="none" stroke={col(slot)} strokeWidth={rec ? 3 : 2} strokeLinecap="round" strokeLinejoin="round" />}
             <circle cx={X(ax)} cy={SY(h.summary.apex)} r={rec ? 5 : 4} fill={col(slot)} stroke="var(--fl-bg)" strokeWidth={2} />
             {rec && (
@@ -167,8 +167,8 @@ export function FlightSvg({ data, recommendedSlug, className }: FlightSvgProps) 
           </g>
         );
       })}
-      {sideOrder.map(({ h, name, rec, slot }, k) => (
-        <g key={`sg${h.head}`}>
+      {sideOrder.map(({ h, name, rec, slot, i }, k) => (
+        <g key={`sg${h.head}-${i ?? k}`}>
           <circle cx={ML + PW + 16} cy={sideY0 + 8 + k * 17} r={4.5} fill={col(slot)} />
           <text x={ML + PW + 26} y={sideY0 + 12 + k * 17} className={rec ? "strong" : undefined}>{name} · apex {f0(h.summary.apex)} yd</text>
         </g>
@@ -189,7 +189,7 @@ export function FlightSvg({ data, recommendedSlug, className }: FlightSvgProps) 
         </g>
       ))}
       <line x1={ML} x2={ML + PW} y1={TY(0)} y2={TY(0)} stroke="var(--fl-axis)" strokeWidth={1.5} strokeDasharray="4 4" />
-      {order.map(({ h, rec, slot }) => {
+      {order.map(({ h, rec, slot, i }) => {
         const e1 = h.ellipses?.one_sigma;
         const e2 = h.ellipses?.two_sigma;
         const cx = TX(h.summary.carry.mean);
@@ -202,9 +202,9 @@ export function FlightSvg({ data, recommendedSlug, className }: FlightSvgProps) 
           />
         );
         return (
-          <g key={`t${h.head}`} opacity={rec ? 1 : 0.8}>
-            {h.landing_pts?.map((p, i) => (
-              <circle key={i} cx={TX(p[0])} cy={TY(p[1])} r={1.8} fill={col(slot)} fillOpacity={rec ? 0.5 : 0.35} />
+          <g key={`t${h.head}-${i}`} opacity={rec ? 1 : 0.8}>
+            {h.landing_pts?.map((p, pIdx) => (
+              <circle key={pIdx} cx={TX(p[0])} cy={TY(p[1])} r={1.8} fill={col(slot)} fillOpacity={rec ? 0.5 : 0.35} />
             ))}
             {e2 && el(e2, 0, rec ? 1.5 : 1, "5 3")}
             {e1 && el(e1, rec ? 0.16 : 0.06, rec ? 2.5 : 1.75)}
@@ -212,14 +212,14 @@ export function FlightSvg({ data, recommendedSlug, className }: FlightSvgProps) 
           </g>
         );
       })}
-      {items.map(({ h, name, rec, slot }, k) => {
+      {items.map(({ h, name, rec, slot, i }, k) => {
         const e = h.ellipses ? ext(h.ellipses.two_sigma).hx : 6;
         const ax = TX(h.summary.carry.mean + e) + 4;
         const ay = topAnchor[k];
         const ly = topLabelY[k];
         const lx = ML + PW + 14;
         return (
-          <g key={`tg${h.head}`}>
+          <g key={`tg${h.head}-${i ?? k}`}>
             <polyline points={`${ax},${ay} ${lx - 4},${ay} ${lx},${ly}`} fill="none" stroke="var(--fl-axis)" />
             <circle cx={lx + 6} cy={ly} r={4.5} fill={col(slot)} />
             <text x={lx + 16} y={ly + 4} className={rec ? "strong" : undefined}>{name} · carry {f0(h.summary.carry.mean)} yd</text>
