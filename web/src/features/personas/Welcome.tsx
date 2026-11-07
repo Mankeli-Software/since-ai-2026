@@ -1,4 +1,5 @@
-import { Button, ClubImage, Eyebrow, LogoMark, Wordmark } from '@/components/studio'
+import { Button, Eyebrow, LogoMark, Wordmark } from '@/components/studio'
+import { ClubModel } from '@/features/stage3d/ClubModel'
 import { cn } from '@/lib/utils'
 import { ownFittingHrefV3, PERSONAS, personaHrefV3 } from './personas'
 
@@ -17,10 +18,10 @@ export function Welcome() {
         aria-hidden="true"
         className="pointer-events-none absolute top-[60px] -right-20 size-[760px] bg-[radial-gradient(ellipse_at_50%_55%,rgba(255,110,1,.2),transparent_62%)]"
       />
-      <ClubImage
+      <ClubModel
         slug="201t-mkii"
         alt="Takomo 201T MkII iron"
-        className="pointer-events-none absolute top-[150px] right-[110px] h-[470px] w-auto drop-shadow-club-hero [@media(max-height:860px)]:top-[120px] [@media(max-height:860px)]:h-[420px]"
+        className="absolute top-[70px] right-[20px] h-[680px] drop-shadow-club-hero [@media(max-height:860px)]:top-[44px] [@media(max-height:860px)]:right-[30px] [@media(max-height:860px)]:h-[610px]"
       />
       <header className="flex items-center gap-5 px-14 pt-7">
         <a href="/" aria-label="Takomo Fitter Studio, start" className="flex flex-none items-center gap-3.5 no-underline">
