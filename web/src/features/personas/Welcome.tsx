@@ -18,7 +18,7 @@ const STEPS = [
 export function Welcome() {
   useEnterKey(() => window.location.assign(ownFittingHrefV3()), true)
   return (
-    <div className="bg-bay relative flex min-h-screen w-full flex-col overflow-hidden font-sans antialiased">
+    <div className="bg-bay relative flex min-h-screen md:h-screen w-full flex-col overflow-hidden font-sans antialiased">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-[60px] -right-20 size-[760px] bg-[radial-gradient(ellipse_at_50%_55%,rgba(255,110,1,.2),transparent_62%)] max-md:hidden"
@@ -26,7 +26,7 @@ export function Welcome() {
       <ClubModel
         slug="201t-mkii"
         alt="Takomo 201T MkII iron"
-        className="absolute top-[70px] right-[20px] h-[680px] drop-shadow-club-hero [@media(max-height:860px)]:top-[44px] [@media(max-height:860px)]:right-[30px] [@media(max-height:860px)]:h-[610px] max-md:hidden"
+        className="absolute top-[70px] right-[20px] h-[680px] drop-shadow-club-hero [@media(max-height:960px)]:top-[44px] [@media(max-height:960px)]:right-[30px] [@media(max-height:960px)]:h-[610px] max-md:hidden"
       />
       <header className="flex items-center gap-5 px-14 pt-7 max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0">
         <a
@@ -48,8 +48,7 @@ export function Welcome() {
       >
         <ClubImage slug="201t-mkii" alt="" className="absolute top-0 right-5 h-[250px] w-auto drop-shadow-club-hero" />
       </div>
-      <main className="relative flex flex-1 flex-col gap-[30px] px-14 pt-16 pb-14 max-md:gap-4 max-md:px-4 max-md:pt-0 max-md:pb-6 [@media(max-height:860px)]:gap-6 [@media(max-height:860px)]:pt-9 [@media(max-height:860px)]:pb-8 max-md:[@media(max-height:860px)]:gap-4 max-md:[@media(max-height:860px)]:pt-0 max-md:[@media(max-height:860px)]:pb-6">
-        <Eyebrow className="text-orange-hover">Takomo Fitter Studio</Eyebrow>
+      <main className="relative flex flex-1 flex-col gap-[30px] px-14 pt-16 pb-14 md:min-h-0 max-md:gap-4 max-md:px-4 max-md:pt-0 max-md:pb-6 [@media(max-height:960px)]:gap-5 [@media(max-height:960px)]:pt-7 [@media(max-height:960px)]:pb-6 max-md:[@media(max-height:960px)]:gap-4 max-md:[@media(max-height:960px)]:pt-0 max-md:[@media(max-height:960px)]:pb-6">
         <h1 className="m-0 max-w-[820px] font-display text-[length:clamp(112px,16.7vh,150px)] leading-[.84] font-extrabold tracking-normal uppercase max-md:text-[56px] max-md:leading-[.88]">
           Let's find your fit. Honestly.
         </h1>
@@ -62,7 +61,6 @@ export function Welcome() {
               Start fitting
               <EnterKbd tone="primary" />
             </Button>
-            <span className="text-[16px] text-grey-a3 max-md:text-center max-md:text-[14px]">About 4 minutes. Save progress anytime.</span>
           </div>
           <nav aria-labelledby="try-as" className="flex flex-wrap items-center gap-2">
             <span id="try-as" className="mr-1.5 text-[15px] text-grey-a3 max-md:w-full">
