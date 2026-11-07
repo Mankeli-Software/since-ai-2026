@@ -60,13 +60,17 @@ const TM_STEPS: [1 | 2 | 3, string][] = [
   [3, 'Bring it in here. We pull every 7-iron shot'],
 ]
 
+/** Focuses the first ball-line reading when the panel appears (stable, so it runs once per mount). */
+const focusOnMount = (el: HTMLInputElement | null) => el?.focus({ preventScroll: true })
+
 const boxCls =
   'h-12 rounded-10 border border-grey-c8 bg-white px-3 font-sans text-[16px] text-midnight outline-none focus-visible:border-midnight disabled:opacity-60'
 
 /**
  * C4c guided import. Working actions: TrackMan CSV upload, persona sample imports ("Simulated"),
  * ball-line readings, skip. The share-link field is shown disabled (link importer cut, plan L6).
- * Keys: Enter opens the CSV upload, number keys run the sample imports, Enter in a ball-line reading sends them.
+ * Keys: Enter opens the CSV upload, number keys run the sample imports. The ball-line panel focuses its first reading;
+ * Enter in a filled reading moves to the next one, and Enter on an empty or the last one sends (at least 3).
  * Payloads unchanged: `{import_id}` or `{skipped: true}`.
  */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'data_import'>) {
@@ -245,11 +249,15 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
           <div className="flex flex-wrap items-center gap-2">
             {readings.map((v, i) => (
               <input
-                key={i} type="number" step="0.5" aria-label={`Reading ${i + 1}`} placeholder={i < 3 ? 'deg' : 'optional'}
+                key={i} ref={i === 0 ? focusOnMount : undefined}
+                type="number" step="0.5" aria-label={`Reading ${i + 1}`} placeholder={i < 3 ? 'deg' : 'optional'}
                 className={cn(boxCls, 'w-24 text-center font-display text-[20px] font-bold tabular-nums')} value={v} disabled={off}
                 onChange={(e) => setReadings((r) => r.map((x, j) => (j === i ? e.target.value : x)))}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !off && readings.filter((x) => x !== '').length >= 3) void sendLine()
+                  if (e.key !== 'Enter' || off) return
+                  const next = e.currentTarget.parentElement?.querySelectorAll('input')[i + 1]
+                  if (v !== '' && next) next.focus()
+                  else if (readings.filter((x) => x !== '').length >= 3) void sendLine()
                 }}
               />
             ))}

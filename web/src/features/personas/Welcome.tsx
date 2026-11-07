@@ -46,9 +46,6 @@ export function Welcome() {
           <div className="flex items-center gap-[22px]">
             <Button href={ownFittingHrefV3()} variant="primary" size="xl" aria-keyshortcuts="Enter" className="pr-5">
               I'm ready. Let's start
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
               <EnterKbd tone="primary" />
             </Button>
             <span className="text-[16px] text-grey-a3">About 4 minutes. Save any time.</span>

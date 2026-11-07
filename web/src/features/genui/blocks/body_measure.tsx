@@ -1,10 +1,10 @@
-import { type ReactNode, useId, useState } from 'react'
-import { Button, EnterKbd, Kbd, useEnterKey, useNumberKeys } from '@/components/studio'
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import { Button, EnterKbd, Kbd, useArrowKeys, useEnterKey, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockProps } from '../types'
 import { Answered, BigNumber, cardLabelCls } from './_parts/Answered'
 import { HandFigure, HeightFigure, WristFigure } from './_parts/BodyFigures'
-import { Range } from './_parts/Range'
+import { ArrowKbds, Range, stepValue } from './_parts/Range'
 import { Segmented } from './_parts/Segmented'
 
 export const type = 'body_measure'
@@ -42,7 +42,8 @@ const unitLabel = (u: Unit, field: Block['field']) => (u === 'cm' ? 'cm' : field
 const unsure = (block: Block, respond: Respond) => respond({ field: block.field, value: null, unsure: true }, 'Not sure')
 
 /**
- * C6a / C6b / C6: illustration panel + one measurement; Enter = Next, number keys pick a glove size. Numeric fields resume with
+ * C6a / C6b / C6: illustration panel + one measurement; Enter = Next. ← / → change the height or glove size, number keys
+ * pick a glove size, and the typed fields take focus so digits go straight in. Numeric fields resume with
  * `{field, value_cm, unit, raw}`; glove resumes with `{field: "glove", value: <size id>, raw: <label>}`;
  * "Not sure" resumes with `{field, value: null, unsure: true}`.
  */
@@ -71,12 +72,12 @@ function Panel({ children }: { children: ReactNode }) {
   return <div className="flex min-h-[300px] items-center justify-center rounded-14 bg-grey-ed p-3">{children}</div>
 }
 
-/** The dark "Next →" with its Enter hint; Enter runs it (the boxed field's own Enter handler is left alone). */
+/** The dark "Next" with its Enter hint; Enter runs it (the boxed field's own Enter handler is left alone). */
 function NextButton({ busy, onNext, canNext }: { busy: boolean; onNext: () => void; canNext: boolean }) {
   useEnterKey(onNext, !busy && canNext)
   return (
     <Button variant="dark" className="min-h-[52px] pr-3 pl-6" disabled={busy || !canNext} aria-keyshortcuts="Enter" onClick={onNext}>
-      Next →
+      Next
       <EnterKbd />
     </Button>
   )
@@ -103,6 +104,13 @@ function Height({ block, busy, respond }: PartProps) {
   const [cm, setCm] = useState(() => Math.min(210, Math.max(150, Math.round(block.value ?? 175))))
   const id = useId()
   const inches = Math.round(cm / 2.54)
+  useArrowKeys(
+    (dir, big) =>
+      unit === 'in'
+        ? setCm(Math.round(stepValue(inches, dir, big, { min: 59, max: 83, step: 1 }) * 2.54))
+        : setCm(stepValue(cm, dir, big, { min: 150, max: 210, step: 1 })),
+    !busy,
+  )
   const submit = () =>
     unit === 'in'
       ? respond({ field: block.field, value_cm: round1(inches * 2.54), unit, raw: inches }, `${Math.floor(inches / 12)} ft ${inches % 12} in`)
@@ -110,18 +118,21 @@ function Height({ block, busy, respond }: PartProps) {
 
   return (
     <>
-      <Panel><HeightFigure /></Panel>
+      <Panel><HeightFigure cm={cm} /></Panel>
       <div className="flex flex-col justify-center gap-4">
-        <label htmlFor={id} className={cardLabelCls}>{block.prompt || FIELD_LABEL.height}</label>
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor={id} className={cardLabelCls}>{block.prompt || FIELD_LABEL.height}</label>
+          <ArrowKbds />
+        </div>
         {unit === 'in' ? <BigNumber value={ftIn(inches)} size={96} /> : <BigNumber value={cm} unit="cm" size={96} />}
         {unit === 'in' ? (
           <Range
-            id={id} min={59} max={83} step={1} value={inches} disabled={busy} aria-valuetext={ftIn(inches)}
+            id={id} min={59} max={83} step={1} value={inches} disabled={busy} aria-keyshortcuts="ArrowLeft ArrowRight" aria-valuetext={ftIn(inches)}
             onChange={(e) => setCm(Math.round(Number(e.target.value) * 2.54))}
           />
         ) : (
           <Range
-            id={id} min={150} max={210} step={1} value={cm} disabled={busy} aria-valuetext={`${cm} cm`}
+            id={id} min={150} max={210} step={1} value={cm} disabled={busy} aria-keyshortcuts="ArrowLeft ArrowRight" aria-valuetext={`${cm} cm`}
             onChange={(e) => setCm(Number(e.target.value))}
           />
         )}
@@ -145,6 +156,9 @@ function Boxed({ block, busy, respond }: PartProps) {
   const { units, unit, setUnit } = useUnits(block)
   const [raw, setRaw] = useState(block.value == null ? '' : String(block.value))
   const id = useId()
+  // The field is the whole card, so it takes focus at once: digits type straight in, Enter runs Next.
+  const fieldRef = useRef<HTMLInputElement>(null)
+  useEffect(() => fieldRef.current?.focus({ preventScroll: true }), [])
   const n = Number(raw.replace(',', '.'))
   const ok = raw.trim() !== '' && Number.isFinite(n) && n > 0
   const submit = () => {
@@ -175,6 +189,7 @@ function Boxed({ block, busy, respond }: PartProps) {
           <div className="flex flex-1 flex-col gap-1.5">
             <label htmlFor={id} className="text-[16px] font-semibold">{FIELD_LABEL[block.field]}</label>
             <input
+              ref={fieldRef}
               id={id}
               type="text"
               inputMode="decimal"
@@ -218,6 +233,12 @@ function Glove({ block, busy, respond }: PartProps) {
   const [picked, setPicked] = useState<string | null>(() => opts.find((o) => o.id === String(block.value ?? ''))?.id ?? null)
   const chosen = opts.find((o) => o.id === picked)
   useNumberKeys(opts.length, (i) => setPicked(opts[i]?.id ?? null), !busy)
+  // Sizes run small to large, so ← / → step through them (from nothing picked, → starts at the smallest, ← at the largest).
+  useArrowKeys((dir) => {
+    const i = opts.findIndex((o) => o.id === picked)
+    const next = i < 0 ? (dir > 0 ? 0 : opts.length - 1) : Math.min(opts.length - 1, Math.max(0, i + dir))
+    setPicked(opts[next]?.id ?? null)
+  }, !busy)
   const submit = () => chosen && respond({ field: 'glove', value: chosen.id, raw: chosen.label }, `Glove ${chosen.label}`)
 
   return (

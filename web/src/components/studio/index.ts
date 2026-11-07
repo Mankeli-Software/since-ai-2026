@@ -17,3 +17,4 @@ export { SpecPartIcon, type SpecPart, type SpecPartIconProps } from './SpecPartI
 export { RecapChip, type RecapChipProps } from './RecapChip'
 export { useNumberKeys } from './useNumberKeys'
 export { useEnterKey } from './useEnterKey'
+export { useArrowKeys } from './useArrowKeys'
