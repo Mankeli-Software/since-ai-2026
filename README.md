@@ -42,22 +42,43 @@ Open `http://localhost:8889/studio.html?engine=scripted&demo=DEMO-01` in your br
 
 ## Accuracy Validation
 
-The model scores 86.19% on the dev split. It beats the organiser baselines across all categories:
+The fitter scores **86.19** on the dev split (3,000 golfers), against the organiser baselines B1 (77.10) and B2 (83.58).
+Spec agreement is the organiser's weighted score from `takomo_fit.score`; the rows below are per-part match rates.
 
-| Model | Dev Accuracy | Head | Flex | Length | Lie | Grip |
-|---|---|---|---|---|---|---|
-| **Mankeli Fitter** | **86.19%** | 89.2% | 88.5% | 94.1% | 58.2% | 96.0% |
-| Baseline B2 | 83.58% | 88.0% | 85.0% | 92.5% | 52.0% | 95.0% |
-| Baseline B1 | 77.10% | 82.0% | 81.0% | 88.0% | 46.0% | 91.0% |
+| Part (weight) | Mankeli Fitter | Baseline B2 | Baseline B1 |
+|---|---|---|---|
+| **Spec agreement score** | **86.19** | 83.58 | 77.10 |
+| Full spec exactly right | 32.9% | 25.3% | 13.7% |
+| Head (20) | 92.4% | 92.5% | 91.8% |
+| Flex (20) | 89.4% | 85.0% | 71.6% |
+| Material (10) | 96.6% | 94.3% | 88.3% |
+| Shaft model (5) | 77.7% | 71.4% | 61.6% |
+| Length (12) | 92.9% | 86.5% | 87.4% |
+| Lie (15) | 58.0% | 55.5% | 41.3% |
+| Grip (8) | 86.5% | 85.5% | 80.5% |
+| Purchase (5) | 90.2% | 90.6% | 87.6% |
+| Handedness (5) | 100.0% | 100.0% | 100.0% |
 
-Lie is the weakest part at 58.2% because static questionnaires lack dynamic swing measurements.
+Most of the gain is in flex, length and lie. Head and purchase are level with B2 (within 0.4 points).
+Lie is still the weakest part at 58.0%: questionnaire and phone answers say little about how the club meets the ground,
+which is why the studio asks for measured shots.
+
+Reproduce (dev split, offline scoring, not a test):
+
+```sh
+just score    # Mankeli Fitter: scripts/score_dev.py -> takomo_fit.score
+# Baselines: the organiser's examples/baselines.py
+PYTHONPATH=vendor:data/TakomoGolf_SinceAI2026_FINAL/TAKOMO_FITTING_LAB_2026 uv run --project backend \
+  python data/TakomoGolf_SinceAI2026_FINAL/TAKOMO_FITTING_LAB_2026/examples/baselines.py \
+  --data data/TakomoGolf_SinceAI2026_FINAL/TAKOMO_FITTING_LAB_2026/data/dev
+```
 
 Predictions file for competition scoring: `mankeli_takomo_test_predictions.csv` (5,000 buildable test rows).
 
 ## Known Limits
 
 - **Memory session store:** The demo uses an in-memory session store. A server restart clears active sessions.
-- **Desktop layout:** The current layout targets desktop viewports (1440x900 and 1280x800). Mobile layout is planned for the next release.
+- **Desktop first:** The studio is designed and checked at 1440x900 and 1280x800. A phone layout (below 768px) ships too, with less polish than desktop.
 
 ## Deliverables
 

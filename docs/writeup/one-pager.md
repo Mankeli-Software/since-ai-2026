@@ -23,9 +23,9 @@ Cost per fitting: TODO(Matti): add LLM and infrastructure cost per fitting.
 
 We evaluate our fitting engine on the organiser's synthetic dataset:
 
-- **Accuracy score:** 86.19% on the dev dataset, beating baseline B2 (83.58%) and baseline B1 (77.10%).
+- **Accuracy score:** 86.19 spec agreement on the dev split (`just score`), against baseline B2 (83.58) and baseline B1 (77.10). The biggest gains over B2 are flex (89.4% vs 85.0%), length (92.9% vs 86.5%) and lie (58.0% vs 55.5%).
 - **Competition submission:** 5,000 buildable test predictions in `mankeli_takomo_test_predictions.csv`.
-- **Lie angle insight:** Lie prediction is the hardest dimension (58.2% accuracy) from static data alone. Dynamic shot data significantly improves lie precision.
+- **Lie angle insight:** Lie prediction is the hardest dimension (58.0% match on dev) from questionnaire and phone data alone. Dynamic shot data significantly improves lie precision.
 - **Flight simulation note:** Ball flight is estimated; physics is not validated by Takomo.
 
 Validation plan for production:
@@ -42,7 +42,7 @@ Validation plan for production:
 
 ## Next Steps
 
-1. **Mobile responsive layout:** Build dedicated touch layouts for mobile browsers (65% of Takomo traffic).
+1. **Mobile polish:** A phone layout ships today; next is touch-first tinkering and checks on real phones (65% of Takomo traffic).
 2. **Shopify Dawn integration:** Embed the studio directly into the product page via app proxy and headless bridge.
 3. **Camera body measurements:** Add computer vision capture for wrist-to-floor and hand measurements.
 4. **Driver fitting:** Expand the studio catalog beyond irons to drivers and fairway woods.
