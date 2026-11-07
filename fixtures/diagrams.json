@@ -1,0 +1,38 @@
+{
+  "ball_line_test": {
+    "title": "Ball-line test",
+    "steps": [
+      "Draw a straight line around the ball with a marker.",
+      "Hit 3 to 5 shots off a hard surface, such as a mat or a board.",
+      "After each shot, read how far the mark on the club face leans from vertical, in degrees."
+    ],
+    "caption": "+ = the line leans toward the toe"
+  },
+  "height": {
+    "title": "Measure your height",
+    "steps": [
+      "Take your shoes off.",
+      "Stand straight with your back against a wall.",
+      "Mark the wall at the top of your head and measure up from the floor."
+    ],
+    "caption": "Round to the nearest centimetre."
+  },
+  "wrist_to_floor": {
+    "title": "Measure wrist to floor",
+    "steps": [
+      "Wear your normal golf shoes.",
+      "Stand straight with your arms hanging down.",
+      "Measure from the crease of your wrist to the floor."
+    ],
+    "caption": "Measure the lead wrist, to the nearest centimetre."
+  },
+  "hand_length": {
+    "title": "Measure your hand length",
+    "steps": [
+      "Hold your hand open and flat.",
+      "Find the crease where your wrist meets your palm.",
+      "Measure from that crease to the tip of your middle finger."
+    ],
+    "caption": "Use the hand you wear the glove on."
+  }
+}
