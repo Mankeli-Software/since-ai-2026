@@ -23,7 +23,7 @@ from app.schemas.common import (
     SpecValue,
     Tempo,
 )
-from app.schemas.evidence import Shot
+from app.schemas.evidence import Flag, Shot
 
 
 class MappedAnswers(BaseModel):
@@ -98,6 +98,12 @@ class FitEvidence(BaseModel):
     )
     round_avg_score: float | None = Field(
         default=None, description="Average 18-hole score from a round-stats import"
+    )
+    flags: list[Flag] = Field(
+        default_factory=list,
+        description="Plausibility flags on sources, matched by `field` (an IntakeAnswers or "
+        "PhoneMeasurements field name): reject drops it, downweight doubles its sigma, an "
+        "unresolved confirm triples it",
     )
 
 
