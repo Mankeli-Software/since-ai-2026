@@ -1,11 +1,16 @@
 persona: anders
 steps:
-  # Turn 1: 101 MKII fit and stock vs custom decision on +1° lie
+  # Turn 1: welcome, then his test-club shots (Takomo 201 MKII on a simulator)
   - text: "Hello Anders, welcome to Takomo Fitter Studio."
-  - text: "Your 78 mph clubhead speed and score profile point directly to the game-improvement Takomo 101 MKII. Your test-club shots show an impact dynamic lie that is 1° upright."
-  - tool_call:
-      name: update_profile
-      args: {lie_override_deg: 1.0}
+  - text: "Your answers put you close to a stock set. Your test-club shots decide the one part that could change that: the lie."
+  - ui:
+      type: data_import
+      prompt: "Import your Takomo 201 MKII test-club shots."
+      sources: ["csv", "skip"]
+      club_hint: takomo_201-mkii_kbs-tour-regular_std
+      reason_code: lie
+
+  # Turn 2: fit from the shots (every spec value from the live state), stock vs custom on lie
   - tool_call:
       name: run_fit
       args: {}
@@ -14,31 +19,11 @@ steps:
       args: {part: lie}
   - ui:
       type: recommendation_card
-      spec:
-        head: 101-mkii
-        shaft: kbs-tour-lite-regular
-        shaft_model: "KBS Tour Lite"
-        flex: regular
-        material: steel
-        length_in: 0.0
-        lie_deg: 1
-        grip: standard
-        handedness: right
-        purchase: custom
-      purchase: custom
-      confidence: 0.81
-      gate: confident
-      runner_up:
-        head: 101-mkii
-        shaft: kbs-tour-lite-regular
-        shaft_model: "KBS Tour Lite"
-        flex: regular
-        material: steel
-        length_in: 0.0
-        lie_deg: 0
-        grip: standard
-        handedness: right
-        purchase: stock
+      spec: $state.best
+      purchase: $state.best.purchase
+      confidence: $state.confidence
+      gate: $state.gate
+      runner_up: $state.runner_up
   - ui:
       type: why_panel
       depth: standard
@@ -65,9 +50,9 @@ steps:
       stock_return_days: 30
       custom_returnable: false
 
-  # Turn 2: Confirmation
+  # Turn 3: Confirmation
   - text: "That is an honest trade-off. Many players start with stock clubs and have a local clubmaker bend them 1° if needed, preserving return flexibility."
   - tool_call:
       name: simulate_flight
-      args: {heads: [101-mkii]}
-  - text: "Your 101 MKII configuration is ready. Test different lie settings in the Tinker panel or save your build."
+      args: {heads: [$state.best.head]}
+  - text: "Your configuration is ready. Test different lie settings in the Tinker panel or save your build."
