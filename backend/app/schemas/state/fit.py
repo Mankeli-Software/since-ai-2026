@@ -10,3 +10,4 @@ class FitStatePart(BaseModel):
 
     best: Spec | None = None
     runner_up: Spec | None = None
+    current_clubs_verdict: float | None = None

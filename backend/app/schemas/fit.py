@@ -211,6 +211,7 @@ class FlightRequest(BaseModel):
 class FlightResult(BaseModel):
     per_head: list[HeadFlight]
     own_shots: list[tuple[float, float]] = Field(default_factory=list)
+    current_clubs_verdict: float | None = None
 
 
 class FitResult(BaseModel):
@@ -220,6 +221,7 @@ class FitResult(BaseModel):
     confidence: float | None = Field(default=None, ge=0, le=1)
     close_calls: list[CloseCall] = Field(default_factory=list)
     flight: FlightResult | None = None
+    current_clubs_verdict: float | None = None
 
 
 # --- Catalog (plan §3.2, §7 `GET /api/catalog`) -------------------------------------------------
