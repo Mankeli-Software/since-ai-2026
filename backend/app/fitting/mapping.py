@@ -338,6 +338,12 @@ def _glove(
     return None
 
 
+RADAR_TEMPO_NOTE = (
+    "from your answer: launch monitors don't measure tempo on full swings "
+    "(the radar sees the club only from about knee to knee)"
+)
+
+
 def _tempo(intake: IntakeAnswers, ev: FitEvidence, o: MappingOptions) -> Choice | None:
     p = ev.phone
     if p and p.backswing_video_s is not None and p.downswing_video_s is not None:
@@ -350,7 +356,10 @@ def _tempo(intake: IntakeAnswers, ev: FitEvidence, o: MappingOptions) -> Choice 
             tempo = "moderate"
         return Choice(tempo, Provenance(source="video", note=f"swing time {total:.2f} s"))
     if intake.tempo is not None and _flag_factor(ev, "tempo") is not None:
-        return Choice(intake.tempo, Provenance(source="questionnaire"))
+        # Plan §5.4: TrackMan's radar sees the club only from about knee to knee, so full-swing
+        # tempo is null in every export. Say so when shots are in, or golfers expect it measured.
+        note = RADAR_TEMPO_NOTE if ev.shots else None
+        return Choice(intake.tempo, Provenance(source="questionnaire", note=note))
     return None
 
 
