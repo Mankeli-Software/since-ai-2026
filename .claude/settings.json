@@ -9,15 +9,23 @@
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(git push origin HEAD*)"
+      "Bash(git commit*)"
     ],
     "deny": [
       "Read(./.env)",
       "Read(./**/.env)",
       "Edit(./data/**)",
-      "Bash(git push --force*)",
-      "Bash(git push * main*)",
+      "Bash(git push*--force*)",
+      "Bash(git push* -f)",
+      "Bash(git push* -f *)",
+      "Bash(git push*--mirror*)",
+      "Bash(git push* +*)",
+      "Bash(git push*:+*)",
+      "Bash(git push* main)",
+      "Bash(git push* main *)",
+      "Bash(git push*:main)",
+      "Bash(git push*:main *)",
+      "Bash(git push*refs/heads/main*)",
       "Bash(git checkout -- data*)"
     ]
   },
