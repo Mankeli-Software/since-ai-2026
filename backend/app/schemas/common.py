@@ -71,7 +71,7 @@ class Provenance(BaseModel):
 class ProvenancedValue(Provenance):
     """A profile field value with its provenance: {value, source, sd, flags[]}."""
 
-    value: float | int | str | bool | list[str] | None = None
+    value: float | int | str | bool | list[float] | list[str] | None = None
     unit: str | None = None
     flags: list[FlagCode] = Field(default_factory=list)
 

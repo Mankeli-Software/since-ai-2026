@@ -18,6 +18,7 @@ import numpy as np
 from app import pack
 from app.fitting import priors
 from app.fitting.mapping import build_answers
+from app.fitting.session_inputs import evidence_of, intake_of
 from app.fitting.trajectory import trajectory
 from app.schemas.common import HeadSlug
 from app.schemas.evidence import Shot
@@ -32,6 +33,7 @@ from app.schemas.fit import (
     IntakeAnswers,
     SideStats,
 )
+from app.schemas.session import FitSession
 
 
 def _club_loft(s: Shot, intake: IntakeAnswers) -> float:
@@ -310,3 +312,31 @@ def simulate_flight(
     ]
 
     return FlightResult(per_head=per_head, own_shots=own_shots)
+
+
+def simulate_session_flight(
+    session: FitSession, heads: Sequence[HeadSlug] | None = None
+) -> FlightResult:
+    """Convenience wrapper to simulate flight directly from session state."""
+    intake = intake_of(session)
+    evidence = evidence_of(session)
+    rec_head = session.state.best.head if session.state.best else None
+    lie_error_deg = 0.0
+    with contextlib.suppress(Exception):
+        answers = build_answers(intake, evidence)
+        lie_need = (
+            answers.lie_override_deg
+            if answers.lie_override_deg is not None
+            else pack.static_lie_deg(answers.height_cm, answers.wrist_to_floor_cm)
+        )
+        rec_lie = session.state.best.lie_deg if session.state.best else round(lie_need)
+        lie_error_deg = float(rec_lie - lie_need)
+    return simulate_flight(
+        intake,
+        evidence,
+        heads,
+        recommended_head=rec_head,
+        lie_error_deg=lie_error_deg,
+        session_id=session.id,
+        evidence_version=session.evidence_version,
+    )
