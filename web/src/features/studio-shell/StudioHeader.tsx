@@ -108,7 +108,7 @@ export function StudioHeader({ variant, onBack }: StudioHeaderProps) {
           type="button"
           disabled={!state}
           onClick={() => void save()}
-          aria-label={saved ? (saved.status === 'ok' ? 'Saved to myTakomo' : 'Save not ready') : 'Save to myTakomo'}
+          aria-label={saved ? (saved.status === 'ok' ? 'Saved to myTakomo' : 'Save pending') : 'Save to myTakomo'}
           className="flex h-11 flex-none cursor-pointer items-center gap-2.5 rounded-6 bg-transparent px-3.5 text-on-page shadow-[inset_0_0_0_1px_var(--color-page-line-2)] transition-ui hover:shadow-[inset_0_0_0_1px_var(--color-on-page-3)] disabled:cursor-default disabled:opacity-50 max-md:-mr-2 max-md:w-11 max-md:justify-center max-md:px-0 max-md:shadow-none"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -116,7 +116,7 @@ export function StudioHeader({ variant, onBack }: StudioHeaderProps) {
             <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
           </svg>
           <span className="flex flex-col items-start gap-0.5 leading-none max-md:hidden">
-            <span className="text-[11px] font-medium text-on-page-2">{saved ? (saved.status === 'ok' ? 'Saved to' : 'Save not ready') : 'Save to'}</span>
+            <span className="text-[11px] font-medium text-on-page-2">{saved ? (saved.status === 'ok' ? 'Saved to' : 'Save pending') : 'Save to'}</span>
             <span className="text-[15px] font-semibold">myTakomo</span>
           </span>
         </button>

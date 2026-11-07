@@ -24,7 +24,7 @@ function detailRows(s: Spec): [string, string][] {
 
 function headline(gate: Gate, strength?: 'low' | null) {
   if (gate === 'confident') return 'Our recommendation'
-  if (gate === 'provisional') return strength === 'low' ? 'Provisional: add data to firm this up' : 'Provisional recommendation'
+  if (gate === 'provisional') return strength === 'low' ? 'Working fit (rough): add data to firm this up' : 'Working fit'
   return 'Not enough to recommend yet'
 }
 
