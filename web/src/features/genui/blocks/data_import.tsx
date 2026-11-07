@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import diagrams from '../../../../../fixtures/diagrams.json'
 import { Button } from '@/components/ui/button'
 import { useSession } from '@/store/session'
 import { answeredCls, btnCls, chipCls, eyebrowCls, inputCls, labelCls, panelCls, promptCls } from '../ui'
@@ -16,12 +17,6 @@ const CLUBS: [string, string][] = [
   ['own_7i', 'My own 7-iron'],
   ['takomo_201-mkii_kbs-tour-regular_std', 'Takomo 201 MKII test club'],
   ['takomo_101-mkii_kbs-tour-lite-regular_std', 'Takomo 101 MKII test club'],
-]
-// shortcut: switch to fixtures/diagrams.json (#41) when it lands.
-const STEPS = [
-  'Draw a straight line on the ball.',
-  'Hit 3 to 5 shots off a hard surface.',
-  'Read how far the mark on the face leans from vertical.',
 ]
 const UNAVAILABLE = 'Import is not available yet. You can skip for now.'
 
@@ -130,8 +125,12 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
 
       {tab === 'ball_line' && (
         <div className={panelCls}>
-          <ol className="list-decimal pl-5 text-sm text-ink-700">{STEPS.map((s) => <li key={s}>{s}</li>)}</ol>
-          <p className="text-xs text-muted-foreground">+ = the line leans toward the toe. Enter degrees; at least 3 readings.</p>
+          <ol className="list-decimal pl-5 text-sm text-ink-700">
+            {diagrams.ball_line_test.steps.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ol>
+          <p className="text-xs text-muted-foreground">{diagrams.ball_line_test.caption}. Enter degrees; at least 3 readings.</p>
           <div className="flex gap-2">
             {readings.map((v, i) => (
               <input key={i} type="number" step="0.5" aria-label={`Reading ${i + 1}`} placeholder={i < 3 ? 'deg' : 'optional'}
