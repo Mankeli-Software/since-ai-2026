@@ -11,5 +11,9 @@ class EvidenceSettings(BaseSettings):
     # exactly the v1 rules until the team turns it on.
     wave2: bool = False
 
+    # EVIDENCE_ENABLE_G14=1 enables only the G14 rare-spec humour rule (issue #126) without
+    # enabling other Wave 2 rules.
+    enable_g14: bool = False
+
 
 settings = EvidenceSettings()
