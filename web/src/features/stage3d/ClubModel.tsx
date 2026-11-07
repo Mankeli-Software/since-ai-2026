@@ -18,6 +18,10 @@ export interface ClubModelProps {
   style?: CSSProperties
   /** Slow sway. Default on; always off for prefers-reduced-motion. */
   moving?: boolean
+  /** Face view that turns toward the pointer (see ClubShowcase). Default off. */
+  follow?: boolean
+  /** Below 1 draws the head smaller in the same box, so more of the club shows inside the fade. Default 1. */
+  zoom?: number
 }
 
 // Spotlight fade centred on the head (ClubShowcase puts it at 50% 56%): the head stays solid, the shaft and
@@ -26,11 +30,11 @@ const FADE = 'radial-gradient(closest-side at 50% 56%, #000 64%, transparent)'
 const MASK: CSSProperties = { maskImage: FADE, WebkitMaskImage: FADE }
 // The photo poster sits in the same virtual 4:5 frame ClubShowcase fits to the box (full width, or height x 4/3
 // in wide boxes), shrunk and nudged so its head lines up with the 3D one (the photo is cropped much tighter).
-const POSTER: CSSProperties = {
+const poster = (zoom: number): CSSProperties => ({
   width: 'min(100cqw, 133.33cqh)',
-  transform: 'translate(-54%, -59.5%) scale(.66)',
+  transform: `translate(-54%, -59.5%) scale(${0.66 * zoom})`,
   transformOrigin: '60% 61%',
-}
+})
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)')
 const subscribeMotion = (cb: () => void) => {
@@ -45,7 +49,7 @@ const getReducedMotion = () => reducedMotion().matches
  * once its GLB has drawn. Edges fade out on any background. Mounts the canvas only near the viewport and
  * stops animating off screen. Without WebGL, or if the GLB fails, the photo stays.
  */
-export function ClubModel({ slug, alt = '', className, style, moving = true }: ClubModelProps) {
+export function ClubModel({ slug, alt = '', className, style, moving = true, follow = false, zoom = 1 }: ClubModelProps) {
   const box = useRef<HTMLDivElement>(null)
   const [near, setNear] = useState(false)
   const [inView, setInView] = useState(false)
@@ -78,7 +82,7 @@ export function ClubModel({ slug, alt = '', className, style, moving = true }: C
     >
       <ClubImage
         slug={slug}
-        style={POSTER}
+        style={poster(zoom)}
         className={cn(
           'absolute top-[56%] left-1/2 aspect-[4/5] h-auto max-w-none object-contain transition-opacity duration-[600ms] ease-out',
           ready && 'opacity-0',
@@ -90,6 +94,8 @@ export function ClubModel({ slug, alt = '', className, style, moving = true }: C
             <ClubShowcase
               slug={slug}
               moving={moving && inView && !still}
+              follow={follow}
+              zoom={zoom}
               onReady={() => setReadySlug(slug)}
               onError={() => setFailedSlug(slug)}
             />
