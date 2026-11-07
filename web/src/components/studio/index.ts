@@ -2,6 +2,7 @@
 export { Button, buttonClass, type ButtonProps, type ButtonSize, type ButtonVariant } from './Button'
 export { Eyebrow, type EyebrowProps } from './Eyebrow'
 export { Kbd, type KbdProps } from './Kbd'
+export { EnterKbd } from './EnterKbd'
 export { OptTile, type OptTileProps } from './OptTile'
 export { ProvenancePill, type Provenance, type ProvenancePillProps } from './ProvenancePill'
 export { ConfidenceSegments, type ConfidenceSegmentsProps } from './ConfidenceSegments'
@@ -15,3 +16,4 @@ export { CloseCallBar, type CloseCallBarProps, type CloseCallSide } from './Clos
 export { SpecPartIcon, type SpecPart, type SpecPartIconProps } from './SpecPartIcon'
 export { RecapChip, type RecapChipProps } from './RecapChip'
 export { useNumberKeys } from './useNumberKeys'
+export { useEnterKey } from './useEnterKey'

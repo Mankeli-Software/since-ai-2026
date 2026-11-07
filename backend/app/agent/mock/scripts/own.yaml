@@ -18,10 +18,11 @@
 # 11    R1      update_profile -> run_fit (real) -> recommendation_card, why_panel, club_compare,
 #               flex_band, close_call (display) -> closing text
 #
-# Inputs: the profile is fed with `update_profile` (the real tool), so run_fit gives the same fit
-# whatever the golfer taps. The values are the ones the cards show (design persona: 31, 181 cm,
-# 86 cm, glove L, wants it higher); fields the v3 path never asks (score bucket, tempo,
-# characteristics) come from DEMO-01's questionnaire.csv row. Result: 201T MKII on KBS Tour Lite
+# Inputs: the profile is fed with `update_profile` (the real tool) from the golfer's own answers
+# (`$answer...`, see scripted_engine). When they skip a card, tap "Not sure" or type instead, the
+# design persona's value is used (31, man, right-handed, 165 m, 181 cm, 86 cm, glove L). Fields the
+# v3 path never asks (score bucket, tempo, characteristics; flight "high") come from DEMO-01's
+# questionnaire.csv row. With the persona's values the result is 201T MKII on KBS Tour Lite
 # Regular, runner-up 201 MKII, standard length and lie, midsize grip, stock.
 #
 # `$state.<path>` and `$run_fit.<path>` strings are filled from the live state / run_fit output
@@ -52,8 +53,7 @@ steps:
             - {id: season, label: "a few a season"}
             - {id: starting, label: "just starting"}
         - id: hand
-          placeholder: "right"
-          value: right
+          placeholder: "right or left"
           options:
             - {id: right, label: "right"}
             - {id: left, label: "left"}
@@ -73,10 +73,28 @@ steps:
             - {id: "65_plus", label: "65+"}
 
   # ---- C3a: import your rounds
+  # Age is asked as a band: the middle of the band is saved. Cases only pass known option ids on.
   - tool_call:
       name: update_profile
-      args: {age: 31, sex: male, handedness: right, rounds_per_year: "31-50"}
-  - text: "Eight years, nice. Do you track your rounds? An app like GameBook knows your game better than any question I could ask."
+      args:
+        age:
+          by: $answer.age
+          cases: {"u25": 21, "25_34": 30, "35_44": 40, "45_54": 50, "55_64": 60, "65_plus": 68}
+          default: 31
+        sex: {by: $answer.sex, cases: {male: male, female: female}, default: male}
+        handedness: {by: $answer.hand, cases: {right: right, left: left}, default: right}
+        rounds_per_year:
+          by: $answer.often
+          cases: {"weekly": "31-50", "2_3_month": "10-30", "season": "Under 10", "starting": "Under 10"}
+          default: "31-50"
+  - text:
+      by: $answer.years
+      cases:
+        "new": "Just getting started, welcome to the game. Do you track your rounds? An app like GameBook knows your game better than any question I could ask."
+        "1_3": "A couple of seasons in, nice. Do you track your rounds? An app like GameBook knows your game better than any question I could ask."
+        "3_10": "A good few seasons in, nice. Do you track your rounds? An app like GameBook knows your game better than any question I could ask."
+        "10_plus": "Over ten years, you know the game. Do you track your rounds? An app like GameBook knows your game better than any question I could ask."
+      default: "Thanks, that's a good start. Do you track your rounds? An app like GameBook knows your game better than any question I could ask."
   - ui:
       type: source_picker
       prompt: "Do you track your rounds?"
@@ -94,7 +112,7 @@ steps:
       fallback: {id: by_hand, title: "I'll just tell you", body: "A few quick questions instead"}
 
   # ---- C3b: your game by hand
-  - text: "Used cavity backs, respect. How far does your 7-iron **carry**? A normal one, not your best."
+  - text: "Got it. How far does your 7-iron **carry**? A normal one, not your best."
   - ui:
       type: slider
       prompt: "7-iron carry"
@@ -108,17 +126,22 @@ steps:
       measured_or_guessed_toggle: true
 
   # ---- C4a: sim data or answer yourself?
-  # The 165 m guess (180.4 yd). Score bucket, flight, tempo and characteristics: DEMO-01's
-  # questionnaire row, except flight "high" (the design persona wants it higher).
+  # The slider's carry (165 m = 180.4 yd when they're not sure). Score bucket, flight, tempo and
+  # characteristics: DEMO-01's questionnaire row, except flight "high" (the design persona wants it higher).
   - tool_call:
       name: update_profile
       args:
-        reported_7i_carry_yd: 180.4
+        reported_7i_carry_m: "$answer.value ?? 165"
         score_bucket: 3
         flight: high
         tempo: moderate
         characteristics: ["distance control", "more offset"]
-  - text: "Noted, as a guess. Have you hit in a simulator lately? You can keep answering by hand, or we can sharpen your fit with real shots."
+  - text:
+      by: $answer.measured
+      cases:
+        "True": "Noted, measured. Have you hit in a simulator lately? You can keep answering by hand, or we can sharpen your fit with real shots."
+        "False": "Noted, as a guess. Have you hit in a simulator lately? You can keep answering by hand, or we can sharpen your fit with real shots."
+      default: "No problem, I'll start from a typical carry. Have you hit in a simulator lately? Real shots would sharpen your fit."
   - ui:
       type: yes_no_fork
       prompt: "Have you hit in a simulator lately?"
@@ -134,7 +157,11 @@ steps:
       footnote: "Never hit in one? There are 3 simulators near Turku"
 
   # ---- C4b: which simulator?
-  - text: "Nice. Which simulator was it? I'll show you exactly how to get the shots out."
+  - text:
+      by: $answer
+      cases:
+        "by_hand": "No problem. If you do have shots from a simulator after all, pick it here. Otherwise you can skip the import next."
+      default: "Nice. Which simulator was it? I'll show you exactly how to get the shots out."
   - ui:
       type: source_picker
       prompt: "Which simulator was it?"
@@ -147,7 +174,11 @@ steps:
       fallback: {id: photo, title: "Just a photo of the screen", body: "We read the numbers from your picture"}
 
   # ---- C4c: TrackMan import (L6: CSV upload + persona sample imports; no share-link importer)
-  - text: "TrackMan, perfect. Three taps and your shots are in."
+  - text:
+      by: $answer
+      cases:
+        "trackman": "TrackMan, perfect. Three taps and your shots are in."
+      default: "Good. Export your 7-iron shots as a CSV and drop the file in. Three taps and your shots are in."
   - ui:
       type: data_import
       prompt: "Bring in your TrackMan 7-iron shots"
@@ -162,7 +193,11 @@ steps:
   - tool_call:
       name: get_import_report
       args: {}
-  - text: "Your shots are in. Here's what the checks found, and you decide what counts."
+  - text:
+      by: $answer.skipped
+      cases:
+        "True": "No shots for now, that's fine. Here's what the checks found in your answers, and you decide what counts."
+      default: "Your shots are in. Here's what the checks found, and you decide what counts."
   - ui:
       type: outlier_review
       import_id: own_7i
@@ -183,7 +218,7 @@ steps:
   # ---- C6b: wrist to floor
   - tool_call:
       name: update_profile
-      args: {height_cm: 181}
+      args: {height_cm: "$answer.value_cm ?? 181"}
   - text: "Now wrist-to-floor. Grab someone, or a wall and a tape measure."
   - ui:
       type: body_measure
@@ -196,7 +231,7 @@ steps:
   # ---- C6: glove size
   - tool_call:
       name: update_profile
-      args: {wrist_to_floor_cm: 86}
+      args: {wrist_to_floor_cm: "$answer.value_cm ?? 86"}
   - text: "Last one. What glove size do you wear? It sets your grip."
   - ui:
       type: body_measure
@@ -214,7 +249,9 @@ steps:
   # ---- R1: the fit
   - tool_call:
       name: update_profile
-      args: {glove: L, glove_was_guessed: false}
+      args:
+        glove: {by: $answer.value, cases: {S: S, M: M, M/L: M/L, L: L, XL: XL}, default: L}
+        glove_was_guessed: {by: $answer.unsure, cases: {"True": true}, default: false}
   - tool_call: {name: run_fit, args: {depth: standard}}
   - tool_call: {name: get_import_report, args: {}}
   - ui:
@@ -253,11 +290,11 @@ steps:
           sources:
             - {source: trackman, note: "your imported shots, if any"}
         - part: length
-          plain: "You're 181 cm with an 86 cm wrist to floor. That sits inside the standard band on Takomo's chart, so there's nothing to add or take off."
+          plain: "Your height and wrist to floor set the length on Takomo's chart."
           numbers:
             length_in: $run_fit.best.length_in
-            height_cm: 181
-            wrist_to_floor_cm: 86
+            height_cm: $profile.height_cm
+            wrist_to_floor_cm: $profile.wrist_to_floor_cm
           sources:
             - {source: questionnaire, note: "measured height and wrist to floor"}
         - part: lie
@@ -267,7 +304,7 @@ steps:
           sources:
             - {source: derived, note: "fitting chart, plus your shots if imported"}
         - part: grip
-          plain: "Your glove is a large, and Takomo's chart puts a large glove on a midsize grip."
+          plain: "Your glove size sets the grip size on Takomo's chart."
           sources:
             - {source: questionnaire, note: "measured glove size"}
   # TODO(#26): carry, apex, landing and spread are design values until simulate_flight /
@@ -295,7 +332,7 @@ steps:
       measured_mph: 76
       band: R
       ghost_mph: 86
-      ghost_label: "What 165 m would have meant"
+      ghost_label: "What your carry answer would have meant"
   # TODO(FIT confidence): shares are design values until the Monte Carlo close calls land.
   - ui:
       type: close_call

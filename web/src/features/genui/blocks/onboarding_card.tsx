@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EnterKbd, useEnterKey } from '@/components/studio'
 import { Button } from '@/components/ui/button'
 import { answeredCls, btnCls, inputCls, labelCls, promptCls } from '../ui'
 import type { BlockProps } from '../types'
@@ -25,6 +26,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       `${age} yrs, ${sex}, ${hand}-handed, ${rounds} rounds a year, scores ${label}`,
     )
   }
+  // Several fields, so no number keys; Enter (outside a field) continues once every field is set.
+  useEnterKey(submit, !off && !!ready)
   return (
     <div className="flex flex-col gap-3">
       <p className={promptCls}>{block.prompt}</p>
@@ -56,7 +59,10 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         </label>
       </div>
       {interactive ? (
-        <Button className={`self-start ${btnCls}`} disabled={off || !ready} onClick={submit}>Continue</Button>
+        <Button className={`self-start ${btnCls}`} disabled={off || !ready} aria-keyshortcuts="Enter" onClick={submit}>
+          Continue
+          <EnterKbd />
+        </Button>
       ) : (
         answer && <p className={answeredCls}>Answered: <strong>{answer.displayText}</strong></p>
       )}
