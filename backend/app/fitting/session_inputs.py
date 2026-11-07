@@ -14,7 +14,7 @@ INTAKE_FIELDS = frozenset(IntakeAnswers.model_fields)
 PHONE_FIELDS = frozenset(PhoneMeasurements.model_fields)
 # Answers to offers (not profile values): recorded so the same offer is not asked again.
 OFFER_FIELDS = frozenset({"ball_line_offer", "precision_offer"})
-EVIDENCE_FIELDS = frozenset({"ball_line_tilt_deg"})
+EVIDENCE_FIELDS = frozenset({"ball_line_tilt_deg", "shots"})
 PROFILE_FIELDS = INTAKE_FIELDS | PHONE_FIELDS | OFFER_FIELDS | EVIDENCE_FIELDS
 
 
@@ -30,19 +30,18 @@ def evidence_of(session: FitSession) -> FitEvidence:
     """Evidence known to the session: phone values, flags, ball-line readings and the shots of
     confirmed imports (`state.shots`, already free of S1/S3/S7 rejects; S8 mishits kept)."""
     phone = _values(session, PHONE_FIELDS)
-    ball_line_pv = session.profile.get("ball_line_tilt_deg")
-    ball_line_tilt_deg: list[float] = []
-    if ball_line_pv and ball_line_pv.value is not None:
-        val = ball_line_pv.value
-        if isinstance(val, list):
-            ball_line_tilt_deg = [float(x) for x in val]
-        elif isinstance(val, (int, float)):
-            ball_line_tilt_deg = [float(val)]
-
+    ball_line = session.profile.get("ball_line_tilt_deg")
+    ball_line_readings: list[float] = []
+    if ball_line is not None and ball_line.value is not None:
+        if isinstance(ball_line.value, list):
+            ball_line_readings = [float(x) for x in ball_line.value]
+        elif isinstance(ball_line.value, (int, float)):
+            ball_line_readings = [float(ball_line.value)]
+    shots = list(session.state.shots) if session.state and session.state.shots else []
     return FitEvidence(
         phone=PhoneMeasurements.model_validate(phone) if phone else None,
-        shots=list(session.state.shots),
-        ball_line_tilt_deg=ball_line_tilt_deg,
+        shots=shots,
+        ball_line_tilt_deg=ball_line_readings,
         flags=list(session.flags),
     )
 

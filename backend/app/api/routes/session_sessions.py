@@ -13,6 +13,9 @@ from app.schemas.session import (
     CreateSessionResponse,
     FitSession,
     PublicSession,
+    ResumeSessionResponse,
+    SaveSessionRequest,
+    SaveSessionResponse,
     TranscriptEntry,
 )
 from app.schemas.state import FittingState
@@ -68,4 +71,31 @@ async def get_session(session: SessionDep, store: StoreDep) -> PublicSession:
         state=session.state,
         transcript=transcript,
         notice=session.notice,
+    )
+
+
+@router.post("/api/sessions/{session_id}/save")
+async def save_session(
+    session: SessionDep,
+    store: StoreDep,
+    body: SaveSessionRequest | None = None,
+) -> SaveSessionResponse:
+    session.status = "saved"
+    if body and body.email:
+        session.email = body.email.strip() or None
+    await store.save(session)
+    return SaveSessionResponse(saved=True, resume_url=f"/studio.html?resume={session.resume_token}")
+
+
+@router.get("/api/resume/{resume_token}")
+async def resume_session(
+    resume_token: str,
+    store: StoreDep,
+) -> ResumeSessionResponse:
+    session = await store.load_by_resume_token(resume_token)
+    return ResumeSessionResponse(
+        session_id=session.id,
+        demo_golfer_id=session.demo_golfer_id,
+        engine=session.engine,
+        state=session.state,
     )

@@ -48,10 +48,13 @@ interface SessionStore {
   ui: UiItem[]
   busy: boolean
   error: string | null
+  mode: 'chat' | 'form'
+  setMode(mode: 'chat' | 'form'): void
   start(opts: { engine?: 'scripted' | 'live'; demo?: string | null }): Promise<void>
+  resume(token: string): Promise<void>
   say(text: string): Promise<void>
-  /** POST /api/sessions/{id}/save (plan §3.8). No email: results are never gated behind it. */
-  save(): Promise<void>
+  /** POST /api/sessions/{id}/save (plan §3.8). Optional email. */
+  save(email?: string): Promise<void>
   respond(componentId: string, value: unknown, displayText: string): Promise<void>
   /** Keeps the FittingState with the highest `version`: call it for SSE `state` events and REST responses. */
   mergeState(next: FittingState): void
@@ -124,6 +127,8 @@ export const useSession = create<SessionStore>()((set, get) => {
     ui: [],
     busy: false,
     error: null,
+    mode: 'chat',
+    setMode: (mode) => set({ mode }),
     mergeState: (next) => set((s) => (!s.state || next.version > s.state.version ? { state: next } : {})),
     async start({ engine, demo }) {
       const { data, error } = await api.POST('/api/sessions', {
@@ -134,19 +139,62 @@ export const useSession = create<SessionStore>()((set, get) => {
         return
       }
       set({ sessionId: data.session_id, engine: engine ?? null, state: null, demo: demo ?? null, stage: EMPTY_STAGE })
+      if (data.notice?.fallback === 'form') {
+        set({ mode: 'form' })
+      }
       get().mergeState(data.state)
       // A turn needs a message: a hidden "Hi" opens the scripted/live conversation.
       await turn({ message: { kind: 'text', text: 'Hi' } })
     },
-    async save() {
+    async resume(token: string) {
+      set({ busy: true, error: null })
+      try {
+        const r = await fetch(`/api/resume/${token}`)
+        if (!r.ok) throw new Error(String(r.status))
+        const data = (await r.json()) as {
+          session_id: string
+          demo_golfer_id: string | null
+          engine: 'scripted' | 'live'
+          state: FittingState
+        }
+        set({
+          sessionId: data.session_id,
+          engine: data.engine,
+          demo: data.demo_golfer_id ?? null,
+          stage: EMPTY_STAGE,
+        })
+        get().mergeState(data.state)
+
+        const sessRes = await fetch(`/api/sessions/${data.session_id}`)
+        if (sessRes.ok) {
+          const sessData = (await sessRes.json()) as {
+            transcript?: Array<{ turn_no: number; role: 'assistant' | 'user'; text: string }>
+          }
+          if (sessData.transcript && sessData.transcript.length > 0) {
+            set({
+              messages: sessData.transcript.map((t, idx) => ({
+                id: `t-${t.turn_no}-${idx}`,
+                role: t.role,
+                text: t.text,
+                seq: nextSeq(),
+              })),
+            })
+          }
+        }
+      } catch (e) {
+        set({ error: `resume failed: ${String(e)}` })
+      } finally {
+        set({ busy: false })
+      }
+    },
+    async save(email?: string) {
       const { sessionId } = get()
       if (!sessionId) return
       try {
-        // Not in the generated client until the backend route lands (#12).
         const r = await fetch(`/api/sessions/${sessionId}/save`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: '{}',
+          body: JSON.stringify({ email: email || null }),
         })
         if (!r.ok) throw new Error(String(r.status))
         const j = (await r.json()) as { resume_url?: string }

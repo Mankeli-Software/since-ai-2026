@@ -39,9 +39,10 @@ def _report(imp: StoredImport) -> ImportReport:
     return base.model_copy(update={"status": imp.status})
 
 
-def _rescore(session: FitSession) -> FittingState:
+def rescore(session: FitSession) -> FittingState:
     """Re-run the meter, close calls, best spec and next question on the new evidence, as the
-    profile patch does, so the returned state shows confidence rise (plan §3.4 step 8)."""
+    profile patch does, so the returned state shows confidence rise (plan §3.4 step 8). Shared
+    with the flag-resolve route."""
     try:
         intake, evidence = intake_of(session), evidence_of(session)
     except ValidationError:
@@ -68,12 +69,18 @@ async def confirm_import(import_id: str, session: SessionDep, store: StoreDep) -
         update={
             "evidence_version": session.evidence_version,
             "import_ids": [*session.state.import_ids, import_id],
-            "shots": [*session.state.shots, *usable_shots(shots, shot_flags)],
+            "shots": [
+                *session.state.shots,
+                *(
+                    s.model_copy(update={"import_id": import_id})
+                    for s in usable_shots(shots, shot_flags)
+                ),
+            ],
         }
     )
     session.flags, pending = session_flags.refresh(session, extra_pending=shot_flags)
     session.state = session.state.model_copy(update={"pending_flags": pending})
-    session.state = await run_in_threadpool(_rescore, session)
+    session.state = await run_in_threadpool(rescore, session)
     state = await store.save(session, expected_version=expected)
     imp = imp.model_copy(update={"status": "confirmed"})
     await store.put_import(session.id, imp)

@@ -25,7 +25,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   const suggested = block.flags.find((f) => f.suggested_value != null)?.suggested_value
   const label = (a: string) =>
     a === 'confirm_value' ? (suggested != null ? `Use measured ${suggested}` : 'Use measured value')
-    : a === 'keep' ? 'Keep my number' : 'Exclude these shots'
+    : a === 'keep' ? 'Keep my number'
+    : block.flags.every((f) => f.code.startsWith('S')) ? 'Exclude these shots' : "Don't use my number"
   return (
     <div className="flex flex-col gap-3">
       <ul className="flex flex-col gap-2">

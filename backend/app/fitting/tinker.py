@@ -216,3 +216,6 @@ def tinker(session: FitSession, patch: TinkerSpecPatch) -> TinkerResult:
         not_modelled=not_modelled,
         state=session.state,
     )
+
+
+run_tinker = tinker

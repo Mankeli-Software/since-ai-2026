@@ -1,18 +1,21 @@
 import { useState } from 'react'
+import diagrams from '../../../../../fixtures/diagrams.json'
 import { Button } from '@/components/ui/button'
 import { answeredCls, btnCls, chipCls, inputCls, promptCls } from '../ui'
 import type { BlockProps } from '../types'
 
 export const type = 'body_measure'
 
-// shortcut: switch to fixtures/diagrams.json (#41) when it lands; short inline hints until then.
-const HINTS: Record<string, string> = {
-  height: 'Stand straight against a wall, shoes off. Mark the top of your head.',
-  wrist_to_floor: 'Stand straight, arms relaxed. Measure from the wrist crease to the floor.',
-  hand_length: 'Open your hand flat. Measure from the wrist crease to the tip of the middle finger.',
+interface DiagramEntry {
+  title?: string
+  steps?: string[]
+  caption?: string
 }
 
+const diagMap = diagrams as Record<string, DiagramEntry>
+
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'body_measure'>) {
+  const diag = diagMap[block.diagram_id ?? block.field] ?? diagMap[block.field]
   const units = block.unit_options?.length ? block.unit_options : (['cm', 'in'] as const)
   const [unit, setUnit] = useState<'cm' | 'in'>(units[0])
   const [raw, setRaw] = useState(block.value == null ? '' : String(block.value))
@@ -25,7 +28,18 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   return (
     <div className="flex flex-col gap-3">
       <p className={promptCls}>{block.prompt}</p>
-      <p className="text-sm text-ink-500">{HINTS[block.field]}</p>
+      {diag && (
+        <div className="flex flex-col gap-1 text-sm text-ink-500">
+          {diag.steps && (
+            <ol className="list-decimal pl-5">
+              {diag.steps.map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ol>
+          )}
+          {diag.caption && <p className="text-xs text-muted-foreground">{diag.caption}</p>}
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <input type="number" min={0} step="0.1" className={`${inputCls} w-28 font-display text-lg font-semibold`} value={raw} disabled={off} onChange={(e) => setRaw(e.target.value)} />
         {units.map((u) => (

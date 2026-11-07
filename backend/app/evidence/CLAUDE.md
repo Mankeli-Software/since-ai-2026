@@ -49,6 +49,9 @@ def s7_club_speed_spike(shots: list[Shot]) -> list[Flag]:
 - `fuse.py`: `sigma_factor`, `usable_shots` (drops rejects, keeps S8), `shot_quality`, `merge_flags`.
   `session_flags.refresh(session)` re-runs the golfer rules into `session.flags` + `state.pending_flags`;
   the confirm route and `POST /flags/recheck` call it. V6 = imports stay `pending` until confirmed.
+- `resolve.py`: the golfer's `outlier_review` answer (`keep` / `confirm_value` / `exclude`) via
+  `POST /flags/resolve {action, codes, import_id?}`; marks flags `resolved`, sets or clears profile values, drops or
+  converts (S10) confirmed shots. State shots carry `import_id` so a flag finds its shots.
 
 ## Screenshot extraction checks (`plausibility/extraction.py`, #34)
 

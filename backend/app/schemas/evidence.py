@@ -12,6 +12,13 @@ ImportKind = Literal["trackman_csv", "ball_line", "manual", "screenshot", "round
 ImportStatus = Literal["pending", "confirmed", "discarded"]
 
 
+class BallLineImportRequest(BaseModel):
+    readings_deg: list[float] = Field(min_length=1, max_length=10)
+    club: str = "own_7i"
+    append_to: str | None = None
+    synthetic: bool = False
+
+
 class ShotQualityReport(BaseModel):
     """Per-import quality summary; `quality` scales the launch-monitor weight (plan §5.3)."""
 
@@ -31,6 +38,7 @@ class ImportReport(BaseModel):
     kind: ImportKind
     club: str | None = None
     shots: list[Shot] = Field(default_factory=list)
+    readings_deg: list[float] = Field(default_factory=list)
     report: ShotQualityReport = Field(default_factory=ShotQualityReport)
     status: ImportStatus = "pending"
     state: FittingState | None = None
@@ -58,6 +66,29 @@ class FlagsReport(BaseModel):
     state: FittingState | None = None
 
 
+ResolveAction = Literal["keep", "exclude", "confirm_value"]
+
+
+class ResolveFlagsRequest(BaseModel):
+    """The golfer's answer to an `outlier_review` (#31): what to do with the pending flags of
+    `codes` (all pending flags when empty), optionally only those of one import."""
+
+    action: ResolveAction
+    codes: list[FlagCode] = Field(default_factory=list)
+    import_id: str | None = Field(default=None, max_length=64)
+
+
+class ResolveFlagsResponse(BaseModel):
+    resolved: list[Flag] = Field(default_factory=list, description="The flags this answer closed")
+    changed_fields: list[str] = Field(
+        default_factory=list, description="Profile fields set or cleared by the answer"
+    )
+    shots_removed: int = 0
+    shots_converted: int = 0
+    pending_flags: list[Flag] = Field(default_factory=list)
+    state: FittingState | None = None
+
+
 class Cell(BaseModel):
     """One cell read by vision. Every field required; an unreadable cell is absent (§5.1)."""
 
@@ -78,6 +109,7 @@ class ExtractedSession(BaseModel):
 
 
 __all__ = [
+    "BallLineImportRequest",
     "Cell",
     "ExtractedSession",
     "Flag",
@@ -87,6 +119,9 @@ __all__ = [
     "ImportKind",
     "ImportReport",
     "ImportStatus",
+    "ResolveAction",
+    "ResolveFlagsRequest",
+    "ResolveFlagsResponse",
     "Shot",
     "ShotField",
     "ShotQualityReport",
