@@ -1,0 +1,11 @@
+{
+  "_comment": "SYNTHETIC scripted-mode fixture (L6): a made-up round-stats screen (GameBook-style), not a real golfer. Returned by agent/extract.py when LLM_MODE=mock.",
+  "synthetic": true,
+  "round_stats": {
+    "app": "Golf GameBook",
+    "avg_score": 94.2,
+    "n_rounds": 12,
+    "period": "last 12 rounds",
+    "confidence": 0.93
+  }
+}

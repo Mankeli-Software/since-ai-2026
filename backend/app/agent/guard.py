@@ -2,6 +2,7 @@
 
 - `check_session_create`: global token bucket on `POST /api/sessions`.
 - `check_turn`: 10 turns/min per `session_id`, plus the per-session budget (UX guard) for live.
+- `check_vision`: the same for screenshot reads, plus no live vision past the daily cap.
 - `pick_engine`: past the global daily model-call cap, NEW sessions get `scripted` + a notice.
 - `record_model_call`: one JSON log line per model call; bumps the daily and session counters.
 - A valid `X-Demo-Key` (AGENT_DEMO_KEYS) skips every limit above.
@@ -114,6 +115,19 @@ def check_turn(session: FitSession, demo_key: str | None) -> None:
         raise SessionBudgetError(
             "This fitting has reached its chat limit. Your result so far is kept: "
             "save it, or start a new fitting."
+        )
+
+
+def check_vision(session: FitSession, demo_key: str | None, *, live: bool) -> None:
+    """Screenshot reads (#19) share the per-session window and budget with turns. Past the daily
+    cap live vision is off: the golfer can still import a CSV or type the numbers."""
+    if is_demo(demo_key):
+        return
+    check_turn(session, demo_key)
+    if live and cap_reached():
+        log.warning("daily_cap_reached", extra={"calls": daily_calls(), "flow": "vision"})
+        raise RateLimitedError(
+            "Reading screenshots is paused for today. Import a CSV or type the numbers instead."
         )
 
 
