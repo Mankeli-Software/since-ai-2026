@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { api, type FittingState, type MascotMood, type StreamEvent, type UIBlock } from '@/api/client'
 import type { components } from '@/api/schema.gen'
 import { streamTurn } from '@/api/stream'
+import { GREETING, OPENING_BLOCK, OPENING_ID } from './opening'
 
 type Schemas = components['schemas']
 
@@ -36,6 +37,11 @@ const nextSeq = () => ++seqCounter
 /** The in-flight `start()`. React StrictMode runs the Studio mount effect twice in dev; without this the second
  *  session replaced `sessionId` while the opening turn's cards belonged to the first, so answers got 422 (#162). */
 let starting: Promise<void> | null = null
+/** An own fitting's `start()` while it runs: its opening card is on screen before the session exists, so an
+ *  early answer waits for the session and the opening turn. */
+let opening: Promise<void> | null = null
+/** The server's id for the opening card, from the opening turn. The local card keeps `OPENING_ID`. */
+let openingId: string | null = null
 
 interface SessionStore {
   sessionId: string | null
@@ -108,10 +114,16 @@ export const useSession = create<SessionStore>()((set, get) => {
   }
 
   const turn = async (body: Parameters<typeof streamTurn>[1]) => {
-    const { sessionId } = get()
-    if (!sessionId || get().busy) return
+    if (get().busy) return
     set({ busy: true, error: null })
     try {
+      await opening
+      const { sessionId } = get()
+      if (!sessionId) return
+      const msg = body.message
+      if (msg.kind === 'ui_response' && msg.component_id === OPENING_ID && openingId) {
+        body = { message: { ...msg, component_id: openingId } }
+      }
       for await (const ev of streamTurn(sessionId, body)) apply(ev)
     } catch (e) {
       set({ error: String(e) })
@@ -120,7 +132,34 @@ export const useSession = create<SessionStore>()((set, get) => {
     }
   }
 
+  /** The own fitting's opening turn. Its greeting is already on screen, and its card is the local one, so it only
+   *  shows lines that are not the greeting (a notice). With no card from the server, the local one goes too. */
+  const openingTurn = async (sessionId: string) => {
+    const said = new Map<string, string>()
+    try {
+      for await (const ev of streamTurn(sessionId, { message: { kind: 'text', text: 'Hi' } })) {
+        if (ev.type === 'text') said.set(ev.msg_id, (said.get(ev.msg_id) ?? '') + ev.delta)
+        else if (ev.type === 'ui' && ev.block.type === 'sentence_builder' && !openingId) openingId = ev.id
+        else apply(ev)
+      }
+    } catch (e) {
+      set({ error: String(e) })
+    }
+    for (const [msg_id, delta] of said) {
+      if (!GREETING.includes(delta.trim())) apply({ type: 'text', seq: 0, msg_id, delta })
+    }
+    if (!openingId) set((s) => ({ ui: s.ui.filter((u) => u.id !== OPENING_ID) }))
+  }
+
   const startSession = async ({ engine, demo }: Parameters<SessionStore['start']>[0]) => {
+    openingId = null
+    if (!demo) {
+      // No model or tool is needed for the first step, so it shows at once (store/opening.ts).
+      set({
+        messages: GREETING.map((text, i) => ({ id: `opening-m${i}`, role: 'assistant', text, seq: nextSeq() })),
+        ui: [{ id: OPENING_ID, block: OPENING_BLOCK, interactive: true, answered: false, seq: nextSeq() }],
+      })
+    }
     const { data, error } = await api.POST('/api/sessions', {
       body: { engine: engine ?? null, demo_golfer_id: demo ?? null, host: { platform: 'standalone' } },
     })
@@ -134,7 +173,8 @@ export const useSession = create<SessionStore>()((set, get) => {
     }
     get().mergeState(data.state)
     // A turn needs a message: a hidden "Hi" opens the scripted/live conversation.
-    await turn({ message: { kind: 'text', text: 'Hi' } })
+    if (demo) await turn({ message: { kind: 'text', text: 'Hi' } })
+    else await openingTurn(data.session_id)
   }
 
   return {
@@ -154,8 +194,9 @@ export const useSession = create<SessionStore>()((set, get) => {
     mergeState: (next) => set((s) => (!s.state || next.version > s.state.version ? { state: next } : {})),
     start(opts) {
       starting ??= startSession(opts).finally(() => {
-        starting = null
+        starting = opening = null
       })
+      if (!opts.demo) opening = starting
       return starting
     },
     async resume(token: string) {
