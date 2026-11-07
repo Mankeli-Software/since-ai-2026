@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useSession } from '@/store/session'
+import { StudioStart } from '../personas/StudioStart'
 import { StageBoundary } from './StageBoundary'
 
 // Lazy so the chat renders before three.js loads.
@@ -10,11 +11,17 @@ const ClubStage = lazy(() => import('../stage3d'))
 export function Studio() {
   const { messages, ui, busy, error, state, start, respond } = useSession()
 
+  const q = new URLSearchParams(location.search)
+  const picking = !q.has('demo') && !q.has('start') // no persona chosen yet: show the start screen
+
   useEffect(() => {
+    if (picking) return
     const q = new URLSearchParams(location.search)
     const engine = q.get('engine')
     void start({ engine: engine === 'live' || engine === 'scripted' ? engine : undefined, demo: q.get('demo') })
-  }, [start])
+  }, [start, picking])
+
+  if (picking) return <StudioStart />
 
   return (
     <div className="grid h-screen grid-cols-[1fr_28rem]">
