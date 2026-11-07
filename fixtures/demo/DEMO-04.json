@@ -1,0 +1,85 @@
+{
+  "golfer_id": "DEMO-04",
+  "name": "Lars",
+  "age": 38,
+  "teaser": "Low handicapper who wants a forged head.",
+  "synthetic": true,
+  "profile": {
+    "age": {
+      "value": 38,
+      "source": "questionnaire"
+    },
+    "sex": {
+      "value": "male",
+      "source": "questionnaire"
+    },
+    "handedness": {
+      "value": "right",
+      "source": "questionnaire"
+    },
+    "rounds_per_year": {
+      "value": "Over 50",
+      "source": "questionnaire"
+    },
+    "score_bucket": {
+      "value": 2,
+      "source": "questionnaire"
+    },
+    "characteristics": {
+      "value": [
+        "forged feel",
+        "workability",
+        "distance control"
+      ],
+      "source": "questionnaire"
+    },
+    "flight": {
+      "value": "mid",
+      "source": "questionnaire"
+    },
+    "tempo": {
+      "value": "moderate",
+      "source": "questionnaire"
+    },
+    "height_cm": {
+      "value": 187.0,
+      "source": "questionnaire"
+    },
+    "wrist_to_floor_cm": {
+      "value": 98.5,
+      "source": "questionnaire"
+    },
+    "glove": {
+      "value": "M/L",
+      "source": "questionnaire"
+    },
+    "glove_was_guessed": {
+      "value": false,
+      "source": "questionnaire"
+    },
+    "reported_7i_speed_mph": {
+      "value": 84.0,
+      "source": "questionnaire"
+    }
+  },
+  "sample_imports": [
+    {
+      "sample_id": "own_7i",
+      "kind": "trackman_csv",
+      "club": "own_7i",
+      "label": "Own 7-iron TrackMan CSV"
+    },
+    {
+      "sample_id": "takomo_201",
+      "kind": "trackman_csv",
+      "club": "takomo_201-mkii_kbs-tour-regular_std",
+      "label": "Takomo 201 MKII test-club CSV"
+    },
+    {
+      "sample_id": "takomo_101",
+      "kind": "trackman_csv",
+      "club": "takomo_101-mkii_kbs-tour-lite-regular_std",
+      "label": "Takomo 101 MKII test-club CSV"
+    }
+  ]
+}

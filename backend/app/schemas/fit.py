@@ -153,12 +153,70 @@ class HeadScore(BaseModel):
     parts: dict[str, float] = Field(default_factory=dict)
 
 
+# --- Flight & Dispersion (plan §3.6, §3.8) ----------------------------------------------------
+
+
+class Ellipse(BaseModel):
+    cx: float
+    cz: float
+    rx: float
+    rz: float
+    angle_deg: float
+
+
+class Ellipses(BaseModel):
+    one_sigma: Ellipse
+    two_sigma: Ellipse
+
+
+class CarryStats(BaseModel):
+    mean: float
+    p10: float | None = None
+    p90: float | None = None
+
+
+class SideStats(BaseModel):
+    mean: float
+    sd: float
+
+
+class FlightSummary(BaseModel):
+    carry: CarryStats
+    total: float | None = None
+    side: SideStats | None = None
+    apex: float
+    land_angle: float | None = None
+    launch: float | None = None
+    spin: float | None = None
+
+
+class HeadFlight(BaseModel):
+    head: HeadSlug
+    label: str | None = None
+    recommended: bool = False
+    trajectory: list[tuple[float, float, float, float]] = Field(default_factory=list)
+    landing_pts: list[tuple[float, float]] = Field(default_factory=list)
+    ellipses: Ellipses | None = None
+    summary: FlightSummary
+
+
+class FlightRequest(BaseModel):
+    session_id: str
+    heads: list[HeadSlug] = Field(default_factory=list, max_length=5)
+
+
+class FlightResult(BaseModel):
+    per_head: list[HeadFlight]
+    own_shots: list[tuple[float, float]] = Field(default_factory=list)
+
+
 class FitResult(BaseModel):
     recs: list[Recommendation] = Field(default_factory=list)
     ranking: list[HeadScore] = Field(default_factory=list)
     why: list[WhyItem] = Field(default_factory=list)
     confidence: float | None = Field(default=None, ge=0, le=1)
     close_calls: list[CloseCall] = Field(default_factory=list)
+    flight: FlightResult | None = None
 
 
 # --- Catalog (plan §3.2, §7 `GET /api/catalog`) -------------------------------------------------

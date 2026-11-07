@@ -1,0 +1,79 @@
+{
+  "golfer_id": "DEMO-03",
+  "name": "Pekka",
+  "age": 74,
+  "teaser": "Right-handed, shoots over 92, swings 7-iron 64 mph.",
+  "synthetic": true,
+  "profile": {
+    "age": {
+      "value": 74,
+      "source": "questionnaire"
+    },
+    "sex": {
+      "value": "male",
+      "source": "questionnaire"
+    },
+    "handedness": {
+      "value": "right",
+      "source": "questionnaire"
+    },
+    "rounds_per_year": {
+      "value": "31-50",
+      "source": "questionnaire"
+    },
+    "score_bucket": {
+      "value": 5,
+      "source": "questionnaire"
+    },
+    "characteristics": {
+      "value": [
+        "distance",
+        "more offset",
+        "distance control"
+      ],
+      "source": "questionnaire"
+    },
+    "flight": {
+      "value": "high",
+      "source": "questionnaire"
+    },
+    "tempo": {
+      "value": "moderate",
+      "source": "questionnaire"
+    },
+    "height_cm": {
+      "value": 183.0,
+      "source": "questionnaire"
+    },
+    "wrist_to_floor_cm": {
+      "value": 93.5,
+      "source": "questionnaire"
+    },
+    "glove": {
+      "value": "XL",
+      "source": "questionnaire"
+    },
+    "glove_was_guessed": {
+      "value": false,
+      "source": "questionnaire"
+    },
+    "reported_7i_speed_mph": {
+      "value": 64.0,
+      "source": "questionnaire"
+    }
+  },
+  "sample_imports": [
+    {
+      "sample_id": "own_7i",
+      "kind": "trackman_csv",
+      "club": "own_7i",
+      "label": "Own 7-iron TrackMan CSV"
+    },
+    {
+      "sample_id": "ball_line",
+      "kind": "ball_line",
+      "club": "own_7i",
+      "label": "Pekka's ball-line readings"
+    }
+  ]
+}
