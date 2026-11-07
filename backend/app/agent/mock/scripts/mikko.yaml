@@ -42,9 +42,12 @@ steps:
 
   # Turn 3: Precision follow-up offer for test club shots
   - tool_call:
-      name: update_profile
-      args: {reported_7i_speed_mph: 72.1}
-  - text: "With measured speed locked in, confidence rises to 72%."
+      name: resolve_flags
+      args: {action: confirm_value, codes: [G11]}
+  - tool_call:
+      name: run_fit
+      args: {}
+  - text: "With your measured speed in, watch the confidence meter rise."
   - text: "Your lie angle is currently based on static height and wrist-to-floor measurements (+2° upright). A test club session with a Takomo 201 MKII on a launch monitor will show your exact dynamic lie at impact."
   - ui:
       type: choice_chips
