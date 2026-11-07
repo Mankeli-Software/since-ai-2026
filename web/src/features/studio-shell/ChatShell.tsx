@@ -8,7 +8,6 @@ import { ConversationCard, DisplayCard } from './ConversationCard'
 import { ConversationHistory } from './ConversationHistory'
 import { FitterLine, Thinking } from './FitterLine'
 import { RecapRow } from './RecapRow'
-import { stepFor } from './stepFor'
 import { StudioHeader } from './StudioHeader'
 
 /** Ghost club opacity: 0.45 with no data, 0.85 from 80% confidence (spec §2.1 "club materialises"). */
@@ -29,13 +28,10 @@ export function ChatShell() {
     // Display blocks that came with the card render inside it, above the input; the rest go below the line.
     const above = active ? turnDisplay.filter((u) => u.seq < active.seq) : []
     const loose = turnDisplay.filter((u) => !above.includes(u))
-    // The step never moves backwards; with no active block it keeps the last one.
-    const step = ui.reduce((n, u) => Math.max(n, stepFor(u.block) ?? 0), 0) || 1
     return {
       active,
       above,
       loose,
-      step,
       fitter: messages.filter((m) => m.role === 'assistant' && m.seq > lastUserSeq),
       recap: ui.filter((u) => u.interactive && u.answered && u.answer).slice(-3),
       history: {
@@ -70,7 +66,7 @@ export function ChatShell() {
       <div className="hidden max-[1023px]:block border-b border-page-line bg-page px-4 py-2 text-center text-[13px] text-on-page-2">
         Best on a laptop for this demo.
       </div>
-      <StudioHeader variant="chat" step={view.step} />
+      <StudioHeader variant="chat" />
       <main
         className={cn(
           'relative mx-auto flex w-full flex-1 flex-col px-10 max-md:px-4',

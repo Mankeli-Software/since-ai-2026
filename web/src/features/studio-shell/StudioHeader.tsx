@@ -1,15 +1,11 @@
 import { useState } from 'react'
-import { ConfidenceSegments, Eyebrow, LogoMark, StepBars, ThemeToggle, Wordmark } from '@/components/studio'
-import { shortHead } from '@/features/result/compare/pair'
-import { hasFlag } from '@/lib/flags'
+import { ConfidenceSegments, Eyebrow, LogoMark, ThemeToggle, Wordmark } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
 
 export interface StudioHeaderProps {
-  /** 'chat' shows "Fitter Studio" + step bars; 'results' shows "Your fit" and no steps (spec §2.1, §2.2). */
+  /** 'chat' shows "Fitter Studio"; 'results' shows "Your fit". */
   variant: 'chat' | 'results'
-  /** Chat phase only: 1..4 (see stepFor in ChatShell). */
-  step?: number
   /** Phone only (M-R2..R4): a back chevron replaces the logo, e.g. back to the results summary. */
   onBack?: () => void
 }
@@ -46,23 +42,6 @@ function ConfidenceRing({ pct }: { pct: number | null }) {
   )
 }
 
-/** Phone step row under the header (mockup M-02): four flexible bars + "Step N of 4". */
-function PhoneSteps({ step, total = 4 }: { step: number; total?: number }) {
-  const n = Math.max(0, Math.min(total, step))
-  return (
-    <div className="flex items-center gap-2.5 px-4 pb-2 md:hidden">
-      <span className="flex flex-1 gap-1" aria-hidden="true">
-        {Array.from({ length: total }, (_, i) => (
-          <span key={i} className={cn('h-1 flex-1 rounded-[2px] transition-ui', i < n ? 'bg-tiger-orange' : 'bg-page-line')} />
-        ))}
-      </span>
-      <span className="text-[13px] text-on-page-2">
-        Step {n} of {total}
-      </span>
-    </div>
-  )
-}
-
 /** The C1 welcome, keeping `?ff=` so the logo does not drop out of the v3 flow. */
 function welcomeHref() {
   const ff = new URLSearchParams(location.search).get('ff')
@@ -70,126 +49,61 @@ function welcomeHref() {
 }
 
 /**
- * Shared v3 header for both shells: logo, rule, steps (chat), fit confidence, Save to myTakomo.
- * Phones (< md, mockups M-02 / M-R1): a 56px bar with the mark, the eyebrow, a confidence ring and an icon-only
- * Save, plus the step bars on their own row below.
+ * Shared v3 header for both shells: logo, rule, fit confidence, Save to myTakomo. The flow has no fixed number of
+ * steps, so there is no progress bar.
+ * Phones (< md, mockups M-02 / M-R1): a 56px bar with the mark, the eyebrow, a confidence ring and an icon-only Save.
  */
-export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
-  const { state, demo, saved, save, addUi, engine: sessionEngine } = useSession()
+export function StudioHeader({ variant, onBack }: StudioHeaderProps) {
+  const { state, demo, saved, save } = useSession()
   const [copied, setCopied] = useState(false)
   const pct = state?.confidence == null ? null : Math.round(state.confidence * 100)
-  const engineParam = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('engine') : null
-  const engine = engineParam === 'live' || engineParam === 'scripted' ? engineParam : sessionEngine
-  const hdr = !hasFlag('nohdr')
-  const missingCount = state?.missing?.length ?? 0
 
   return (
-    <>
-      <header
+    <header className="flex shrink-0 items-center gap-5 px-14 pt-7 text-on-page max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back to your fit"
+          className="-ml-2 inline-flex size-11 flex-none cursor-pointer items-center justify-center border-0 bg-transparent text-on-page md:hidden"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </button>
+      )}
+      <a
+        href={welcomeHref()}
+        aria-label="Takomo Fitter Studio, start"
         className={cn(
-          'flex shrink-0 items-center gap-5 px-14 pt-7 text-on-page max-md:h-14 max-md:gap-2 max-md:px-4 max-md:pt-0',
-          // All chips at 1280: tighten the spacing so nothing wraps or overflows.
-          hdr && 'max-[1366px]:gap-4 max-[1366px]:px-10',
+          'flex flex-none items-center gap-3.5 text-on-page no-underline max-md:-ml-2 max-md:size-11 max-md:justify-center',
+          onBack && 'max-md:hidden',
         )}
       >
-        {onBack && (
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Back to your fit"
-            className="-ml-2 inline-flex size-11 flex-none cursor-pointer items-center justify-center border-0 bg-transparent text-on-page md:hidden"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M15 5l-7 7 7 7" />
-            </svg>
-          </button>
-        )}
-        <a
-          href={welcomeHref()}
-          aria-label="Takomo Fitter Studio, start"
-          className={cn(
-            'flex flex-none items-center gap-3.5 text-on-page no-underline max-md:-ml-2 max-md:size-11 max-md:justify-center',
-            onBack && 'max-md:hidden',
-          )}
+        <LogoMark className="max-md:h-6 max-md:w-[26px]" />
+        <Wordmark className="max-md:hidden" />
+      </a>
+      <Eyebrow className="flex-none text-on-page">{variant === 'chat' ? 'Fitter Studio' : 'Your fit'}</Eyebrow>
+      <div className="h-px flex-1 bg-page-line-2 max-md:hidden" />
+      {demo && (
+        <Eyebrow
+          size={11}
+          title="Simulated golfer"
+          className="flex-none rounded-4 px-2 py-1 text-orange-on-page shadow-[inset_0_0_0_1px_var(--color-orange-on-page)] max-md:ml-auto max-md:px-1.5"
         >
-          <LogoMark className="max-md:h-6 max-md:w-[26px]" />
-          <Wordmark className="max-md:hidden" />
-        </a>
-        <Eyebrow className="flex-none text-on-page">{variant === 'chat' ? 'Fitter Studio' : 'Your fit'}</Eyebrow>
-        <div className="h-px flex-1 bg-page-line-2 max-md:hidden" />
-        {demo && (
-          <Eyebrow
-            size={11}
-            title="Simulated golfer"
-            className="flex-none rounded-4 px-2 py-1 text-orange-on-page shadow-[inset_0_0_0_1px_var(--color-orange-on-page)] max-md:ml-auto max-md:px-1.5"
-          >
-            <span className="max-md:hidden">Simulated golfer</span>
-            <span className="md:hidden">Simulated</span>
-          </Eyebrow>
-        )}
-        {engine && (
-          <Eyebrow
-            size={11}
-            className={cn(
-              'flex-none rounded-4 max-md:hidden px-2 py-1 text-on-page-2 shadow-[inset_0_0_0_1px_var(--color-page-line-2)]',
-              hdr && 'max-[1366px]:hidden',
-            )}
-          >
-            {engine === 'live' ? 'Live AI' : 'Replay'}
-          </Eyebrow>
-        )}
-        {hdr && (
-          <>
-            {state?.best ? (
-              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-on-page shadow-[inset_0_0_0_1px_var(--color-page-line-2)]">
-                Current best: {shortHead(state.best.head)}
-              </Eyebrow>
-            ) : missingCount > 0 ? (
-              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-on-page-2 shadow-[inset_0_0_0_1px_var(--color-page-line-2)]">
-                {missingCount} {missingCount === 1 ? 'input missing' : 'inputs missing'}
-              </Eyebrow>
-            ) : null}
-            {state?.gate && (
-              <Eyebrow size={11} className="flex-none rounded-4 max-md:hidden px-2 py-1 text-on-page-2 shadow-[inset_0_0_0_1px_var(--color-page-line-2)]">
-                {state.gate === 'provisional' ? 'Working fit' : 'Dialed in'}
-              </Eyebrow>
-            )}
-          </>
-        )}
-        {variant === 'chat' && step != null && (
-          // The step bars are the lowest-value item: with all chips showing they only fit on wide screens.
-          <StepBars step={step} className={cn('max-md:hidden', hdr && 'max-[1640px]:hidden')} />
-        )}
-        <span className="flex flex-none items-center gap-2.5 max-md:hidden">
-          <Eyebrow className="text-on-page-2">Fit confidence</Eyebrow>
-          <ConfidenceSegments value={pct} showLabel={false} />
-        </span>
-        <span className={cn('md:hidden', !demo && 'ml-auto')}>
-          <ConfidenceRing pct={pct} />
-        </span>
-        {hdr && (
-          <button
-            type="button"
-            onClick={() => {
-              addUi({
-                type: 'data_import',
-                prompt: 'Got shot data from your own 7-iron? A TrackMan CSV works best.',
-                sources: ['csv', 'ball_line', 'skip'],
-                club_hint: 'own_7i',
-                reason_code: 'lie',
-                append_to: null,
-              })
-            }}
-            className="flex h-9 flex-none max-md:hidden cursor-pointer items-center gap-1.5 rounded-6 bg-transparent px-3 text-on-page shadow-[inset_0_0_0_1px_var(--color-page-line-2)] transition-ui hover:shadow-[inset_0_0_0_1px_var(--color-on-page-3)]"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            <span className="text-[13px] font-semibold">Add data</span>
-          </button>
-        )}
-        <ThemeToggle />
-        <div className="relative flex-none">
+          <span className="max-md:hidden">Simulated golfer</span>
+          <span className="md:hidden">Simulated</span>
+        </Eyebrow>
+      )}
+      <span className="flex flex-none items-center gap-2.5 max-md:hidden">
+        <Eyebrow className="text-on-page-2">Fit confidence</Eyebrow>
+        <ConfidenceSegments value={pct} showLabel={false} />
+      </span>
+      <span className={cn('md:hidden', !demo && 'ml-auto')}>
+        <ConfidenceRing pct={pct} />
+      </span>
+      <ThemeToggle />
+      <div className="relative flex-none">
         <button
           type="button"
           disabled={!state}
@@ -206,30 +120,28 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
             <span className="text-[15px] font-semibold">myTakomo</span>
           </span>
         </button>
-          {hdr && saved?.status === 'ok' && saved.resumeUrl && (
-            <div className="absolute top-full right-0 mt-1 flex items-center gap-1.5 whitespace-nowrap text-[11px] text-on-page-2 max-md:hidden">
-              <span className="max-w-[140px] truncate" title={saved.resumeUrl}>{saved.resumeUrl}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  try {
-                    const full = new URL(saved.resumeUrl!, window.location.origin).href
-                    void navigator.clipboard.writeText(full)
-                    setCopied(true)
-                    setTimeout(() => setCopied(false), 2000)
-                  } catch {
-                    // ignore
-                  }
-                }}
-                className="cursor-pointer text-orange-on-page hover:underline"
-              >
-                {copied ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-      {variant === 'chat' && step != null && <PhoneSteps step={step} />}
-    </>
+        {saved?.status === 'ok' && saved.resumeUrl && (
+          <div className="absolute top-full right-0 mt-1 flex items-center gap-1.5 whitespace-nowrap text-[11px] text-on-page-2 max-md:hidden">
+            <span className="max-w-[140px] truncate" title={saved.resumeUrl}>{saved.resumeUrl}</span>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  const full = new URL(saved.resumeUrl!, window.location.origin).href
+                  void navigator.clipboard.writeText(full)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                } catch {
+                  // ignore
+                }
+              }}
+              className="cursor-pointer text-orange-on-page hover:underline"
+            >
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
   )
 }
