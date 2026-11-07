@@ -2,7 +2,7 @@
 
 > **Read this entire file before touching any code.**
 > This file governs every AI coding agent and human working in `since-ai-2026` during the **Since AI Hackathon 2026** ("The Fitter in Your Pocket" — Takomo Golf challenge, Team **Mankeli**).
-> Full specs live in [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) and [`docs/VISION.md`](docs/VISION.md). **Where `docs/IMPLEMENTATION_PLAN.md` (or any subdirectory `CLAUDE.md`) conflicts with this file — especially regarding tests — `AGENTS.md` wins.**
+> Full specs live in [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) and [`docs/VISION.md`](docs/VISION.md). **`docs/IMPLEMENTATION_PLAN.md` is the source of truth; this file summarises it for agents. If the two disagree, the plan wins: follow the plan and fix this file.**
 
 ---
 
@@ -15,10 +15,10 @@
 - **Optimize for shipping visible, working demo value fast.** Do not gold-plate abstractions, build unrequested infrastructure, or work on Wave 2 / Final-phase items before the Mikko demo spine works end-to-end.
 - **Unfinished UI or Wave 2 work MUST sit behind `?ff=<flag>`** so `main` stays demo-ready at every commit.
 
-### 1.2 ABSOLUTELY NO TESTS (Overrides `IMPLEMENTATION_PLAN.md` §10.6)
+### 1.2 ABSOLUTELY NO TESTS (plan L17: we don't have a test pipeline)
 - **DO NOT write unit tests, integration tests, parity tests, golden tests, injection tests, component tests, Vitest suites, pytest suites, Playwright tests, or any other automated tests.**
 - **DO NOT** create `backend/tests/`, `test_*.py`, `*.test.ts`, `*.test.tsx`, or `*.spec.ts` files.
-- **DO NOT** spend time configuring or running `pytest`, `vitest`, or `playwright`, and do not include test jobs in CI. Ignore every test requirement mentioned in `docs/IMPLEMENTATION_PLAN.md`.
+- **DO NOT** spend time configuring or running `pytest`, `vitest`, or `playwright`, and do not include test jobs in CI. The plan has no test requirements (L17): CI is lint, typecheck, build and the deploy health check (`scripts/smoke.sh`).
 - **How to verify your changes instead:**
   1. Static & build checks: `ruff check`, `ruff format --check`, `lint-imports` (backend); `pnpm -C web gen && pnpm -C web typecheck && pnpm -C web build` (frontend).
   2. Direct execution: start `just dev` (or call your Python function / curl your FastAPI route / open `studio.html?engine=scripted&demo=DEMO-01` or `dev.html`) and confirm it works.
@@ -28,7 +28,7 @@
 **4 teammates (and 6–8 AI agents) are developing in parallel right now.** Merge conflicts and broken `main` are our biggest velocity killers. Follow these rules strictly:
 
 1. **Always use an isolated git worktree + branch.**
-   - Create worktrees under `.worktrees/<branch-slug>` on a short-lived branch (`feat/<lane>-<topic>`, `fix/<topic>`, `docs/<topic>`) branched from `origin/main`.
+   - Create worktrees under `.claude/worktrees/<branch-slug>` (gitignored, plan §10.1) on a short-lived branch (`feat/<lane>-<topic>`, `fix/<topic>`, `docs/<topic>`) branched from `origin/main`.
    - **Never commit or push directly to `main`.** Never `git push --force` on shared branches.
 2. **Stay strictly inside your assigned lane's file globs (§2).**
    - Do **not** drive-by edit files owned by another lane.
@@ -60,19 +60,19 @@ Check which lane your task belongs to and **only touch its owned paths**:
 | Lane | Owned Paths (Globs) | Core Scope |
 |---|---|---|
 | **L0 SKELETON** | Root config, `justfile`, `vendor/`, `backend/app/{main.py,config.py,core/**,schemas/** (v0),persistence/{store,memory}.py}`, `backend/app/api/routes/session_*.py`, `web/` scaffold + `studio.html` shell + `src/host/standalone.ts`, `scripts/{gen_fixtures,port}.*` | App bootstrap, schemas v0, SSE stub, 16 demo fixtures (`DEMO-01..16.json`), pre-locked deps. |
-| **INFRA** | `infra/**`, `.github/**`, `scripts/smoke.sh`, `.dockerignore`, import-linter config, `.claude/**` | Dockerfile, Cloud Run (`europe-north1`, tagged `--no-traffic` → smoke → shift traffic), `lint-imports` guardrails. |
-| **FIT** | `backend/app/{pack,fitting,confidence}/**`, `backend/app/api/routes/fit_*.py`, `backend/app/schemas/{fit,confidence,tinker}.py`, `backend/app/schemas/state/{fit,confidence}.py`, `scripts/{gen_priors,score_dev,make_test_predictions}.py`, `mankeli_takomo_test_predictions.csv` | `takomo_fit` wrappers, input mapping + provenance, Monte Carlo confidence, close calls, `next_question`, flight/dispersion, tinker (<100 ms, no LLM), `.trace` explanations, test-split CSV. |
-| **EVIDENCE** | `backend/app/evidence/**`, `backend/app/api/routes/evidence_*.py`, `backend/app/api/adapters/trackman_fetch.py`, `backend/app/schemas/evidence.py`, `backend/app/schemas/state/evidence.py`, `scripts/gen_thresholds.py`, `fixtures/trackman/**` | Pure parsers (TrackMan CSV, manual, round stats), deterministic plausibility/outlier flags (`S*`, `G*`, `V*`), inverse-variance fusion, synthetic TrackMan CSV fixture. |
-| **AGENT** | `backend/app/agent/**`, `backend/app/api/routes/chat_*.py`, `backend/app/schemas/chat.py`, `backend/app/agent/mock/scripts/**` | Genkit + Claude 5.5 setup (or Anthropic SDK fallback), `@fitter_tool` domain tools, interrupt-based turn loop + atomic commit + lock, vision `extract.py`, persona scripts (`Mikko`, `Hannu`, `Lars`, `Anders`). |
-| **WEB-APP** | `web/src/{features/{landing,studio-shell,chat,genui,result,mascot,ar},api,store,host}/**`, `web/{index,studio,dev,ar}.html`, `backend/app/schemas/ui/**`, `fixtures/ui/**`, `fixtures/{product_videos,forge_topics,simulators}.json` | Landing copy, desktop studio layout + TopBar (confidence, best-rec, missing-N, Save), SSE stream client, zustand stores, Gen-UI block components, result panels, SVG mascot. |
-| **WEB-3D** | `web/src/features/{stage3d,flight,tinker}/**`, `web/public/models/**` | `FlightSvg.tsx` (2D side + top dispersion — ship first!), R3F 3D club stage (`PlaceholderHead` → GLB swap), camera focus/highlights, ghost club compare, debounced `TinkerPanel`. |
-| **3D ASSETS** *(Issue #3, Matti)* | `assets/clubs/**`, Blender generation scripts | Parametric Blender GLBs (`manifest.json`, `heads/<slug>.glb`, `parts/{shaft,ferrule,grip}.glb`) matching the `L7` contract. |
+| **INFRA** | `infra/**`, `.github/**`, `scripts/smoke.sh`, `.dockerignore`, import-linter config, `.claude/hooks/**` (all of `.claude/**` is reviewed by the lead, CODEOWNERS) | Dockerfile, Cloud Run (`europe-north1`, tagged `--no-traffic` → smoke → shift traffic), `lint-imports` guardrails. |
+| **FIT** | `backend/app/{pack,fitting,confidence}/**`, `backend/app/api/routes/fit_*.py`, `backend/app/schemas/{fit,confidence,tinker}.py`, `backend/app/schemas/state/{fit,confidence}.py`, `scripts/{gen_priors,score_dev,make_test_predictions}.py`, `mankeli_takomo_test_predictions.csv` | `takomo_fit` wrappers, input mapping + provenance, Monte Carlo confidence, close calls, `next_question` including **precision offers** (plan §5.5), flight/dispersion (left-handers in the target frame, home-radar column fallback, plan §3.6), tinker (<100 ms, no LLM; re-pick the shaft when switching between MKII and 301 heads), `.trace` explanations + shaft comparison + Mikko's one own-loft line (plan §3.7, §5.3), test-split CSV. |
+| **EVIDENCE** | `backend/app/evidence/**`, `backend/app/api/routes/evidence_*.py`, `backend/app/schemas/evidence.py`, `backend/app/schemas/state/evidence.py`, `scripts/gen_thresholds.py`, `fixtures/trackman/**` | Pure parsers (TrackMan CSV with `Club`-column grouping and the absolute Dynamic Lie fix, ball-line test via `POST /imports/ball-line`, manual, round stats), deterministic plausibility/outlier flags (`S*`, `G*` incl. G15, `V*`), inverse-variance fusion, synthetic TrackMan CSV fixtures, persona sample imports (plan §6.6). **No** TrackMan link importer (`trackman_fetch.py`, `trackman_report.py`): cut by L6. |
+| **AGENT** | `backend/app/agent/**`, `backend/app/api/routes/chat_*.py`, `backend/app/schemas/chat.py`, `backend/app/agent/mock/scripts/**` | Genkit + Claude 5.5 setup (or Anthropic SDK fallback), `@fitter_tool` domain tools, interrupt-based turn loop + atomic commit + lock, vision `extract.py`, persona scripts (`Mikko`, `Hannu`, `Lars`, `Anders`, per L8 below). |
+| **WEB-APP** | `web/src/{features/{landing,studio-shell,personas,form,chat,genui,result,mascot,ar},api,store,host}/**`, `web/{index,studio,dev,ar}.html`, `backend/app/schemas/ui/**`, `fixtures/ui/**`, `fixtures/{product_videos,forge_topics,simulators,diagrams,social_proof}.json` | Landing copy + "Try as" persona picker (L16), desktop studio layout + TopBar (confidence, best-rec, missing-N, **Add data**, Save, "Simulated golfer" badge), SSE stream client, zustand stores, Gen-UI blocks (incl. `onboarding_card`, the `data_import` ball-line form, `driver_teaser`), form fallback, result panels, SVG mascot. |
+| **WEB-3D** | `web/src/features/{stage3d,flight,tinker}/**`, `assets/clubs/**` together with 3D ASSETS (served from `web/public/assets/clubs/`, copied in the Dockerfile) | `FlightSvg.tsx` (2D side + top dispersion — ship first!), R3F 3D club stage (`PlaceholderHead` → GLB swap), camera focus/highlights, ghost club compare, debounced `TinkerPanel`. |
+| **3D ASSETS** *(Issue #3, Matti)* | `assets/clubs/**`, Blender generation scripts | Parametric Blender GLBs (`manifest.json`, `heads/<slug>.glb`, `parts/{shaft,ferrule,grip}.glb`), AR files `ar/<slug>.{glb,usdz}` (L21) and photo cutouts `images/<slug>/*.webp`, matching the `L7` contract. |
 | **FLOATER** *(post-spine, time-boxed)* | `backend/app/persistence/firestore.py`, `VoiceButton`, Rive mascot, `ar/` | Strict time-boxes only after spine works: Firestore (60m), ElevenLabs/Web Speech voice (90m), Rive mascot (90m), AR QR + Quick Look/Scene Viewer (90m). |
 | **FINAL** *(post-Sun 04:00 gate only)* | `web/embed/**`, `web/src/host/{bridge,shopify,generic,mock-shopify-host}.ts`, `shopify/**`, mobile CSS | Runs **only** if every core item works on prod by Sun 04:00: (1) mobile stacked layout, (2) `embed.js` + mock cart drawer, (3) 90m Shopify Dawn dev store. |
 
 ---
 
-## 3. Locked Decisions (`L1`–`L15`) — Do Not Reopen
+## 3. Locked Decisions (`L1`–`L22`) — Do Not Reopen
 
 1. **L1 — 3D Stack:** `three@0.187.0` via React Three Fiber (`@react-three/fiber@9.8.2`) + `@react-three/drei@10.7.9`. Build `FlightSvg.tsx` (2D SVG flight + dispersion) **first** as the default view, then the 3D club stage.
 2. **L2 — Shopify Last:** Zero Shopify work (`embed.js`, iframe overlay, `postMessage` bridge, mock cart, dev store, App Proxy) until the **Final phase** (Sun 04:00 gate). Use `StandaloneAdapter` stub until then.
@@ -80,14 +80,14 @@ Check which lane your task belongs to and **only touch its owned paths**:
 4. **L4 / L5 — Delivery Format:** Pitch is slides + recorded walkthrough video + hosted Cloud Run URL (no live stage demo). Code freeze Sun 06:00; done Sun 08:00.
 5. **L6 — 100% Synthetic Data:** No real TrackMan shots were captured. Generate TrackMan CSV fixtures from `shots.csv` with `event_kit/trackman_column_map.csv` headers/units and **label them synthetic**. The shared-report-link importer is **cut to a slide**. Never claim synthetic golfer data is real customer data.
 6. **L7 — 3D Asset Contract (Issue #3):**
-   - Paths: `assets/clubs/manifest.json`, `heads/<slug>.glb`, `parts/{shaft,ferrule,grip}.glb`.
+   - Paths: `assets/clubs/manifest.json`, `heads/<slug>.glb`, `parts/{shaft,ferrule,grip}.glb`, `ar/<slug>.{glb,usdz}`, `images/<slug>/*.webp`.
    - Coordinate frame: metres; origin at sole ground-contact point at standard 7-iron address (62° lie); `+Y` up, `+Z` target line, `+X` toe; named `HoselSocket` node at top of hosel bore (`+Y` along shaft). Left-handed = `scale.x = -1`.
    - `PlaceholderHead` uses the exact same origin, axes, and `HoselSocket` so swapping real GLBs is a file drop. Read camera presets from `manifest.json`.
 7. **L8 — 4 Demo Personas Only:**
-   - **Mikko (`DEMO-01`, the core spine):** Claims 160 yd carry; 10 TrackMan `own_7i` shots average 124.7 yd → `G11` carry flag fires → measured 72 mph = bucket 3 (regular flex, not stiff) → confidence rises → flight + lie tinker + stock-vs-custom + Save.
-   - **Hannu (`DEMO-09`):** Static chart vs dynamic lie evidence (ball-line tilt / labelled demo TrackMan fixture).
+   - **Mikko (`DEMO-01`, the core spine):** Claims 160 yd carry; own-7-iron TrackMan CSV (10 shots, 124.7 yd average) → `G11` carry flag fires → measured 72 mph = bucket 3 (regular flex, not stiff) → confidence rises → **precision follow-up** → second import of his test-club shots (lie chart +2 → evidence +3) → 201T MKII (201 MKII runner-up) → flight + lie tinker + stock-vs-custom + Save.
+   - **Hannu (`DEMO-09`):** Types his 5 ball-line readings (`data_import` → `ball_line`); **no TrackMan fixture**. The test is rough, so fused with the chart his lie stays a close call (and flex too, from carry only), and the studio honestly sends him to a simulator for test-club shots. This and Anders are the "honest at a cost to the sale" moments.
    - **Lars (`DEMO-04`):** Close call between `301-cb` and `301-mb` shown honestly with trade-offs.
-   - **Anders:** Stock (30-day return) vs Custom (non-returnable) decision on a +1° lie change.
+   - **Anders (`DEMO-13`):** Stock (30-day return) vs Custom (non-returnable) decision on a +1° lie change from his test-club shots.
 8. **L9–L14 — Scope Guards:**
    - Mascot: ship SVG placeholder first; Rive is a 90m FLOATER task (avoid cartoonish Forge style).
    - Confidence 30–50%: show result with `gate="provisional"` and `strength="low"` ("add data to firm this up").
@@ -95,6 +95,13 @@ Check which lane your task belongs to and **only touch its owned paths**:
    - **Irons only**, plus a static *"Driver fitting is next"* teaser card in the result.
    - Embed Takomo product videos via `fixtures/product_videos.json` (approved). Label all social-proof stats as `"example"`.
 9. **L15 — Accounts & Deliverable:** Anthropic Claude API + GCP Cloud Run owned by Jesse. Accuracy CSV filename: `mankeli_takomo_test_predictions.csv` at repo root (5,000 rows, every row passing `check_buildable`).
+10. **L16 — "Try as" picker:** Landing + studio start screen offer Try as Mikko / Hannu / Lars / Anders + Start my own fitting. Persona sessions start from questionnaire answers only (no phone measurements), run on the live engine, offer one-tap sample imports, and always show a "Simulated golfer" badge. Never cut.
+11. **L17 — No test pipeline:** see §1.2.
+12. **L18 — Tone:** Mild language only ("BS" is fine; nothing starred or stronger). **No swing tips and no practice advice.**
+13. **L19 — Pitch:** Shared team effort. Slides + write-up → GitHub and the hackathon platform; video → YouTube and the hackathon platform.
+14. **L20 — Timeline:** Saturday times shifted +1.5 h at 14:25 (skeleton 15:00–15:45); Sunday unchanged.
+15. **L21 — AR:** Assume issue #3 delivers `ar/<slug>.{glb,usdz}` (GLB for Android, USDZ for iOS).
+16. **L22 — GitHub issues:** small, one lane each.
 
 ---
 
@@ -112,6 +119,9 @@ Check which lane your task belongs to and **only touch its owned paths**:
   - With `lie_override_deg`: `lie_deg = int(np.clip(round(x), -3, 3))` (Python uses banker's rounding), re-call `purchase_for`, and append `"lie: evidence {x:+.1f} -> {n:+d}"` to `.trace`.
   - Batch `physics.shot` calls (scalar = ~20 ms; 1000 vectorised = ~67 ms) and run via `run_in_threadpool`. `POST /api/tinker` is deterministic (no LLM, <100 ms budget).
   - Seed Monte Carlo RNG deterministically via `hashlib.sha256(f"{session_id}:{evidence_version}".encode())`, **never** Python's salted `hash()`.
+  - **Lie evidence (plan §3.3):** test-club Dynamic Lie overrides the chart; own-7-iron Dynamic Lie and the ball-line test are **fused** with the chart, never override it. TrackMan's Dynamic Lie is absolute: `impact_toe_up_deg = dynamicLie − club_lie` (62° standard).
+  - **Left-handers:** face, path and side are already in the target frame; never mirror them. Only `impact_offset_mm` and the sign of `lie_face_effect_deg()` flip.
+  - **MKII vs 301 shafts use different slugs:** re-run `pick_shaft(new_head, answers)` when the head changes family.
 
 ### 4.2 Backend Import Hierarchy (`import-linter` enforced)
 Each layer may import **only** from layers below it:
@@ -130,7 +140,7 @@ schemas      Hand-written Pydantic models & Protocol ports (imports nothing from
 ### 4.3 Trust, Safety & LLM Boundaries
 - **Deterministic math, LLM phrasing:** The LLM **never** invents specs, numbers, carry distances, confidence scores, or outlier judgments. Every number comes from a tool output (`run_fit`, `explain_part`, `compare_specs`, `simulate_flight`, `get_import_report`).
 - **No LLM-supplied URLs or HTML:** Media/link props in UI schemas use enum IDs resolved from `fixtures/*.json`. Chat messages render plain text (bold + line breaks only). Cap CSV/vision strings to `^[\w %./°-]{0,32}$` and **never** pass raw free text from uploads into chat history (send numeric shot summaries + `FlagCode` enums only).
-- **Brand & privacy rules:** Radical Finnish honesty (surface close calls, ego carry, and custom non-returnability even if it costs a sale). Never name or disparage competitors. Never say "fix your swing instead of getting fitted". Never gate results behind email (`GET /api/sessions/{id}` never returns `email`). Never store raw uploaded CSVs/screenshots or collect third-party credentials.
+- **Brand & privacy rules:** Radical Finnish honesty (surface close calls, ego carry, and custom non-returnability even if it costs a sale). Never name or disparage competitors. Never say "fix your swing instead of getting fitted". **No swing tips, no practice advice, mild language only (L18).** Offer more precision after imports, never push it (plan §5.5). Never gate results behind email (`GET /api/sessions/{id}` never returns `email`). Never store raw uploaded CSVs/screenshots or collect third-party credentials.
 
 ---
 
@@ -139,7 +149,7 @@ schemas      Hand-written Pydantic models & Protocol ports (imports nothing from
 ### 5.1 Backend & AI (`backend/`, Python 3.12, `uv 0.13.x`)
 - **Pinned AI packages (DO NOT UPGRADE):**
   - `genkit==0.13.0`, `genkit-anthropic==0.13.0`, `genkit-fastapi==0.13.0`, **`anthropic==0.112.0`** (Genkit's tested lock — newer `anthropic` 2.x breaks it; never install deprecated `genkit-plugin-*`).
-  - **Fallback trigger:** If Genkit fails the 15:00 spike or costs >45 min on a bug, switch to `LLM_ENGINE=anthropic` (`AsyncAnthropic().beta.messages.tool_runner` behind the same engine interface).
+  - **Fallback trigger:** If Genkit fails the 16:30 spike verdict (L20) or costs >45 min on a bug, switch to `LLM_ENGINE=anthropic` (`AsyncAnthropic().beta.messages.tool_runner` behind the same engine interface).
 - **Claude 5.5 Model Rules (`backend/app/agent/ai.py`):**
   - Register `claude-sonnet-5-5` and `claude-haiku-5-5` in `genkit_anthropic._model_info.SUPPORTED_ANTHROPIC_MODELS` by cloning the newest Constrained-Output base entry of the same family.
   - **Chat & Vision (`claude-sonnet-5-5`):** `thinking="adaptive"`, `thinking_display="summarized"` (keeps thinking blocks non-empty so Genkit sends them back on tool turns!), `effort="low"`, `cache_control={"type": "ephemeral"}`. **Never** pass `thinking="disabled"` or `tool_choice="required"` on Sonnet/Opus 5.5 (causes HTTP 400). Filter reasoning chunks out of SSE `text` events.
@@ -187,8 +197,9 @@ just record <persona>   # Record scripted SSE run to web/public/mock/<persona>.j
 
 ### 6.2 Feature Priority: What Never Gets Cut vs. What Cuts First
 - **NEVER CUT (The Core Spine):**
+  0. The "Try as" persona picker with sample imports (L16): it is how judges use the hosted link
   1. Conversational intake (`choice_chips`, `slider`, `body_measure`) + deterministic `next_question` + form fallback
-  2. Synthetic TrackMan CSV import (`data_import`) + v1 outlier flags (`S1, S3, S7, S8, S10, S14, G1, G2, G3, G11-carry, V6`) + `outlier_review`
+  2. Synthetic TrackMan CSV import (`data_import`) + v1 outlier flags (`S1, S3, S7, S8, S10, S14, G1, G2, G3, G11-carry, G15, V6`) + `outlier_review` + the precision follow-up
   3. `recommend()` (`recommendation_card`) + provenance-backed `why_panel`
   4. Monte Carlo confidence meter + gate in `TopBar` (visibly rising after Mikko's TrackMan import)
   5. 2D `FlightSvg` with carry/apex + dispersion ellipses

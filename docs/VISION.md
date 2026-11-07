@@ -42,7 +42,7 @@ Takomo's values: **quality + simplicity, honesty, accessibility.**
 3. **Accessible to new players.** Most buyers are beginners and mid-to-high handicappers (about 70% game-improvement). They need direction and validation, not spec sheets. Better players want numbers that confirm what they already believe. **The depth of explanation adapts to the player.**
 4. **Tone: "a conversation with a good golfer."** Technical and point-blank like a fitter. It may lean audacious, with bolder UI choices for a young, digital-savvy audience. The look matches the neutral main site, **not** the cartoonish Forge style.
 5. **Never:** disparage or name competitors, use dark patterns (forced sign-up at the end, email gates), or tell someone to "fix your swing instead of getting fitted". Our clubs won't fix your swing, and we say so.
-6. The brand book arrives later via Discord. Until then, design within these principles.
+6. The brand book is in `data/docs/2025-02_Takomo_Brand_Book_public_version_compressed.md`. Visual styling from it is being handled separately.
 
 ## 5. Who it's for
 
@@ -58,6 +58,7 @@ Assumption: anyone who enters the studio already wants to get fitted.
 ### 6.1 Entry
 - The demo is a copy of the takomogolf.com front page with a clear banner (or hero section) leading to the **Fitter Studio**. In the hackathon demo, *every* button leads to the studio, so everyone lands there.
 - The feel is like walking into a golf shop or simulator bay: *you've arrived at a professional.*
+- **"Try as" picker.** Judges and visitors have no simulator data of their own, so the landing page and the studio start screen offer **Try as Mikko / Hannu / Lars / Anders** and **Start my own fitting**. A persona starts from that golfer's old-form answers, and their simulated TrackMan files or ball-line readings are one-tap imports. Everything is labelled "simulated golfer".
 
 ### 6.2 Onboarding: only what can't be derived
 - Ask only the things nothing else can tell us, the same things a fitter sees when you walk in: **age, sex, handedness**, and roughly how often you play. The pattern follows AMRight's doctor onboarding.
@@ -77,7 +78,9 @@ The assistant greets you, explains how the fitting works, then starts the fitter
 ### 6.5 Connect your data, with an easy fallback
 1. **Simulator / launch monitor:** "Have you hit in a simulator? Which one? How do you want to bring the data in?" The options are a TrackMan shared-report link, a CSV, or a **photo of the screen** read by a vision model.
 2. **Game data:** "How do you track your rounds?" Options are a GHIN number, Arccos/Garmin, or a **screenshot** of GameBook or 18Birdies stats read by a vision model. This gives a real average score instead of last week's best round.
-3. **Fallback:** a short conversational version of today's questionnaire. The loop must stay **as light as the current form** for users who don't want to import anything.
+3. **Home tests:** the **ball-line test** (a line on the ball, a few shots, read the tilt of the mark on the face), typed in by the golfer. It shows which way the lie should lean, but it is rough evidence, so the studio says so.
+4. **Fallback:** a short conversational version of today's questionnaire. The loop must stay **as light as the current form** for users who don't want to import anything.
+5. **"Want more precision?"** After every import, the assistant names the least certain part of the spec and offers the next piece of evidence for it: more shots, more ball-line readings, a re-measurement, or a simulator session. "I'm happy with this" is always an option, and an **Add data** button stays available, so a golfer who wants more certainty can always add more.
 
 ### 6.6 Body measurements, asked late
 - Height, wrist-to-floor and hand or glove size are asked now, after the user is invested.
@@ -109,7 +112,7 @@ The assistant greets you, explains how the fitting works, then starts the fitter
 ### 6.9 The assistant stays available
 - Golf and product questions ("compare the 201 and the 201T"), backed by Takomo's product data.
 - "How would *this* club work for me?" It re-runs the fit and the visuals.
-- Swing-improvement tips, visualised in chat or on the 3D stage, framed as practice advice, never as "fix your swing instead".
+- **No swing tips and no practice advice** (brand book: the character "doesn't give you swing tips"). Erratic delivery is described only as what the clubs can and can't do.
 
 ### 6.10 Honest endings
 - **Confidence gate:**
@@ -128,7 +131,7 @@ The rule for prioritising: **trust and the experience first** (35% of the judgin
 1. **Fitter Studio shell.** A copy of the Takomo landing page plus entry, then the 3D-left / chat-right layout. Mobile-friendly.
 2. **AI2UI assistant.** A conversational fitter that drives the flow by generating UI components (choice chips, sliders, cards, comparisons) instead of a fixed form.
 3. **Light conversational intake** that covers everything the current questionnaire asks, plus the fitter-only questions. The fallback is always available.
-4. **TrackMan / simulator data import.** We have access to TrackMan simulators, so real measured data is part of the core demo, not an add-on. Import is a shared-report URL or a CSV. It replaces guesses with measured speed, carry and dynamic lie, and the user sees confidence rise.
+4. **TrackMan / simulator data import.** Measured data is part of the core demo, not an add-on, but no real data was captured, so the demo uses synthetic TrackMan files (plan L6). Import is a CSV; the shared-report URL is a slide. It replaces guesses with measured speed, carry and dynamic lie, and the user sees confidence rise.
    - **Includes "find a simulator near you" as a static PoC:** a mocked map and list of nearby simulators, shown in the flow and in the "get a more accurate result" ending.
 5. **Recommendation engine.** We don't write our own fitting rules. Our Python backend runs the participant pack's `baseline.py` (today's Takomo tool as code) and `physics.py`. This is pack code running on our side, not a Takomo API. The AI agent calls them as tools:
    - `recommend(...)` returns a ranked head, shaft, length, lie, grip and stock/custom, plus a `.trace` that explains why. `score_heads`, `lie_for`, `flex_for` and the other functions can be called separately.
@@ -187,7 +190,7 @@ The rule for prioritising: **trust and the experience first** (35% of the judgin
 
 - Use the pack's **16 demo golfers**, each a story of a way online fitting fails, as scripted runs. The best ones for trust:
   - **Mikko:** an ego carry plus a jacked 7-iron loft wrongly puts him in stiff; the data corrects it.
-  - **Hannu:** a static chart says 0°, but shot evidence says -2°.
+  - **Hannu:** a static chart says standard lie, but his ball-line test leans flat. The studio says honestly that the test is rough, so his lie is a close call, and it offers a simulator session with a Takomo test club to get the number. (His true need is −2°, which only that session would find.)
   - **Lars:** a close call between the 301 CB and the 301 MB, shown as a trade-off.
   - **Anders:** is +1° lie worth giving up the return?
   - **Kaisa:** a guessed glove size.
@@ -210,7 +213,7 @@ The rule for prioritising: **trust and the experience first** (35% of the judgin
 
 ## 11. Assets & inputs we have
 
-- **Takomo product data:** heads (101 MkII, 201 MkII, 201T MkII, 301 CB, 301 MB), 25 shafts and grips, as JSON and CSV, with buildable combinations.
+- **Takomo product data:** heads (101 MkII, 201 MkII, 201T MkII, 301 CB, 301 MB), 35 shaft builds and grips, as JSON and CSV, with buildable combinations.
 - **Participant pack:**
   - the baseline rules in Python, with 87 tests documenting them
   - a physics ball-flight model
@@ -219,13 +222,12 @@ The rule for prioritising: **trust and the experience first** (35% of the judgin
   - 16 demo golfers
   - a camera kit
 - **Takomo 3D club models:** CAD (XT), or meshes downloaded from the website, converted to glTF or FBX.
-- **TrackMan session** on Saturday from 11:00 to 12:00 at Takomo's office, for real data and filming.
-- **Brand book**, coming via Discord.
+- **TrackMan session** on Saturday 11:00–12:00 at Takomo's office. **No real data was captured** (plan L6), so all evidence in the demo is synthetic.
+- **Brand book:** `data/docs/2025-02_Takomo_Brand_Book_public_version_compressed.md`.
 - **Unofficial APIs are OK for the PoC** (client approved). Production would need partnerships.
 
 ## 12. Open questions
 
-- The brand book, which arrives later. Visual identity is a placeholder until then.
 - **Mascot or no mascot.** It's personal and fun, but it must not feel like the Forge cartoon style.
 - **Skill inference.** Can we reliably tell beginners from better players to adapt explanation depth? The recommended head (101 vs 201/301) is one signal.
 - **Social-proof numbers.** We need real figures from Takomo, or must label them clearly as examples in the demo.
