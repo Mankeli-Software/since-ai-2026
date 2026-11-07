@@ -100,7 +100,12 @@ class GenkitEngine:
             s.pending_ui_id = None
         else:
             # per-turn state goes in the user turn, never in the system prompt
-            text = f"[state] {_digest(ctx)}\n{user_text(request)}"
+            nq = ""
+            if not msgs:  # first turn: run next_question here, one model call less
+                spec = get_tool("next_question")
+                res = await spec.fn(ctx, spec.input_model())
+                nq = f"\n[next_question] {res.model_dump_json()}"
+            text = f"[state] {_digest(ctx)}{nq}\n{user_text(request)}"
             msgs.append(Message(role=Role.USER, content=[Part.from_text(text)]))
             out[0] = stored("user", "live", user_text(request), [_dump(msgs[-1])])
         base = len(msgs) - (1 if answer is None else 0)  # messages before this turn's own
