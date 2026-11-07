@@ -30,7 +30,11 @@ export interface ClubStageProps {
   focus?: CameraPresetName
   /** Emissive pulse on this part; the rest dims to 0.35 opacity. */
   highlight?: ClubPart | null
-  /** manifest.json `defaultCameraPresets`; built-in constants are used when omitted. */
+  /** Head GLB slug from manifest `headOrder`. Omitted = placeholder head. Falls back to the photo cutout if it fails. */
+  head?: string
+  /** Where manifest.json, heads/ and images/ are served. Default `/assets/clubs`. */
+  assetBase?: string
+  /** manifest.json `defaultCameraPresets`; fetched from the manifest when omitted, built-in constants as last resort. */
   cameraPresets?: Partial<Record<string, CameraPreset>>
 }
 

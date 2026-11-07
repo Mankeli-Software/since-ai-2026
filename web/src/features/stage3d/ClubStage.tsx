@@ -1,8 +1,10 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, type ElementRef, type Ref } from 'react'
+import { forwardRef, useCallback, useState, useEffect, useImperativeHandle, useMemo, useRef, type ElementRef, type Ref } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { CameraControls, Environment, Html, Lightformer } from '@react-three/drei'
 import { ClubRig } from './ClubRig'
 import { FALLBACK_PRESETS } from './constants'
+import { HeadPhoto } from './HeadPhoto'
+import { DEFAULT_ASSET_BASE, useManifest } from './manifest'
 import type { CameraPreset, ClubSpec, ClubStageHandle, ClubStageProps, GripSize } from './types'
 
 const labelStyle = {
@@ -17,9 +19,12 @@ const labelStyle = {
 
 interface SceneProps extends ClubStageProps {
   stageRef: Ref<ClubStageHandle>
+  onHeadError: (e: Error) => void
 }
 
-function Scene({ stageRef, handedness = 'right', shaftMaterial = 'steel', length = 0, lie = 0, grip = 'standard', ghost, focus = 'addressDTL', highlight = null, cameraPresets }: SceneProps) {
+function Scene({ stageRef, handedness = 'right', shaftMaterial = 'steel', length = 0, lie = 0, grip = 'standard', ghost, focus = 'addressDTL', highlight = null, cameraPresets: presetsProp, head, assetBase = DEFAULT_ASSET_BASE, onHeadError }: SceneProps) {
+  const manifest = useManifest(assetBase)
+  const cameraPresets = presetsProp ?? manifest?.defaultCameraPresets
   const left = handedness === 'left'
   const rig = useRef<ClubStageHandle>(null)
   const ghostRig = useRef<ClubStageHandle>(null)
@@ -106,12 +111,14 @@ function Scene({ stageRef, handedness = 'right', shaftMaterial = 'steel', length
         <planeGeometry args={[2, 2]} />
         <meshStandardMaterial color="#2b3036" roughness={0.9} />
       </mesh>
-      <ClubRig ref={rig} left={left} highlight={highlight} />
+      <ClubRig ref={rig} left={left} highlight={highlight} head={head} assetBase={assetBase} onHeadError={onHeadError} />
       {hasGhost && (
         <ClubRig
           ref={ghostRig}
           ghost
           left={left}
+          head={head}
+          assetBase={assetBase}
           headSlot={<Html center><div ref={setLieEl} style={labelStyle} /></Html>}
           gripSlot={<Html center><div ref={setLenEl} style={labelStyle} /></Html>}
         />
@@ -121,12 +128,21 @@ function Scene({ stageRef, handedness = 'right', shaftMaterial = 'steel', length
   )
 }
 
+let webgl: boolean | undefined
+function hasWebGL() {
+  webgl ??= !!document.createElement('canvas').getContext('webgl2') || !!document.createElement('canvas').getContext('webgl')
+  return webgl
+}
+
 /** Lazy-loadable club stage. Drive drags through the ref handle, discrete changes through props. */
 const ClubStage = forwardRef<ClubStageHandle, ClubStageProps>(function ClubStage(props, ref) {
+  const [failed, setFailed] = useState(false)
+  const onHeadError = useCallback(() => setFailed(true), [])
+  if (props.head && (failed || !hasWebGL())) return <HeadPhoto slug={props.head} base={props.assetBase} />
   return (
     <div style={{ width: '100%', height: '100%', minHeight: 240 }}>
       <Canvas frameloop="demand" dpr={[1, 2]} camera={{ fov: 30, near: 0.01, far: 10, position: [0.04, 0.14, -0.42] }}>
-        <Scene {...props} stageRef={ref} />
+        <Scene {...props} stageRef={ref} onHeadError={onHeadError} />
       </Canvas>
     </div>
   )
