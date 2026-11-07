@@ -20,14 +20,15 @@ from fastapi.concurrency import run_in_threadpool
 
 from app.api.deps import SessionDep, StoreDep
 from app.core.errors import InvalidInputError
+from app.evidence.fuse import shot_quality, usable_shots
 from app.evidence.parsers.trackman_csv import parse_trackman_csv
+from app.evidence.plausibility.shots import check_shots
 from app.schemas.evidence import ImportReport, Shot, ShotQualityReport
 from app.schemas.session import StoredImport
 
 router = APIRouter(tags=["evidence"])
 
 MAX_CSV_BYTES = 2 * 1024 * 1024
-TRUSTED_SHOTS = 5  # S14: 5+ usable shots are trusted (plan §5.2)
 SUMMARY_FIELDS = ("club_speed_mph", "ball_speed_mph", "carry_yd", "impact_toe_up_deg")
 
 
@@ -40,22 +41,18 @@ def _means(shots: list[Shot], prefix: str = "") -> dict[str, float]:
     return out
 
 
-def _report(shots: list[Shot], clubs: dict[str, int]) -> ShotQualityReport:
-    """Counts and numeric means. TODO(#31): run the v1 S rules here (S1, S3, S7, S8, S10, S14)
-    and fill n_rejected / n_mishits / flags; quality is the shot-count part only until then."""
+def _report(shots: list[Shot], clubs: dict[str, int], import_id: str) -> ShotQualityReport:
+    """v1 S rules (S1, S3, S7, S8, S10, S14) + quality; means over the usable shots, per club
+    when the file carries several. Codes and numbers only (plan §5.3)."""
+    flags = check_shots(shots, import_id=import_id)
+    usable = usable_shots(shots, flags)
     if len(clubs) == 1:
-        summary = _means(shots)
+        summary = _means(usable)
     else:
         summary = {}
         for club in clubs:
-            summary |= _means([s for s in shots if s.club == club], prefix=f"{club}:")
-    per_club = min(clubs.values()) if clubs else 0
-    return ShotQualityReport(
-        n_shots=len(shots),
-        n_used=len(shots),
-        quality=round(min(per_club, TRUSTED_SHOTS) / TRUSTED_SHOTS, 2),
-        summary=summary,
-    )
+            summary |= _means([s for s in usable if s.club == club], prefix=f"{club}:")
+    return shot_quality(shots, flags, summary)
 
 
 @router.post("/api/sessions/{session_id}/imports/trackman-csv")
@@ -85,7 +82,7 @@ async def import_trackman_csv(
         kind="trackman_csv",
         club=only_club,
         shots=parsed.shots,
-        report=_report(parsed.shots, parsed.clubs),
+        report=_report(parsed.shots, parsed.clubs, import_id),
         status="pending",
         clubs=parsed.clubs,
         dropped_clubs=parsed.dropped_clubs,

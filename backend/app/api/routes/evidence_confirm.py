@@ -1,9 +1,13 @@
-"""`POST /api/sessions/{id}/imports/{import_id}/confirm` (plan §5.1, §5.5; issue #30).
+"""`POST /api/sessions/{id}/imports/{import_id}/confirm` (plan §5.1, §5.3, §5.5; issues #30, #31).
 
-The golfer confirms a pending import ("this is what we read"). Its parsed shots join
-`FittingState.shots`, the import id joins `import_ids`, and `evidence_version` is bumped so the
-confidence re-runs on the new evidence. Evidence accumulates: a new import never replaces an earlier
-one. Confirming twice is a no-op; a discarded import cannot be confirmed.
+The golfer confirms a pending import ("this is what we read", V6). Its **usable** shots join
+`FittingState.shots`: S1 / S3 / S7 rejects are dropped, S8 mishits are kept (they carry lie
+information). The import id joins `import_ids` and `evidence_version` is bumped so the confidence
+re-runs. The golfer rules (G1, G2, G3, G11) re-run on the profile and the new shots, so G11 fires
+when a claimed carry disagrees with the measured one. Unresolved confirms go to `pending_flags`.
+
+Evidence accumulates: a new import never replaces an earlier one. Confirming twice is a no-op; a
+discarded import cannot be confirmed.
 """
 
 from fastapi import APIRouter
@@ -11,6 +15,9 @@ from pydantic import TypeAdapter
 
 from app.api.deps import SessionDep, StoreDep
 from app.core.errors import ConflictError
+from app.evidence import session_flags
+from app.evidence.fuse import usable_shots
+from app.evidence.plausibility.shots import check_shots
 from app.schemas.evidence import ImportReport, Shot
 from app.schemas.session import StoredImport
 
@@ -36,16 +43,18 @@ async def confirm_import(import_id: str, session: SessionDep, store: StoreDep) -
     if imp.status == "confirmed" or import_id in session.state.import_ids:
         return _report(imp).model_copy(update={"shots": shots, "state": session.state})
 
-    # TODO(#31): drop S1/S3 rejects here (keep S8 mishits: they carry lie information).
+    shot_flags = check_shots(shots, import_id=import_id)  # same rules as the pending report
     expected = session.state.version
     session.evidence_version += 1
     session.state = session.state.model_copy(
         update={
             "evidence_version": session.evidence_version,
             "import_ids": [*session.state.import_ids, import_id],
-            "shots": [*session.state.shots, *shots],
+            "shots": [*session.state.shots, *usable_shots(shots, shot_flags)],
         }
     )
+    session.flags, pending = session_flags.refresh(session, extra_pending=shot_flags)
+    session.state = session.state.model_copy(update={"pending_flags": pending})
     state = await store.save(session, expected_version=expected)
     imp = imp.model_copy(update={"status": "confirmed"})
     await store.put_import(session.id, imp)

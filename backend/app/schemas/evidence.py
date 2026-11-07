@@ -50,6 +50,14 @@ class ImportReport(BaseModel):
     )
 
 
+class FlagsReport(BaseModel):
+    """The session's golfer-level flags after a recheck, and what is still pending (#31)."""
+
+    flags: list[Flag] = Field(default_factory=list)
+    pending_flags: list[Flag] = Field(default_factory=list)
+    state: FittingState | None = None
+
+
 class Cell(BaseModel):
     """One cell read by vision. Every field required; an unreadable cell is absent (§5.1)."""
 
@@ -75,6 +83,7 @@ __all__ = [
     "Flag",
     "FlagCode",
     "FlagSeverity",
+    "FlagsReport",
     "ImportKind",
     "ImportReport",
     "ImportStatus",
