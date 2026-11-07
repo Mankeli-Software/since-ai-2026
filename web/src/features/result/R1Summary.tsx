@@ -298,6 +298,20 @@ export function R1Summary() {
         />
       </div>
 
+      {data.latest('stock_vs_custom') && (
+        <ViewLink
+          view="stock"
+          className="mt-5 flex items-center gap-4 rounded-14 border border-status-amber/60 bg-grey-12 px-5 py-4 text-washed-white no-underline transition-ui hover:border-status-amber"
+        >
+          <span className="size-2 flex-none rounded-full bg-status-amber" aria-hidden="true" />
+          <span className="flex flex-col gap-0.5">
+            <span className="font-display text-[22px] font-bold uppercase">Stock or custom?</span>
+            <span className="text-sm text-grey-c8">Your shots point to a custom build. See both side by side before you decide.</span>
+          </span>
+          <span className="ml-auto font-display text-[15px] font-bold uppercase tracking-[0.04em] text-orange-hover">Compare builds →</span>
+        </ViewLink>
+      )}
+
       <SeeItHit head={best.head} />
 
       {data.noSim && (
