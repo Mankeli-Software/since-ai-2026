@@ -112,7 +112,12 @@ steps:
       custom_returnable: false
 
   # Turn 5: Confirmation and save
-  - text: "Choice locked in. Your custom 201T MKII specs are ready."
+  - text:
+      by: $answer
+      cases:
+        stock: "Stock it is. You keep the 30-day return."
+        custom: "Custom it is. Your build is ready, just remember custom clubs can't be returned."
+      default: "Choice noted. Your build is ready."
   - text: "Hit Save in the top bar to keep a direct link to your build."
   - ui:
       type: driver_teaser

@@ -51,7 +51,12 @@ steps:
       custom_returnable: false
 
   # Turn 3: Confirmation
-  - text: "Fair trade-off. Stock keeps the 30-day safety net, so you can test the lie on the course first."
+  - text:
+      by: $answer
+      cases:
+        stock: "Fair trade-off. Stock keeps the 30-day safety net, so you can test the lie on the course first."
+        custom: "Custom it is. Your lie gets built in, just remember custom clubs can't be returned."
+      default: "Choice noted. Stock keeps the 30-day return, custom gets your lie built in."
   - tool_call:
       name: simulate_flight
       args: {heads: [$state.best.head]}
