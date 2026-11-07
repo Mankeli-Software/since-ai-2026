@@ -21,6 +21,7 @@ from app.agent.settings import settings
 from app.confidence.next_question import INTAKE
 from app.core.tooling import ToolContext, ToolSpec, get_tool, list_tools, ui_tool_specs
 from app.schemas.chat import TextEvent, TextMessage, TurnRequest, UiEvent
+from app.schemas.fit import FitResult
 from app.schemas.session import FitSession, StoredMessage
 
 SYSTEM = (Path(__file__).resolve().parent.parent / "prompts" / "fitter_system.md").read_text()
@@ -57,11 +58,33 @@ def _tool_fn(spec: ToolSpec):
     return run
 
 
+def _clubs_verdict(s: FitSession) -> float | None:
+    """`current_clubs_verdict` (yd) from the state, else from the last fit; None when absent."""
+    if s.state.current_clubs_verdict is not None:
+        return s.state.current_clubs_verdict
+    if not s.recommendation_json:
+        return None
+    try:
+        fit = FitResult.model_validate_json(s.recommendation_json)
+    except ValueError:
+        return None
+    if fit.current_clubs_verdict is not None:
+        return fit.current_clubs_verdict
+    return fit.flight.current_clubs_verdict if fit.flight is not None else None
+
+
 def _digest(ctx: ToolContext) -> str:
     st = ctx.session.state
-    return json.dumps(
-        {"version": st.version, "gate": st.gate, "confidence": st.confidence, "missing": st.missing}
-    )
+    d: dict[str, Any] = {
+        "version": st.version,
+        "gate": st.gate,
+        "confidence": st.confidence,
+        "missing": st.missing,
+    }
+    verdict = _clubs_verdict(ctx.session)
+    if verdict is not None:  # only then may the reply say "your clubs are fine" (prompt rule 1)
+        d["current_clubs_verdict"] = round(verdict, 1)
+    return json.dumps(d)
 
 
 def _dump(m: Message) -> dict[str, Any]:
@@ -100,6 +123,19 @@ async def _presave(ctx: ToolContext, request: TurnRequest, value: Any, block_fie
         "saved": json.loads(saved.model_dump_json()),
         "next_question": json.loads((await nq.fn(ctx, nq.input_model())).model_dump_json()),
     }
+
+
+def _offer(ctx: ToolContext, block: dict[str, Any]) -> dict:
+    """For an answer to a precision or ball-line offer: the offer's part, so the model records
+    the offer the golfer answered with `record_offer_answer` (#195). The chips carry the
+    offer's `field`, the ball-line `data_import` its `reason_code`."""
+    hint = ctx.session.state.next_question
+    if hint is None or hint.kind != "precision" or hint.part is None:
+        return {}
+    code = block.get("reason_code")
+    if block.get("field") != hint.field and not (code and code == hint.reason_code):
+        return {}
+    return {"offer": {"part": hint.part, "reason_code": hint.reason_code}}
 
 
 def _profile(s: FitSession) -> dict[str, Any]:
@@ -179,8 +215,10 @@ class GenkitEngine:
             mine = next(
                 p for p in pending if (p.tool_request.ref or p.tool_request.name) == s.pending_ui_id
             )
-            field = (mine.tool_request.input or {}).get("field")
-            extra = await _presave(ctx, request, value, field)
+            block = mine.tool_request.input or {}
+            field = block.get("field") if isinstance(block, dict) else None
+            offer = _offer(ctx, block) if isinstance(block, dict) else {}
+            extra = offer or await _presave(ctx, request, value, field)
             result = json.dumps({"value": value, "display_text": display, **extra})
             kwargs["resume_respond"] = [
                 p.respond(result if p is mine else IGNORED) for p in pending
