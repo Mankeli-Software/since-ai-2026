@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from app import pack
+from app.fitting.mapping import RADAR_TEMPO_NOTE
 from app.schemas.common import Depth, HeadSlug, Part, Provenance
 from app.schemas.fit import (
     CloseCall,
@@ -234,6 +235,15 @@ def explain_fit(
         f"The {model_name} ({rec.material}) matches your {answers.flight} flight "
         f"and {answers.tempo} tempo.{nearest_note}"
     )
+    # Issue #161 / plan §5.4: shots are in but full-swing tempo is always empty in the export.
+    tempo_prov = answers.provenance.get("tempo")
+    if tempo_prov and tempo_prov.source == "questionnaire" and tempo_prov.note == RADAR_TEMPO_NOTE:
+        on_trackman = any(p.source == "trackman" for p in answers.provenance.values())
+        device = "TrackMan doesn't" if on_trackman else "Launch monitors don't"
+        shaft_plain += (
+            f" {device} measure tempo on full swings (the radar sees the club from knee to knee), "
+            "so your tempo comes from your own answer."
+        )
     if intake and intake.joint_pain and any(p != "none" for p in intake.joint_pain):
         shaft_plain += (
             " You noted joint pain; a fitter would consider a graphite shaft to reduce vibration, "
