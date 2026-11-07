@@ -6,6 +6,7 @@ import { HeadSelector } from './compare/HeadSelector'
 import { HeadStage } from './compare/HeadStage'
 import { comparePair, num, shortHead, type CompareRow, type HeadOption } from './compare/pair'
 import { VideoTile } from './compare/VideoTile'
+import { PhoneNext, PhoneNote } from './PhoneBits'
 import { headName, shaftLabel } from './specLabel'
 import { CloseCallView } from './views/CloseCallView'
 
@@ -32,7 +33,7 @@ function flightSummary(sel: CompareRow, other: CompareRow | null) {
 
 function CompareTiles({ sel, other }: { sel: CompareRow; other: CompareRow | null }) {
   return (
-    <div className="grid grid-cols-4 gap-2.5">
+    <div className="grid grid-cols-4 gap-2.5 max-md:grid-cols-2">
       <StatTile tone="dark" label="Carry" value={num(sel.carry)} compare={other ? num(other.carry) : undefined} unit="yd" />
       <StatTile tone="dark" label="Apex" value={num(sel.apex)} compare={other ? num(other.apex) : undefined} unit="yd" />
       <StatTile tone="dark" label="Landing" value={`${num(sel.land_angle)}°`} compare={other ? `${num(other.land_angle)}°` : undefined} />
@@ -53,8 +54,8 @@ function FlightPanel({ sel, other, guessed }: { sel: HeadOption; other: HeadOpti
   const rows = [sel.row, other?.row].filter((r): r is CompareRow => !!r)
   return (
     <>
-      <div className="rounded-16 border border-grey-26 bg-grey-12 px-[18px] pt-3 pb-1">
-        <div className="flex items-baseline justify-between gap-4">
+      <div className="rounded-16 border border-grey-26 bg-grey-12 px-[18px] pt-3 pb-1 max-md:px-3.5">
+        <div className="flex items-baseline justify-between gap-4 max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-0.5">
           <Eyebrow className="text-grey-a3">Your swing, side view</Eyebrow>
           <span title={guessed ? 'Dashed: your carry is a guess. Import shots to measure it.' : 'Arcs drawn from carry, apex and landing angle, not a simulated flight'} className="text-[12px] text-grey-8f">
             {guessed ? 'Estimate · dashed = guessed carry' : 'Estimate'}
@@ -73,7 +74,10 @@ function FlightPanel({ sel, other, guessed }: { sel: HeadOption; other: HeadOpti
   )
 }
 
-/** R3 "Compare heads, see it fly" (V3-R3-Compare): same shaft, two heads, the selected one's flight in orange. */
+/**
+ * R3 "Compare heads, see it fly" (V3-R3-Compare): same shaft, two heads, the selected one's flight in orange.
+ * Phones (M-R3): one column, no head photo panel, the fitter's note inline and a Next card at the bottom.
+ */
 export function R3Compare() {
   const { data } = useResultsChrome()
   const guessed = (data.state?.shots ?? []).length === 0
@@ -136,12 +140,16 @@ export function R3Compare() {
   return (
     <>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h1 className="m-0 font-display text-[26px] font-bold uppercase">Swap the head, keep your shaft</h1>
+        <h1 className="m-0 font-display text-[26px] font-bold uppercase max-md:text-[36px] max-md:leading-[.9] max-md:font-extrabold">
+          Swap the head, keep your shaft
+        </h1>
         {sub && <span className="text-[15px] text-grey-a3">{sub}</span>}
       </div>
 
-      <div className="grid flex-[1_0_auto] grid-cols-[230px_minmax(0,1fr)] gap-4">
-        <HeadStage selected={sel.head} other={other?.head ?? null} />
+      <div className="grid flex-[1_0_auto] grid-cols-[230px_minmax(0,1fr)] gap-4 max-md:flex-none max-md:grid-cols-1">
+        <div className="contents max-md:hidden">
+          <HeadStage selected={sel.head} other={other?.head ?? null} />
+        </div>
         <div className="flex min-w-0 flex-col gap-3">
           <FlightPanel sel={sel} other={other} guessed={guessed} />
         </div>
@@ -172,6 +180,8 @@ export function R3Compare() {
         </div>
       )}
 
+      <PhoneNote text={ASIDE_MESSAGE} />
+      <PhoneNext label="In your hands" to={{ view: 'ar' }} />
       {aside}
       {next}
     </>

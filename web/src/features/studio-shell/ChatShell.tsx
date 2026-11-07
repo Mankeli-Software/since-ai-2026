@@ -60,18 +60,18 @@ export function ChatShell() {
     <div className="bg-bay relative flex min-h-screen w-full flex-col overflow-hidden font-sans antialiased">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-[165px] -right-[46px] h-[442px] w-[408px] bg-[radial-gradient(ellipse_at_50%_60%,rgba(255,110,1,.14),transparent_65%)]"
+        className="pointer-events-none absolute top-[165px] -right-[46px] h-[442px] w-[408px] bg-[radial-gradient(ellipse_at_50%_60%,rgba(255,110,1,.14),transparent_65%)] max-md:hidden"
       />
       <ClubModel
         slug={state?.best?.head ?? '201t-mkii'}
-        className="absolute top-[160px] -right-[26px] h-[460px] drop-shadow-club transition-[opacity] duration-[600ms] ease-out"
+        className="absolute top-[160px] -right-[26px] h-[460px] drop-shadow-club transition-[opacity] duration-[600ms] ease-out max-md:hidden"
         style={{ opacity: ghostOpacity(state?.confidence) }}
       />
       <StudioHeader variant="chat" step={view.step} />
       <main
         className={cn(
-          'relative mx-auto flex w-full flex-1 flex-col px-10',
-          view.first ? 'max-w-[1060px] gap-6 pt-11' : 'max-w-[960px] gap-[22px] pt-8',
+          'relative mx-auto flex w-full flex-1 flex-col px-10 max-md:px-4',
+          view.first ? 'max-w-[1060px] gap-6 pt-11 max-md:gap-4 max-md:pt-2' : 'max-w-[960px] gap-[22px] pt-8 max-md:gap-4 max-md:pt-2',
         )}
       >
         <ConversationHistory messages={view.history.messages} ui={view.history.ui} />
@@ -89,7 +89,7 @@ export function ChatShell() {
             footer={
               view.first && (
                 <div className="flex flex-col gap-2.5 border-t border-grey-e4 pt-4">
-                  <span className="text-[16px] text-grey-33">Not sure, or easier to explain? Type or say it</span>
+                  <span className="text-[16px] text-grey-33 max-md:text-[15px]">Not sure, or easier to explain? Type or say it</span>
                   <Composer
                     tone="light"
                     onSend={(t) => void say(t)}
@@ -111,11 +111,11 @@ export function ChatShell() {
         )}
         {/* C2 has the composer inside the card instead. Pinned to the bottom while a tall card scrolls. */}
         {view.first ? (
-          <div className="pb-10">
+          <div className="pb-10 max-md:pb-6">
             <VoiceBar />
           </div>
         ) : (
-          <div className="sticky bottom-0 mt-auto bg-[linear-gradient(to_top,#0B0B0B_55%,transparent)] pt-4 pb-7">
+          <div className="sticky bottom-0 mt-auto bg-[linear-gradient(to_top,#0B0B0B_55%,transparent)] pt-4 pb-7 max-md:-mx-4 max-md:px-4 max-md:pt-2.5 max-md:pb-[18px]">
             <VoiceBar className="mb-2.5" />
             <Composer onSend={(t) => void say(t)} disabled={sendDisabled} />
           </div>

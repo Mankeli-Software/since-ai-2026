@@ -4,10 +4,15 @@ import { PhoneMock } from './ar/PhoneMock'
 import { QrPlaceholder } from './ar/QrPlaceholder'
 import { ResultsAside, useResultsChrome } from './chrome'
 import { shortHead } from './compare/pair'
+import { PhoneNote } from './PhoneBits'
 
 const ASIDE_MESSAGE = 'Hold your phone where the ball would be. Check how the topline looks to you at address.'
 
-/** R4 "In your hands" (V3-R4-AR): QR-style picture + the real AR link, phone mock. No Next link. */
+/**
+ * R4 "In your hands" (V3-R4-AR): QR-style picture + the real AR link, phone mock. No Next link.
+ * Phones (M-R4, M-00 rule 8): no QR code; the carpet preview, then one "View in your room" button that opens
+ * AR Quick Look / Scene Viewer directly.
+ */
 export function R4AR() {
   const { data } = useResultsChrome()
   const best = data.best
@@ -20,15 +25,27 @@ export function R4AR() {
 
   return (
     <>
-      <div className="grid flex-1 grid-cols-[minmax(0,1fr)_300px] min-[1400px]:grid-cols-[minmax(0,1fr)_340px] items-center gap-10">
-        <div className="flex min-w-0 flex-col gap-5">
-          <Eyebrow className="text-orange-hover">See it in your hands</Eyebrow>
-          <h1 className="m-0 font-display text-[72px] leading-[.86] font-extrabold uppercase">Put it on your carpet.</h1>
-          <p className="m-0 max-w-[520px] text-[20px] leading-[1.5] text-grey-c8">
+      <div className="grid flex-1 grid-cols-[minmax(0,1fr)_300px] min-[1400px]:grid-cols-[minmax(0,1fr)_340px] items-center gap-10 max-md:flex-none max-md:grid-cols-1 max-md:gap-4">
+        <div className="flex min-w-0 flex-col gap-5 max-md:order-2 max-md:gap-3">
+          <Eyebrow className="text-orange-hover max-md:hidden">See it in your hands</Eyebrow>
+          <h1 className="m-0 font-display text-[72px] leading-[.86] font-extrabold uppercase max-md:text-[40px] max-md:leading-[.9]">
+            Put it on your carpet.
+          </h1>
+          <p className="m-0 max-w-[520px] text-[20px] leading-[1.5] text-grey-c8 max-md:text-[16px]">
             Open it on your phone. The {shortHead(head)} appears at real size, so you can check how the topline and offset look at
             address.
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col gap-2 md:hidden">
+            <Button href={url} variant="primary" className="min-h-[52px] w-full gap-2.5">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2l9 5v10l-9 5-9-5V7z" />
+                <path d="M3 7l9 5 9-5M12 12v10" />
+              </svg>
+              View in your room
+            </Button>
+            <span className="text-center text-[13px] text-grey-a3">Opens AR Quick Look on iPhone, Scene Viewer on Android</span>
+          </div>
+          <div className="flex items-center gap-6 max-md:hidden">
             <div className="flex flex-none flex-col items-center gap-2">
               <div className="rounded-16 bg-white p-3.5">
                 <QrPlaceholder
@@ -67,8 +84,12 @@ export function R4AR() {
             </div>
           </div>
         </div>
-        <PhoneMock head={head} />
+        {/* Phones (M-R4): the phone mock becomes a full-width carpet preview (no phone frame or notch). */}
+        <div className="contents max-md:order-1 max-md:block max-md:[&>div]:h-[300px] max-md:[&>div]:w-full max-md:[&>div]:rounded-18 max-md:[&>div]:border-0 max-md:[&>div]:shadow-none max-md:[&>div>span:first-of-type]:hidden max-md:[&_img]:top-[60px]">
+          <PhoneMock head={head} />
+        </div>
       </div>
+      <PhoneNote text={ASIDE_MESSAGE} />
       <ResultsAside message={ASIDE_MESSAGE} chips={chips} />
     </>
   )

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { ClubImage, Eyebrow, SpecPartIcon, type ClubImageVariant, type SpecPart } from '@/components/studio'
+import { ClubImage, Eyebrow, FitterAvatar, SpecPartIcon, type ClubImageVariant, type SpecPart } from '@/components/studio'
 import { ClubModel } from '@/features/stage3d/ClubModel'
 import { cn } from '@/lib/utils'
 import rawProductVideos from '../../../../fixtures/product_videos.json'
@@ -46,8 +46,8 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
   const why = whySentence(data)
   const copy = PURCHASE_COPY[best.purchase]
   return (
-    <div className="mt-2 grid grid-cols-[270px_minmax(0,1fr)] items-center gap-9">
-      <div className="relative flex h-[270px] items-center justify-center rounded-18 border border-grey-26 bg-[radial-gradient(ellipse_80%_60%_at_50%_65%,rgba(255,110,1,.22),#121212_70%)]">
+    <div className="mt-2 grid grid-cols-[270px_minmax(0,1fr)] items-center gap-9 max-md:mt-0 max-md:grid-cols-1 max-md:gap-4">
+      <div className="relative flex h-[270px] items-center justify-center rounded-18 border border-grey-26 bg-[radial-gradient(ellipse_80%_60%_at_50%_65%,rgba(255,110,1,.22),#121212_70%)] max-md:h-[220px]">
         <ClubModel
           slug={best.head}
           alt={`Takomo ${name} 7-iron`}
@@ -56,13 +56,13 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
         <Eyebrow className="absolute top-2.5 left-2.5 rounded-3 bg-washed-white px-[7px] py-0.5 text-midnight">3D</Eyebrow>
       </div>
       <div className="flex min-w-0 flex-col gap-2.5">
-        <h1 className="m-0 font-display text-[104px] leading-[.84] font-extrabold uppercase">{name}</h1>
-        <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-washed-white">
+        <h1 className="m-0 font-display text-[104px] leading-[.84] font-extrabold uppercase max-md:text-[56px] max-md:leading-[.88]">{name}</h1>
+        <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-washed-white max-md:text-[17px]">
           {why ? <Text text={why} /> : 'Every part of this build has a reason. Each one is a tap away below.'}
         </p>
-        <ul title={STATUS_TOOLTIP} className="m-0 flex list-none flex-wrap items-center gap-x-[22px] gap-y-1 p-0 pt-0.5 pb-1">
+        <ul title={STATUS_TOOLTIP} className="m-0 flex list-none flex-wrap items-center gap-x-[22px] gap-y-1 p-0 pt-0.5 pb-1 max-md:gap-x-4">
           {copy.ticks.map((t) => (
-            <li key={t} className="inline-flex items-center gap-2 text-[15px] text-washed-white">
+            <li key={t} className="inline-flex items-center gap-2 text-[15px] text-washed-white max-md:text-[14px]">
               <Check />
               {t}
             </li>
@@ -86,7 +86,7 @@ function HeadCard({ spec, rank, score }: { spec: Spec; rank: 1 | 2; score: numbe
         first ? 'border-2 border-tiger-orange bg-selected-dark' : 'border border-grey-26 bg-grey-12 hover:border-grey-3d',
       )}
     >
-      <ClubImage slug={spec.head} className="h-[62px] w-auto flex-none" />
+      <ClubImage slug={spec.head} className="h-[62px] w-auto flex-none max-md:hidden" />
       <span className="flex min-w-0 flex-col gap-[3px]">
         <Eyebrow className={first ? 'text-orange-hover' : 'text-grey-8f'}>{first ? '1st, your fit' : '2nd, close behind'}</Eyebrow>
         <span className="font-display text-[22px] font-bold uppercase">{headName(spec.head)}</span>
@@ -105,19 +105,34 @@ function HeadCard({ spec, rank, score }: { spec: Spec; rank: 1 | 2; score: numbe
   )
 }
 
+/** Phones (M-R1): a list row with a chevron, no preview and no CTA line. */
 function DrillCard({ view, n, title, text, cta, preview }: { view: ResultsView; n: number; title: string; text: string; cta: string; preview: ReactNode }) {
   return (
     <ViewLink
       view={view}
-      className="flex min-w-0 flex-col gap-2.5 rounded-16 border border-grey-26 bg-grey-12 p-3.5 text-washed-white no-underline transition-ui hover:border-grey-3d"
+      className="relative flex min-w-0 flex-col gap-2.5 rounded-16 border border-grey-26 bg-grey-12 p-3.5 text-washed-white no-underline transition-ui hover:border-grey-3d max-md:gap-1 max-md:rounded-12 max-md:py-4 max-md:pr-11 max-md:pl-4"
     >
-      <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-10 bg-midnight">{preview}</div>
+      <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-10 bg-midnight max-md:hidden">{preview}</div>
       <span className="flex items-baseline gap-2">
         <span className="font-display text-[18px] font-extrabold tabular-nums text-orange-text">{n}</span>
-        <span className="font-display text-[22px] leading-none font-bold uppercase">{title}</span>
+        <span className="font-display text-[22px] leading-none font-bold uppercase max-md:text-[20px]">{title}</span>
       </span>
       <span className="flex-1 text-[14px] leading-[1.4] text-grey-c8">{text}</span>
-      <span className="font-display text-[15px] font-bold tracking-[0.04em] text-orange-hover uppercase">{cta}</span>
+      <span className="font-display text-[15px] font-bold tracking-[0.04em] text-orange-hover uppercase max-md:hidden">{cta}</span>
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#FF8A33"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="absolute top-1/2 right-4 -translate-y-1/2 md:hidden"
+      >
+        <path d="M9 5l7 7-7 7" />
+      </svg>
     </ViewLink>
   )
 }
@@ -177,7 +192,7 @@ function SeeItHit({ head }: { head: string }) {
   const name = headName(head)
   const ringed = playing?.id ?? videos[0].id
   return (
-    <section aria-labelledby="see-it-hit" className="mt-9 flex flex-col gap-3">
+    <section aria-labelledby="see-it-hit" className="mt-9 flex flex-col gap-3 max-md:mt-6">
       <span className="flex flex-wrap items-center gap-x-3.5 gap-y-1">
         <h2 id="see-it-hit" className="m-0 font-display text-[26px] font-extrabold uppercase">
           See it hit
@@ -185,7 +200,7 @@ function SeeItHit({ head }: { head: string }) {
         <Eyebrow className="text-grey-8f">
           {videos.length} {videos.length === 1 ? 'video' : 'videos'} of the {name}
         </Eyebrow>
-        <span className="min-w-0 truncate text-[13px] text-grey-a3">Picked for you: {videos[0].title}</span>
+        <span className="min-w-0 truncate text-[13px] text-grey-a3 max-md:hidden">Picked for you: {videos[0].title}</span>
       </span>
       {playing && (
         <div className="flex flex-col gap-2">
@@ -211,7 +226,7 @@ function SeeItHit({ head }: { head: string }) {
           </span>
         </div>
       )}
-      <div className="flex gap-3.5">
+      <div className="flex gap-3.5 max-md:-mx-4 max-md:gap-3 max-md:overflow-x-auto max-md:px-4 max-md:[scrollbar-width:none] max-md:[mask-image:linear-gradient(90deg,#000_88%,transparent)]">
         {videos.map((v, i) => {
           const on = v.id === ringed
           return (
@@ -221,11 +236,11 @@ function SeeItHit({ head }: { head: string }) {
               aria-label={`Play ${v.title}`}
               aria-pressed={playing?.id === v.id}
               onClick={() => setPlaying(v)}
-              className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1.5 border-0 bg-transparent p-0 text-left text-washed-white"
+              className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1.5 border-0 bg-transparent p-0 text-left text-washed-white max-md:w-[200px] max-md:flex-none"
             >
               <span
                 className={cn(
-                  'relative block h-[150px] w-full overflow-hidden rounded-12 bg-[radial-gradient(ellipse_at_70%_40%,#2A2A2A,#0B0B0B_70%)]',
+                  'relative block h-[150px] w-full overflow-hidden rounded-12 max-md:h-[130px] bg-[radial-gradient(ellipse_at_70%_40%,#2A2A2A,#0B0B0B_70%)]',
                   on ? 'shadow-[inset_0_0_0_2px_#FF6E01]' : 'shadow-[inset_0_0_0_1px_#262626]',
                 )}
               >
@@ -269,14 +284,14 @@ export function R1Summary() {
           <Eyebrow as="h2" id="two-best" className="m-0 text-grey-8f">
             {sameShaft ? 'Your two best heads, same shaft' : 'Your two best heads'}
           </Eyebrow>
-          <div className="flex gap-3">
+          <div className="flex gap-3 max-md:flex-col max-md:gap-2.5">
             <HeadCard spec={best} rank={1} score={scoreOf(data, best.head)} />
             <HeadCard spec={runnerUp} rank={2} score={scoreOf(data, runnerUp.head)} />
           </div>
         </section>
       )}
 
-      <div className="mt-5 grid grid-cols-3 gap-4">
+      <div className="mt-5 grid grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-2.5">
         <DrillCard
           view="why"
           n={1}
@@ -306,9 +321,9 @@ export function R1Summary() {
       {data.latest('stock_vs_custom') && (
         <ViewLink
           view="stock"
-          className="mt-5 flex items-center gap-4 rounded-14 border border-status-amber/60 bg-grey-12 px-5 py-4 text-washed-white no-underline transition-ui hover:border-status-amber"
+          className="mt-5 flex items-center gap-4 rounded-14 max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-2 border border-status-amber/60 bg-grey-12 px-5 py-4 text-washed-white no-underline transition-ui hover:border-status-amber"
         >
-          <span className="size-2 flex-none rounded-full bg-status-amber" aria-hidden="true" />
+          <span className="size-2 flex-none rounded-full bg-status-amber max-md:hidden" aria-hidden="true" />
           <span className="flex flex-col gap-0.5">
             <span className="font-display text-[22px] font-bold uppercase">Stock or custom?</span>
             <span className="text-sm text-grey-c8">Your shots point to a custom build. See both side by side before you decide.</span>
@@ -318,6 +333,17 @@ export function R1Summary() {
       )}
 
       <SeeItHit head={best.head} />
+
+      {/* Phones (M-R1b): with no simulator shots the fitter's suggestion sits inline, not in the closed sheet. */}
+      {data.noSim && (
+        <section aria-label="Confirm your fit with shots" className="mt-6 flex flex-col gap-3 md:hidden">
+          <div className="flex items-start gap-2.5">
+            <FitterAvatar size={28} className="mt-0.5" />
+            <p className="m-0 text-[16px] leading-[1.45] text-washed-white">{R1B_MESSAGE}</p>
+          </div>
+          <ConfirmWithShots confidence={data.state?.confidence ?? null} simulatorIds={data.latest('simulator_map')?.simulator_ids} />
+        </section>
+      )}
 
       {data.noSim && (
         <ResultsAside fallback={R1B_MESSAGE} chips={R1B_CHIPS}>

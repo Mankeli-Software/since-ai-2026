@@ -162,10 +162,11 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
 
       {guided && (
         <>
-          <ol className="m-0 grid list-none grid-cols-3 gap-4 p-0">
+          {/* Phones (M-04c): a numbered list, no pictures. */}
+          <ol className="m-0 grid list-none grid-cols-3 gap-4 p-0 max-md:grid-cols-1 max-md:gap-3">
             {TM_STEPS.map(([n, text]) => (
               <li key={n} className="flex flex-col gap-2.5">
-                <div className="flex h-[120px] items-center justify-center overflow-hidden rounded-12 bg-midnight">
+                <div className="flex h-[120px] items-center justify-center overflow-hidden rounded-12 bg-midnight max-md:hidden">
                   <StepArt n={n} />
                 </div>
                 <span className="flex items-baseline gap-2.5">
@@ -193,8 +194,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
             </div>
           )}
 
-          <div className="flex flex-wrap items-end gap-2.5">
-            <label htmlFor={clubId} className="flex flex-col gap-1.5 text-[14px] font-semibold">
+          <div className="flex flex-wrap items-end gap-2.5 max-md:flex-col max-md:items-stretch">
+            <label htmlFor={clubId} className="flex flex-col gap-1.5 text-[14px] font-semibold max-md:[&>select]:w-full">
               Hit with
               <select id={clubId} className={boxCls} value={club} disabled={off} onChange={(e) => setClub(e.target.value)}>
                 {clubs.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -213,7 +214,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
                 if (f) void run(() => csvPost(f, f.name, club))
               }}
             />
-            <Button variant="primary" className="min-h-12 pr-3" disabled={off} aria-keyshortcuts="Enter" onClick={() => fileRef.current?.click()}>
+            <Button variant="primary" className="min-h-12 pr-3 max-md:min-h-[52px]" disabled={off} aria-keyshortcuts="Enter" onClick={() => fileRef.current?.click()}>
               {working ? 'Bringing them in…' : 'Upload TrackMan CSV'}
               <EnterKbd tone="primary" />
             </Button>
@@ -225,7 +226,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         <div className="flex flex-wrap items-center gap-2.5">
           <Eyebrow className="text-grey-55">Try a sample</Eyebrow>
           {samples.map((s, i) => (
-            <Button key={s.sample_id} size="sm" variant="outline" disabled={off} aria-keyshortcuts={i < 9 ? String(i + 1) : undefined} onClick={() => void sendSample(s)}>
+            <Button key={s.sample_id} size="sm" variant="outline" className="max-md:min-h-11 max-md:w-full max-md:justify-between" disabled={off} aria-keyshortcuts={i < 9 ? String(i + 1) : undefined} onClick={() => void sendSample(s)}>
               {i < 9 && <Kbd className="h-[22px] min-w-[22px] text-[12px]">{i + 1}</Kbd>}
               {s.label ?? s.sample_id}
               <span className="rounded-4 bg-grey-ed px-1.5 py-0.5 font-sans text-[11px] font-semibold tracking-normal text-grey-44 normal-case">Simulated</span>
