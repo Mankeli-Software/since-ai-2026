@@ -12,6 +12,8 @@ export interface ChatMessage {
   text: string
   /** Arrival order across messages and ui items (the chat timeline sorts on it). */
   seq: number
+  /** True for messages that arrived live in this session; false or omitted for restored messages. */
+  live?: boolean
 }
 export interface UiItem {
   id: string
@@ -79,7 +81,7 @@ export const useSession = create<SessionStore>()((set, get) => {
           const last = s.messages.at(-1)
           return last?.id === ev.msg_id
             ? { messages: [...s.messages.slice(0, -1), { ...last, text: last.text + ev.delta }] }
-            : { messages: [...s.messages, { id: ev.msg_id, role: 'assistant', text: ev.delta, seq: nextSeq() }] }
+            : { messages: [...s.messages, { id: ev.msg_id, role: 'assistant', text: ev.delta, seq: nextSeq(), live: true }] }
         })
         break
       case 'ui':
@@ -156,7 +158,7 @@ export const useSession = create<SessionStore>()((set, get) => {
     if (!demo) {
       // No model or tool is needed for the first step, so it shows at once (store/opening.ts).
       set({
-        messages: GREETING.map((text, i) => ({ id: `opening-m${i}`, role: 'assistant', text, seq: nextSeq() })),
+        messages: GREETING.map((text, i) => ({ id: `opening-m${i}`, role: 'assistant', text, seq: nextSeq(), live: true })),
         ui: [{ id: OPENING_ID, block: OPENING_BLOCK, interactive: true, answered: false, seq: nextSeq() }],
       })
     }

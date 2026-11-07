@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { GenUiBlock } from '@/features/genui/GenUiBlock'
 import { useSession } from '@/store/session'
+import { RevealText } from './RevealText'
 import { Text } from './Text'
 
 export function ChatPanel() {
@@ -45,7 +46,15 @@ export function ChatPanel() {
                   : 'max-w-[92%] border-l-2 border-accent pl-3 text-[15px] leading-relaxed text-ink-800'
               }
             >
-              <Text text={it.m.text} />
+              {it.m.role === 'assistant' ? (
+                <RevealText
+                  text={it.m.text}
+                  animate={it.m.live}
+                  onReveal={() => endRef.current?.scrollIntoView({ block: 'end' })}
+                />
+              ) : (
+                <Text text={it.m.text} />
+              )}
             </p>
           ) : (
             <div key={it.u.id} className="rounded-lg border border-border bg-card p-4 shadow-sm">
