@@ -42,6 +42,13 @@ let starting: Promise<void> | null = null
 let opening: Promise<void> | null = null
 /** The server's id for the opening card, from the opening turn. The local card keeps `OPENING_ID`. */
 let openingId: string | null = null
+/** Ids of client-only blocks from `addUi` (e.g. the header's Add data). The server never issued them, so answering
+ *  one must not send a `ui_response` (the turn route rejects an unknown `component_id` with 422). */
+const LOCAL_UI = 'local-ui-'
+/** What the fitter says after a local Add data import when no import card of its own is waiting. The block already did
+ *  the REST import + confirm and merged the new state, so no turn runs; the next turn's state digest carries the new
+ *  evidence. No numbers here (invariant 14). */
+const LOCAL_IMPORT_ACK = 'Got it, those shots are in. Your fit and fit confidence are updated.'
 
 interface SessionStore {
   sessionId: string | null
@@ -269,10 +276,28 @@ export const useSession = create<SessionStore>()((set, get) => {
         ui: s.ui.map((u) => (u.id === componentId ? { ...u, answered: true, answer: { value, displayText } } : u)),
         messages: [...s.messages, { id: `u-${s.messages.length}`, role: 'user', text: displayText, seq: nextSeq() }],
       }))
+      if (componentId.startsWith(LOCAL_UI)) {
+        // A local block does its own REST work; a skip just closes it.
+        const imported = typeof value === 'object' && value !== null && 'import_id' in value
+        if (!imported) return Promise.resolve()
+        // If the fitter is itself waiting on an import card, that import answers it (with the server's id), so the
+        // conversation moves on instead of asking for the same shots again.
+        const waiting = [...get().ui]
+          .reverse()
+          .find((u) => u.interactive && !u.answered && !u.id.startsWith(LOCAL_UI) && u.block.type === 'data_import')
+        if (waiting) {
+          set((s) => ({ ui: s.ui.map((u) => (u.id === waiting.id ? { ...u, answered: true, answer: { value, displayText } } : u)) }))
+          return turn({ message: { kind: 'ui_response', component_id: waiting.id, value, display_text: displayText } })
+        }
+        set((s) => ({
+          messages: [...s.messages, { id: `${componentId}-ack`, role: 'assistant', text: LOCAL_IMPORT_ACK, seq: nextSeq() }],
+        }))
+        return Promise.resolve()
+      }
       return turn({ message: { kind: 'ui_response', component_id: componentId, value, display_text: displayText } })
     },
     addUi(block, interactive = true) {
-      const id = `local-ui-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+      const id = `${LOCAL_UI}${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
       set((s) => ({ ui: [...s.ui, { id, block, interactive, answered: false, seq: nextSeq() }] }))
     },
   }
