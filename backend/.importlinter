@@ -1,0 +1,114 @@
+# import-linter contracts: the backend layer rules (plan §2.2, §10.5).
+# Run from backend/: `uv run lint-imports` (part of `just lint` and CI).
+#
+# takomo_fit is a second root package so that `takomo_fit.score` can be forbidden on its own
+# (import-linter squashes external packages, so a submodule of an external package can't be
+# named). takomo_fit therefore has to be importable: PYTHONPATH=<repo>/vendor, which the
+# justfile exports and CI sets (plan §10.1). Without it: "Could not find package 'takomo_fit'".
+#
+# Lane packages (agent, confidence, fitting, evidence, pack) land after the skeleton, so no
+# contract may name one as a plain module (import-linter fails with "does not exist"). Layers
+# use optional "(name)" entries; forbidden contracts use `app` + ignore_imports or `.**`.
+
+[importlinter]
+root_packages =
+    app
+    takomo_fit
+include_external_packages = True
+
+[importlinter:contract:layers]
+name = Layers: api > agent > confidence > fitting > evidence > pack > schemas
+type = layers
+containers =
+    app
+layers =
+    (api)
+    (agent)
+    (confidence)
+    (fitting)
+    (evidence)
+    (pack)
+    (schemas)
+
+# core imports only schemas; persistence imports only schemas and core. The top line is one
+# non-independent layer (":"), so it adds no rules between those packages.
+[importlinter:contract:core-persistence]
+name = core imports only schemas; persistence imports only schemas and core
+type = layers
+containers =
+    app
+layers =
+    (main) : (config) : (api) : (agent) : (confidence) : (fitting) : (evidence) : (pack)
+    (persistence)
+    (core)
+    (schemas)
+
+[importlinter:contract:no-score-no-pandas]
+name = Nothing in app imports takomo_fit.score or pandas
+type = forbidden
+source_modules =
+    app
+forbidden_modules =
+    takomo_fit.score
+    pandas
+
+[importlinter:contract:pack-only-takomo]
+name = Only app.pack imports takomo_fit
+type = forbidden
+source_modules =
+    app
+forbidden_modules =
+    takomo_fit
+ignore_imports =
+    app.pack -> takomo_fit
+    app.pack -> takomo_fit.**
+    app.pack.** -> takomo_fit
+    app.pack.** -> takomo_fit.**
+unmatched_ignore_imports_alerting = none
+# Direct imports only: fitting -> pack -> takomo_fit is the intended path.
+allow_indirect_imports = True
+
+[importlinter:contract:llm-only-in-agent]
+name = Only app.agent imports genkit or anthropic
+type = forbidden
+source_modules =
+    app
+forbidden_modules =
+    genkit
+    anthropic
+ignore_imports =
+    app.agent -> genkit
+    app.agent -> anthropic
+    app.agent.** -> genkit
+    app.agent.** -> anthropic
+unmatched_ignore_imports_alerting = none
+# Direct imports only: api -> agent -> genkit is the intended path.
+allow_indirect_imports = True
+
+[importlinter:contract:http-only-in-api]
+name = Only app.api imports httpx
+type = forbidden
+source_modules =
+    app
+forbidden_modules =
+    httpx
+ignore_imports =
+    app.api -> httpx
+    app.api.** -> httpx
+unmatched_ignore_imports_alerting = none
+# Direct imports only: main -> api -> httpx is the intended path.
+allow_indirect_imports = True
+
+# Direct and indirect. `.**` matches submodules only (and nothing while a package is missing);
+# imports in the packages' own __init__.py are still caught by the two contracts above.
+[importlinter:contract:pure-domain]
+name = evidence, fitting and confidence never reach genkit, anthropic or httpx
+type = forbidden
+source_modules =
+    app.evidence.**
+    app.fitting.**
+    app.confidence.**
+forbidden_modules =
+    genkit
+    anthropic
+    httpx
