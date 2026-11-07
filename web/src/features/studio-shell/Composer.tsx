@@ -1,22 +1,6 @@
-import { useId, useRef, useState } from 'react'
-import { hasFlag } from '@/lib/flags'
+import { useId, useState } from 'react'
+import { useVoice, voiceAvailable } from '@/features/voice/store'
 import { cn } from '@/lib/utils'
-
-/** Minimal Web Speech API surface (not in lib.dom for every browser). Only used with `?ff=voice`. */
-interface Recognition {
-  lang: string
-  interimResults: boolean
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null
-  onend: (() => void) | null
-  start(): void
-  stop(): void
-}
-type RecognitionCtor = new () => Recognition
-
-function recognitionCtor(): RecognitionCtor | null {
-  const w = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor }
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
-}
 
 function MicIcon({ size }: { size: number }) {
   return (
@@ -45,7 +29,10 @@ export interface ComposerProps {
   label?: string
 }
 
-/** Free-text composer (spec §2.1). "Say it" is visible everywhere but only works with `?ff=voice`. */
+/**
+ * Free-text composer (spec §2.1). "Say it" is visible everywhere but only works with `?ff=voice`:
+ * it starts the hands-free voice conversation (features/voice), and tapping it again ends it.
+ */
 export function Composer({
   onSend,
   disabled,
@@ -54,10 +41,10 @@ export function Composer({
   label = 'Message the fitter',
 }: ComposerProps) {
   const [draft, setDraft] = useState('')
-  const [listening, setListening] = useState(false)
-  const rec = useRef<Recognition | null>(null)
+  const listening = useVoice((s) => s.on)
+  const toggleVoice = useVoice((s) => s.toggle)
   const inputId = useId()
-  const voice = hasFlag('voice') && recognitionCtor() !== null
+  const voice = voiceAvailable()
   const light = tone === 'light'
 
   const send = () => {
@@ -65,26 +52,6 @@ export function Composer({
     if (!t || disabled) return
     setDraft('')
     onSend(t)
-  }
-
-  const toggleVoice = () => {
-    if (rec.current) {
-      rec.current.stop()
-      return
-    }
-    const Ctor = recognitionCtor()
-    if (!Ctor) return
-    const r = new Ctor()
-    r.lang = 'en-GB'
-    r.interimResults = true
-    r.onresult = (e) => setDraft(Array.from(e.results, (res) => res[0]?.transcript ?? '').join(''))
-    r.onend = () => {
-      rec.current = null
-      setListening(false)
-    }
-    rec.current = r
-    setListening(true)
-    r.start()
   }
 
   return (
@@ -119,7 +86,7 @@ export function Composer({
         type="button"
         disabled={!voice}
         aria-pressed={voice ? listening : undefined}
-        title={voice ? undefined : 'Voice is coming soon'}
+        title={voice ? (listening ? 'End the voice conversation' : 'Talk with the fitter, hands free') : 'Voice is coming soon'}
         onClick={toggleVoice}
         className={cn(
           'inline-flex flex-none cursor-pointer items-center rounded-full border-0 font-display font-bold uppercase text-washed-white transition-ui disabled:cursor-not-allowed disabled:opacity-50',
@@ -130,7 +97,7 @@ export function Composer({
         )}
       >
         <MicIcon size={light ? 20 : 18} />
-        {listening ? 'Listening' : 'Say it'}
+        {listening ? 'End voice' : 'Say it'}
       </button>
       <button
         type="submit"

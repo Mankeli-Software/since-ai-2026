@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type FormEvent } from 'react'
 import { FitterAvatar } from '@/components/studio'
-import { hasFlag } from '@/lib/flags'
+import { useVoice, voiceAvailable } from '@/features/voice/store'
+import { VoiceBar } from '@/features/voice/VoiceConversation'
 import { useSession } from '@/store/session'
 import { Text } from '../chat/Text'
 import { GenUiBlock } from '../genui/GenUiBlock'
@@ -50,7 +51,9 @@ function Composer() {
   const say = useSession((s) => s.say)
   const busy = useSession((s) => s.busy)
   const [text, setText] = useState('')
-  const voice = hasFlag('voice')
+  const voice = voiceAvailable()
+  const talking = useVoice((s) => s.on)
+  const toggleVoice = useVoice((s) => s.toggle)
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -79,10 +82,12 @@ function Composer() {
       />
       <button
         type="button"
-        aria-label="Say it"
+        aria-label={talking ? 'End voice' : 'Say it'}
+        aria-pressed={voice ? talking : undefined}
         disabled={!voice}
-        title={voice ? undefined : 'Voice is coming soon'}
-        className="inline-flex size-[42px] flex-none cursor-pointer items-center justify-center rounded-full border-0 bg-grey-26 disabled:cursor-default disabled:opacity-50"
+        title={voice ? (talking ? 'End the voice conversation' : 'Talk with the fitter, hands free') : 'Voice is coming soon'}
+        onClick={toggleVoice}
+        className={`inline-flex size-[42px] flex-none cursor-pointer items-center justify-center rounded-full border-0 bg-grey-26 disabled:cursor-default disabled:opacity-50 ${talking ? 'shadow-[inset_0_0_0_2px_#FF6E01]' : ''}`}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF6E01" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <rect x="9" y="3" width="6" height="11" rx="3" />
@@ -118,6 +123,7 @@ export function FitterAside({ chips, slotRef, overridden }: FitterAsideProps) {
         {!overridden && <AsideBody chips={chips} />}
         <div ref={slotRef} className="contents" />
       </div>
+      <VoiceBar />
       <Composer />
     </aside>
   )

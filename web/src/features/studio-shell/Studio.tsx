@@ -7,6 +7,7 @@ import { isResultPhase } from '../result/phase'
 import ResultsShell from '../result/ResultsShell'
 import { ChatColumn } from './ChatColumn'
 import { ChatShell } from './ChatShell'
+import { useVoiceConversation } from '@/features/voice/VoiceConversation'
 import { StageBoundary } from './StageBoundary'
 import { StagePanel } from './StagePanel'
 import { TopBar } from './TopBar'
@@ -23,6 +24,8 @@ export function Studio() {
   const resultPhase = useSession((s) => isResultPhase(s.state, s.ui))
   const start = useSession((s) => s.start)
   const resume = useSession((s) => s.resume)
+  // Hands-free voice (`?ff=voice`): one loop across the chat and the results view.
+  useVoiceConversation()
 
   const q = new URLSearchParams(location.search)
   const resumeToken = q.get('resume')
