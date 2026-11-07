@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { ClubImage } from '@/components/studio'
+import { ClubModel } from '@/features/stage3d/ClubModel'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
 import { VoiceBar } from '@/features/voice/VoiceConversation'
@@ -11,8 +11,8 @@ import { RecapRow } from './RecapRow'
 import { stepFor } from './stepFor'
 import { StudioHeader } from './StudioHeader'
 
-/** Ghost club opacity: 0.22 with no data, 0.65 from 80% confidence (spec §2.1 "club materialises"). */
-const ghostOpacity = (confidence: number | null | undefined) => 0.22 + 0.43 * Math.min(1, Math.max(0, (confidence ?? 0) / 0.8))
+/** Ghost club opacity: 0.45 with no data, 0.85 from 80% confidence (spec §2.1 "club materialises"). */
+const ghostOpacity = (confidence: number | null | undefined) => 0.45 + 0.4 * Math.min(1, Math.max(0, (confidence ?? 0) / 0.8))
 
 /**
  * v3 chat phase (spec §2.1, mockups V3-C2..C6): one centred column on the dark bay with the recap row,
@@ -60,11 +60,11 @@ export function ChatShell() {
     <div className="bg-bay relative flex min-h-screen w-full flex-col overflow-hidden font-sans antialiased">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-[190px] -right-[90px] h-[442px] w-[408px] bg-[radial-gradient(ellipse_at_50%_60%,rgba(255,110,1,.14),transparent_65%)]"
+        className="pointer-events-none absolute top-[165px] -right-[46px] h-[442px] w-[408px] bg-[radial-gradient(ellipse_at_50%_60%,rgba(255,110,1,.14),transparent_65%)]"
       />
-      <ClubImage
+      <ClubModel
         slug={state?.best?.head ?? '201t-mkii'}
-        className="pointer-events-none absolute top-[230px] -right-[30px] h-[340px] w-auto drop-shadow-club transition-[opacity] duration-[600ms] ease-out"
+        className="absolute top-[160px] -right-[26px] h-[460px] drop-shadow-club transition-[opacity] duration-[600ms] ease-out"
         style={{ opacity: ghostOpacity(state?.confidence) }}
       />
       <StudioHeader variant="chat" step={view.step} />

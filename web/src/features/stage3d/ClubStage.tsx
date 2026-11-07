@@ -6,6 +6,7 @@ import { FALLBACK_PRESETS } from './constants'
 import { HeadPhoto } from './HeadPhoto'
 import { DEFAULT_ASSET_BASE, useManifest } from './manifest'
 import type { CameraPreset, ClubSpec, ClubStageHandle, ClubStageProps, GripSize } from './types'
+import { hasWebGL } from './webgl'
 
 const labelStyle = {
   font: '600 11px system-ui, sans-serif',
@@ -122,12 +123,6 @@ function Scene({ stageRef, handedness = 'right', shaftMaterial = 'steel', length
       <CameraControls ref={controls} makeDefault minDistance={0.05} maxDistance={2} />
     </>
   )
-}
-
-let webgl: boolean | undefined
-function hasWebGL() {
-  webgl ??= !!document.createElement('canvas').getContext('webgl2') || !!document.createElement('canvas').getContext('webgl')
-  return webgl
 }
 
 /** Lazy-loadable club stage. Drive drags through the ref handle, discrete changes through props. */

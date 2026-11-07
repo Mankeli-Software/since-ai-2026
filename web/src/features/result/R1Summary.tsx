@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { ClubImage, Eyebrow, SpecPartIcon, type ClubImageVariant, type SpecPart } from '@/components/studio'
+import { ClubModel } from '@/features/stage3d/ClubModel'
 import { cn } from '@/lib/utils'
 import rawProductVideos from '../../../../fixtures/product_videos.json'
 import { Text } from '../chat/Text'
@@ -47,10 +48,10 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
   return (
     <div className="mt-2 grid grid-cols-[270px_minmax(0,1fr)] items-center gap-9">
       <div className="relative flex h-[270px] items-center justify-center rounded-18 border border-grey-26 bg-[radial-gradient(ellipse_80%_60%_at_50%_65%,rgba(255,110,1,.22),#121212_70%)]">
-        <ClubImage
+        <ClubModel
           slug={best.head}
           alt={`Takomo ${name} 7-iron`}
-          className="h-[236px] w-auto drop-shadow-[0_30px_40px_rgba(0,0,0,.75)]"
+          className="absolute inset-0 aspect-auto drop-shadow-[0_30px_40px_rgba(0,0,0,.75)]"
         />
         <Eyebrow className="absolute top-2.5 left-2.5 rounded-3 bg-washed-white px-[7px] py-0.5 text-midnight">3D</Eyebrow>
       </div>
