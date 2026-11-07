@@ -16,8 +16,9 @@ from app.agent.engines.base import answer_of, stored, user_text
 from app.agent.guard import bind
 from app.agent.metering import meter
 from app.agent.settings import settings
+from app.confidence.next_question import INTAKE
 from app.core.tooling import ToolContext, ToolSpec, get_tool, list_tools, ui_tool_specs
-from app.schemas.chat import TextEvent, TurnRequest, UiEvent
+from app.schemas.chat import TextEvent, TextMessage, TurnRequest, UiEvent
 from app.schemas.session import StoredMessage
 
 SYSTEM = (Path(__file__).resolve().parent.parent / "prompts" / "fitter_system.md").read_text()
@@ -65,6 +66,40 @@ def _dump(m: Message) -> dict[str, Any]:
     return m.model_dump(mode="json", exclude_none=True)
 
 
+def _profile_value(value: Any) -> Any:
+    """The answer as a profile value, or None when it is not a plain known answer."""
+    if isinstance(value, dict):  # slider with toggle, or body_measure / glove
+        value = value["value_cm"] if "value_cm" in value else value.get("value")
+    if isinstance(value, str) and value.isdigit():
+        return int(value)  # bucket chips send "1".."5"
+    return value
+
+
+async def _presave(ctx: ToolContext, request: TurnRequest, value: Any, block_field: Any) -> dict:
+    """Do the two steps the model would do after a plain intake answer: save it, then ask
+    next_question. Returns {} on any doubt, so the model does the steps itself."""
+    hint = ctx.session.state.next_question
+    if isinstance(request.message, TextMessage) or hint is None or hint.kind != "intake":
+        return {}
+    entry = next((e for e in INTAKE if e[1] == hint.field), None)
+    if entry is None or entry[2].field != block_field:  # the pending block is not the hinted one
+        return {}
+    val = _profile_value(value)
+    if val is None:  # "Not sure": leave it to the model
+        return {}
+    try:
+        up = get_tool("update_profile")
+        args = up.input_model.model_validate({hint.field: val})
+    except ValueError:
+        return {}
+    saved = await up.fn(ctx, args)
+    nq = get_tool("next_question")
+    return {
+        "saved": json.loads(saved.model_dump_json()),
+        "next_question": json.loads((await nq.fn(ctx, nq.input_model())).model_dump_json()),
+    }
+
+
 class GenkitEngine:
     async def run_turn(
         self, ctx: ToolContext, request: TurnRequest, history: list[StoredMessage]
@@ -89,13 +124,14 @@ class GenkitEngine:
                 (p.tool_request.ref or p.tool_request.name) == s.pending_ui_id for p in pending
             ):
                 raise ValueError("no interrupted tool call to resume")
+            mine = next(
+                p for p in pending if (p.tool_request.ref or p.tool_request.name) == s.pending_ui_id
+            )
+            field = (mine.tool_request.input or {}).get("field")
+            extra = await _presave(ctx, request, value, field)
+            result = json.dumps({"value": value, "display_text": display, **extra})
             kwargs["resume_respond"] = [
-                p.respond(
-                    json.dumps({"value": value, "display_text": display})
-                    if (p.tool_request.ref or p.tool_request.name) == s.pending_ui_id
-                    else IGNORED
-                )
-                for p in pending
+                p.respond(result if p is mine else IGNORED) for p in pending
             ]
             s.pending_ui_id = None
         else:
