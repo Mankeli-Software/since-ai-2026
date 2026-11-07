@@ -33,7 +33,7 @@ def refresh(
     fresh = golfer_flags(values, session.state.shots, sex=sex if isinstance(sex, str) else None)
     flags = merge_flags(session.flags, fresh, GOLFER_CODES)
     # Shot-level confirms (S10, S14) of earlier imports stay pending until answered.
-    earlier = [f for f in session.state.pending_flags if f.code not in GOLFER_CODES]
+    earlier = [f for f in pending(session.state.pending_flags) if f.code not in GOLFER_CODES]
     seen = {(f.code, f.field, f.import_id, f.shot_index) for f in earlier}
     shots_pending = earlier + [
         f
