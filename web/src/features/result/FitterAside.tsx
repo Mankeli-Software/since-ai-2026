@@ -4,6 +4,7 @@ import { useVoice, voiceAvailable } from '@/features/voice/store'
 import { VoiceBar } from '@/features/voice/VoiceConversation'
 import { cn } from '@/lib/utils'
 import { useSession, type ChatMessage } from '@/store/session'
+import { RevealText } from '../chat/RevealText'
 import { Text } from '../chat/Text'
 import { GenUiBlock } from '../genui/GenUiBlock'
 import type { ResultsAsideProps } from './chrome'
@@ -50,7 +51,7 @@ export function AsideBody({ message, fallback, chips, block, children }: Results
     <>
       {text && (
         <p className="m-0 text-[18px] leading-[1.5] text-washed-white">
-          <Text text={text} />
+          <RevealText text={text} animate={Boolean(isReplyNewer && latestAssistant?.live)} />
         </p>
       )}
       {children}

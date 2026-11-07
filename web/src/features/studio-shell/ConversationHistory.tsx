@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { FitterAvatar } from '@/components/studio'
 import type { ChatMessage, UiItem } from '@/store/session'
+import { RevealText } from '../chat/RevealText'
 import { Text } from '../chat/Text'
 import { GenUiBlock } from '../genui/GenUiBlock'
 import { promptOf } from './RecapRow'
@@ -48,7 +49,7 @@ export function ConversationHistory({ messages, ui }: { messages: ChatMessage[];
                   <FitterAvatar size={28} />
                   <p className="m-0 pt-0.5">
                     <span className="sr-only">Fitter: </span>
-                    <Text text={e.m.text.trim()} />
+                    <RevealText text={e.m.text.trim()} animate={false} />
                   </p>
                 </li>
               )

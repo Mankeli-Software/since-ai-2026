@@ -1,6 +1,6 @@
 import { FitterAvatar } from '@/components/studio'
 import type { ChatMessage } from '@/store/session'
-import { Text } from '../chat/Text'
+import { RevealText } from '../chat/RevealText'
 
 /**
  * The fitter's latest line (spec §2.1): avatar 44 + Barlow 500 24px/1.45, `**bold**` for key facts.
@@ -18,12 +18,12 @@ export function FitterLine({ messages }: { messages: ChatMessage[] }) {
         <FitterAvatar size={44} className="max-md:size-8!" />
         <p className={`mt-1.5 mb-0 max-md:mt-0.5 ${p}`}>
           <span className="sr-only">Fitter: </span>
-          <Text text={first.text.trim()} />
+          <RevealText text={first.text.trim()} animate={first.live} />
         </p>
       </div>
       {rest.map((m) => (
         <p key={m.id} className={`mt-0 mb-0 ml-[60px] max-md:ml-[42px] ${p}`}>
-          <Text text={m.text.trim()} />
+          <RevealText text={m.text.trim()} animate={m.live} />
         </p>
       ))}
     </div>
