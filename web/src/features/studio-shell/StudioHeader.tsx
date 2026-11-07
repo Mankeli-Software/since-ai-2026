@@ -35,7 +35,7 @@ export function StudioHeader({ variant, step }: StudioHeaderProps) {
       {variant === 'chat' && step != null && <StepBars step={step} />}
       <span className="flex flex-none items-center gap-2.5">
         <Eyebrow className="text-grey-a3">Fit confidence</Eyebrow>
-        <ConfidenceSegments value={pct} />
+        <ConfidenceSegments value={pct} showLabel={false} />
       </span>
       <button
         type="button"
