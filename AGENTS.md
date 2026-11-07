@@ -23,6 +23,7 @@
   1. Static & build checks: `ruff check`, `ruff format --check`, `lint-imports` (backend); `pnpm -C web gen && pnpm -C web typecheck && pnpm -C web build` (frontend).
   2. Direct execution: start `just dev` (or call your Python function / curl your FastAPI route / open `studio.html?engine=scripted&demo=DEMO-01` or `dev.html`) and confirm it works.
 - *(Note: Running `scripts/score_dev.py` / `takomo_fit.score` to generate the competition submission `mankeli_takomo_test_predictions.csv` is offline dataset scoring for the accuracy deliverable, **not** software testing — keep that script working.)*
+- *(Manual QA harness: `scripts/qa/` is a manual on-demand validation harness executed via `just qa`. It does not use pytest or vitest, and does not run in the automated PR/merge CI pipeline.)*
 
 ### 1.3 4 Developers Working Simultaneously (Concurrency Rules)
 **4 teammates (and 6–8 AI agents) are developing in parallel right now.** Merge conflicts and broken `main` are our biggest velocity killers. Follow these rules strictly:

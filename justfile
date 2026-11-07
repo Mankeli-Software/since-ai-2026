@@ -55,6 +55,10 @@ lint:
 # The local gate: gen + lint (what CI checks, minus build + smoke)
 check: gen lint
 
+# Run the manual QA harness (scripts/qa/run_all.py). Zero API keys.
+qa *args:
+    PYTHONPATH={{PYTHONPATH}}:backend uv run --project backend python scripts/qa/run_all.py {{args}}
+
 # Demo fixtures (never from labels), priors.json, thresholds.json
 gen-data:
     uv run --project backend python scripts/gen_fixtures.py
