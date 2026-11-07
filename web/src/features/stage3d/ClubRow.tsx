@@ -73,10 +73,6 @@ function Row({ best, selected = best, onSelect, heads, assetBase = DEFAULT_ASSET
         <Lightformer intensity={1} position={[-4, 1, 2]} scale={[4, 4, 1]} />
         <Lightformer intensity={1} position={[4, 1, 2]} scale={[4, 4, 1]} />
       </Environment>
-      <mesh rotation-x={-Math.PI / 2} position-y={-0.001}>
-        <planeGeometry args={[2, 2]} />
-        <meshStandardMaterial color="#2b3036" roughness={0.9} />
-      </mesh>
       <Suspense fallback={null}>
         {order.map((slug, i) => (
           <RowHead key={slug} slug={slug} base={assetBase} x={(mid - i) * SPACING} scale={slug === best ? BEST_SCALE : 1} dim={slug !== selected} onSelect={onSelect} />
