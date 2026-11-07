@@ -1,13 +1,11 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { useEffect } from 'react'
 import { hasFlag } from '@/lib/flags'
 import { useSession } from '@/store/session'
 import { StudioStart } from '../personas/StudioStart'
 import { ChatColumn } from './ChatColumn'
 import { StageBoundary } from './StageBoundary'
+import { StagePanel } from './StagePanel'
 import { TopBar } from './TopBar'
-
-// Lazy so the chat renders before three.js loads.
-const ClubStage = lazy(() => import('../stage3d'))
 
 /**
  * Desktop layout (L3): stage left, chat right. At the reveal (a best spec exists) the chat
@@ -40,9 +38,7 @@ export function Studio() {
         <section className="min-w-0 bg-secondary">
           <StageBoundary>
             <div className="h-full">
-              <Suspense fallback={<p className="p-4">Loading stage...</p>}>
-                <ClubStage />
-              </Suspense>
+              <StagePanel />
             </div>
           </StageBoundary>
         </section>
