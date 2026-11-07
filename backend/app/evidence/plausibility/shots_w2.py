@@ -45,6 +45,7 @@ from app.evidence.plausibility.shots import (
 from app.evidence.plausibility.thresholds import (
     CARRY_FITS_NO_SPIN,
     PRECISE_MONITORS,
+    S1_BOUNDS,
     S2_RARE,
     S5_CONFIRM,
     S5_REJECT,
@@ -196,6 +197,8 @@ def s6_total_below_carry(shots: list[Shot]) -> list[Flag]:
     for i, s in enumerate(shots):
         if s.carry_yd is None or s.total_yd is None:
             continue
+        if not S1_BOUNDS["carry_yd"][0] <= s.carry_yd <= S1_BOUNDS["carry_yd"][1]:
+            continue  # S1 already rejects the carry; total is not the suspect
         if s.total_yd < s.carry_yd - S6_TOTAL_BELOW_CARRY_YD:
             out.append(
                 Flag(
