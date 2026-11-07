@@ -77,8 +77,8 @@ INTAKE: tuple[tuple[str, str, ChoiceChips | Slider | BodyMeasure], ...] = (
         prompt="How tall are you when wearing your golf shoes?")),
     ("wrist_to_floor_cm", "wrist_to_floor_cm", BodyMeasure(field="wrist_to_floor",
         diagram_id="wrist_to_floor",
-        prompt="Stand straight in golf shoes, arms relaxed. Measure from your wrist crease to "
-        "the floor.")),
+        prompt="Wear your golf shoes and stand straight, arms relaxed. Measure from your wrist "
+        "crease to the floor.")),
 )  # fmt: skip
 
 # Asked but optional: answering (or skipping) them is what counts, not having a value.
