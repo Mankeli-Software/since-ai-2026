@@ -16,6 +16,7 @@ from typing import Any, Protocol, cast
 
 import numpy as np
 from takomo_fit import baseline as _bl
+from takomo_fit import physics as _ph
 from takomo_fit import products as _pr
 
 from app.schemas.common import GripSize, HeadSlug, Purchase
@@ -270,3 +271,19 @@ def grip_change_edges_cm() -> tuple[tuple[float, str, str], ...]:
         if below != above:
             out.append((edge, below, above))
     return tuple(out)
+
+
+def shot_carry_yd(
+    club_speed_mph: float,
+    dynamic_loft_deg: float,
+    attack_deg: float = -3.0,
+    forgiveness: float = 3.0,
+) -> float:
+    """Carry distance in yards from takomo_fit.physics.shot."""
+    res = _ph.shot(
+        club_speed_mph=float(club_speed_mph),
+        dynamic_loft_deg=float(dynamic_loft_deg),
+        attack_deg=float(attack_deg),
+        forgiveness=float(forgiveness),
+    )
+    return _f(res["carry_yd"])
