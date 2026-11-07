@@ -1,3 +1,5 @@
+import { convertProseUnits, fmtDistance, fmtSpeed } from '@/lib/units'
+import { useUnitsStore } from '@/store/units'
 import { FlexBandView } from '../../views/FlexBandView'
 import { flexName, shaftModel, stifferFlex } from '../../specLabel'
 import type { Spec } from '../../types'
@@ -21,6 +23,7 @@ const EXAMPLE = {
 const BAND_OF: Partial<Record<Spec['flex'], 'L' | 'R' | 'S' | 'X'>> = { lady: 'L', regular: 'R', stiff: 'S', 'x-stiff': 'X' }
 
 export function shaftContent(ctx: PartCtx): PartContent {
+  const units = useUnitsStore.getState().units
   const { best, item, data, example } = ctx
   const flex = flexName(best.flex)
   const stiffer = stifferFlex(best.flex)
@@ -32,25 +35,36 @@ export function shaftContent(ctx: PartCtx): PartContent {
 
   // The ghost's label, short enough for the narrow column: "Your 165 yd guess" from the claimed carry.
   const claimed = num(item, 'claimed_carry_yd')
-  const ghostLabel = example ? EXAMPLE.band.ghost_label : claimed != null ? `Your ${fmt(claimed, 0)} yd guess` : (band?.ghost_label ?? null)
+  const ghostLabel = example
+    ? (units === 'metric' ? 'Your 151 m guess' : EXAMPLE.band.ghost_label)
+    : claimed != null
+      ? `Your ${fmtDistance(claimed, units)} guess`
+      : (band?.ghost_label ? convertProseUnits(band.ghost_label, units) : null)
 
   const stats: Stat[] = []
   if (!example) {
-    if (speed != null) stats.push({ label: 'Club speed', value: `${fmt(speed, 0)} mph`, accent: true })
+    if (speed != null) stats.push({ label: 'Club speed', value: fmtSpeed(speed, units), accent: true })
     const carryYd = num(item, 'carry_yd', 'measured_carry_yd')
-    if (carryYd != null) stats.push({ label: 'Carry', value: `${fmt(carryYd, 0)} yd` })
+    if (carryYd != null) stats.push({ label: 'Carry', value: fmtDistance(carryYd, units) })
     const launch = num(item, 'launch_deg')
     if (launch != null) stats.push({ label: 'Launch', value: `${fmt(launch)}°` })
     const guessYd = num(item, 'claimed_carry_yd')
-    if (guessYd != null) stats.push({ label: 'Your guess', value: `${fmt(guessYd, 0)} yd` })
+    if (guessYd != null) stats.push({ label: 'Your guess', value: fmtDistance(guessYd, units) })
+  } else {
+    stats.push(
+      { label: 'Club speed', value: fmtSpeed(76, units), accent: true },
+      { label: 'Carry', value: fmtDistance(142, units) },
+      { label: 'Launch', value: '18.2°' },
+      { label: 'You want', value: 'Higher' },
+    )
   }
 
   const message = example
-    ? EXAMPLE.aside
+    ? convertProseUnits(EXAMPLE.aside, units)
     : stifferName && claimed != null && speed != null
-      ? `${stifferName} was only the ${fmt(claimed, 0)} talking. At ${fmt(speed, 0)} mph, ${flex.toLowerCase()} gets the ball up and lets it land softer.`
+      ? `${stifferName} was only the ${fmt(claimed, 0)} talking. At ${fmtSpeed(speed, units)}, ${flex.toLowerCase()} gets the ball up and lets it land softer.`
       : speed != null
-        ? `At ${fmt(speed, 0)} mph, your swing sits in the ${flex.toLowerCase()} band.`
+        ? `At ${fmtSpeed(speed, units)}, your swing sits in the ${flex.toLowerCase()} band.`
         : `${flex} flex fits how you swing. Ask me what a different flex would do.`
 
   return {
@@ -59,9 +73,9 @@ export function shaftContent(ctx: PartCtx): PartContent {
     listValue: flex,
     title: `${shaftModel(best)}, ${flex}`,
     provenance: example ? EXAMPLE.provenance : provenanceOf(item?.sources),
-    reason: example ? EXAMPLE.reason : (item?.plain ?? NOT_EXPLAINED),
+    reason: example ? convertProseUnits(EXAMPLE.reason, units) : (item?.plain ? convertProseUnits(item.plain, units) : NOT_EXPLAINED),
     chart: band ? <FlexBandView tone="dark" measured_mph={band.measured_mph} band={band.band} ghost_mph={band.ghost_mph} ghost_label={ghostLabel} /> : null,
-    stats: example ? EXAMPLE.stats : stats,
+    stats,
     callout: null,
     actions: [
       {

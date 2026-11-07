@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { api } from '@/api/client'
 import { Eyebrow, StatTile } from '@/components/studio'
+import { distanceValue, unitLabel } from '@/lib/units'
+import { useUnitsStore } from '@/store/units'
 import { FlightSvg, flightTwoHeads, type FlightResult, type HeadFlight } from '../flight'
 import { ResultsAside, ResultsNext, useResultsChrome } from './chrome'
 import { HeadSelector } from './compare/HeadSelector'
@@ -38,24 +40,27 @@ function CompareTiles({
   selFallback: CompareRow | null
   otherFallback: CompareRow | null
 }) {
-  const selCarry = selFlight ? Math.round(selFlight.summary.carry.mean) : selFallback ? Math.round(selFallback.carry) : null
-  const otherCarry = otherFlight ? Math.round(otherFlight.summary.carry.mean) : otherFallback ? Math.round(otherFallback.carry) : undefined
+  const units = useUnitsStore((s) => s.units)
+  const dUnit = unitLabel('distance', units)
 
-  const selApex = selFlight ? Math.round(selFlight.summary.apex) : selFallback ? Math.round(selFallback.apex) : null
-  const otherApex = otherFlight ? Math.round(otherFlight.summary.apex) : otherFallback ? Math.round(otherFallback.apex) : undefined
+  const selCarry = selFlight ? distanceValue(selFlight.summary.carry.mean, units) : selFallback ? distanceValue(selFallback.carry, units) : null
+  const otherCarry = otherFlight ? distanceValue(otherFlight.summary.carry.mean, units) : otherFallback ? distanceValue(otherFallback.carry, units) : undefined
+
+  const selApex = selFlight ? distanceValue(selFlight.summary.apex, units) : selFallback ? distanceValue(selFallback.apex, units) : null
+  const otherApex = otherFlight ? distanceValue(otherFlight.summary.apex, units) : otherFallback ? distanceValue(otherFallback.apex, units) : undefined
 
   const selLand = selFlight ? (selFlight.summary.land_angle != null ? Math.round(selFlight.summary.land_angle) : null) : selFallback ? Math.round(selFallback.land_angle) : null
   const otherLand = otherFlight ? (otherFlight.summary.land_angle != null ? Math.round(otherFlight.summary.land_angle) : undefined) : otherFallback ? Math.round(otherFallback.land_angle) : undefined
 
-  const selSpread = selFlight ? (selFlight.summary.side?.sd != null ? Math.round(selFlight.summary.side.sd) : null) : selFallback ? Math.round(selFallback.side_sd) : null
-  const otherSpread = otherFlight ? (otherFlight.summary.side?.sd != null ? Math.round(otherFlight.summary.side.sd) : undefined) : otherFallback ? Math.round(otherFallback.side_sd) : undefined
+  const selSpread = selFlight ? (selFlight.summary.side?.sd != null ? distanceValue(selFlight.summary.side.sd, units) : null) : selFallback ? distanceValue(selFallback.side_sd, units) : null
+  const otherSpread = otherFlight ? (otherFlight.summary.side?.sd != null ? distanceValue(otherFlight.summary.side.sd, units) : undefined) : otherFallback ? distanceValue(otherFallback.side_sd, units) : undefined
 
   return (
     <div className="grid grid-cols-4 gap-2.5 max-md:grid-cols-2">
-      <StatTile tone="dark" label="Carry" value={selCarry !== null ? String(selCarry) : '—'} compare={otherCarry !== undefined ? String(otherCarry) : undefined} unit="yd" />
-      <StatTile tone="dark" label="Apex" value={selApex !== null ? String(selApex) : '—'} compare={otherApex !== undefined ? String(otherApex) : undefined} unit="yd" />
+      <StatTile tone="dark" label="Carry" value={selCarry !== null ? String(selCarry) : '—'} compare={otherCarry !== undefined ? String(otherCarry) : undefined} unit={dUnit} />
+      <StatTile tone="dark" label="Apex" value={selApex !== null ? String(selApex) : '—'} compare={otherApex !== undefined ? String(otherApex) : undefined} unit={dUnit} />
       <StatTile tone="dark" label="Landing" value={selLand !== null ? `${selLand}°` : '—'} compare={otherLand !== undefined ? `${otherLand}°` : undefined} />
-      <StatTile tone="dark" label="Side spread" value={selSpread !== null ? `±${selSpread}` : '—'} compare={otherSpread !== undefined ? `±${otherSpread}` : undefined} unit="yd" />
+      <StatTile tone="dark" label="Side spread" value={selSpread !== null ? `±${selSpread}` : '—'} compare={otherSpread !== undefined ? `±${otherSpread}` : undefined} unit={dUnit} />
     </div>
   )
 }
@@ -84,6 +89,9 @@ function FlightPanel({
   const hasOwnShots = (displayData.own_shots?.length ?? 0) > 0
   const title = hasOwnShots ? `Your shots vs the ${shortHead(sel.head)}` : 'Your swing, dispersion'
 
+  const units = useUnitsStore((s) => s.units)
+  const estCaption = `Estimated by Takomo's physics model, ${unitLabel('distance_plural', units)}`
+
   return (
     <>
       <div className="rounded-16 border border-grey-26 bg-grey-12 px-[18px] pt-3 pb-1 max-md:px-3.5">
@@ -93,7 +101,7 @@ function FlightPanel({
             title={guessed ? 'Dashed: your carry is a guess. Import shots to measure it.' : "Estimated by Takomo's physics model"}
             className="text-[12px] text-grey-8f"
           >
-            Estimated by Takomo's physics model, yards
+            {estCaption}
           </span>
         </div>
         <FlightSvg
@@ -102,7 +110,7 @@ function FlightPanel({
           recommendedSlug={sel.head}
           view="top"
           guessed={guessed}
-          caption="Estimated by Takomo's physics model, yards"
+          caption={estCaption}
         />
       </div>
       <CompareTiles

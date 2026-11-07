@@ -1,6 +1,8 @@
 import social from '../../../../fixtures/social_proof.json'
 import { cardCls, eyebrowCls } from '../genui/ui'
 import { hasFlag } from '@/lib/flags'
+import { fmtLength } from '@/lib/units'
+import { useUnitsStore } from '@/store/units'
 import { ArQrButton } from '@/features/ar/ArQrButton'
 import { HonestEnding } from './HonestEnding'
 import type { Spec, Gate } from './types'
@@ -64,6 +66,12 @@ export function RecommendationCardView(p: {
 }) {
   const sp = p.social_proof_id ? proof[p.social_proof_id] : undefined
   const rec = p.gate === 'confident' || p.gate === 'provisional'
+  const units = useUnitsStore((s) => s.units)
+  const lengthVal = units === 'metric'
+    ? (p.spec.length_in * 2.54).toFixed(1).replace(/\.0$/, '')
+    : p.spec.length_in.toFixed(2).replace(/0$/, '')
+  const lengthUnit = units === 'metric' ? 'cm' : 'in'
+
   return (
     <section className={cardCls}>
       <div className="flex items-center justify-between gap-3">
@@ -80,7 +88,7 @@ export function RecommendationCardView(p: {
           </div>
           <div className="grid grid-cols-3 gap-3">
             <Tile label="Lie" value={`${signed(p.spec.lie_deg)}°`} unit={lieWord(p.spec.lie_deg)} />
-            <Tile label="Length" value={p.spec.length_in.toFixed(2).replace(/0$/, '')} unit="in" />
+            <Tile label="Length" value={lengthVal} unit={lengthUnit} />
             <Tile label="Flex" value={p.spec.flex.charAt(0).toUpperCase() + p.spec.flex.slice(1)} />
           </div>
           <dl className="grid grid-cols-2 gap-x-6">
@@ -95,7 +103,7 @@ export function RecommendationCardView(p: {
           {p.runner_up && (
             <p className="border-t border-border pt-3 text-sm text-ink-500">
               <span className={`${eyebrowCls} mr-2`}>Runner-up</span>
-              <span className="font-medium uppercase text-foreground">{headName(p.runner_up.head)}</span>, {p.runner_up.flex}, {p.runner_up.length_in} in, lie {signed(p.runner_up.lie_deg)}°
+              <span className="font-medium uppercase text-foreground">{headName(p.runner_up.head)}</span>, {p.runner_up.flex}, {fmtLength(p.runner_up.length_in, units)}, lie {signed(p.runner_up.lie_deg)}°
             </p>
           )}
         </>

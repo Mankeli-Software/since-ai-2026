@@ -1,6 +1,8 @@
-import { Button, ClubImage, EnterKbd, Eyebrow, LogoMark, Wordmark, useEnterKey } from '@/components/studio'
+import { Button, ClubImage, EnterKbd, Eyebrow, LogoMark, UnitsToggle, Wordmark, useEnterKey } from '@/components/studio'
 import { ClubModel } from '@/features/stage3d/ClubModel'
+import { convertProseUnits } from '@/lib/units'
 import { cn } from '@/lib/utils'
+import { useUnitsStore } from '@/store/units'
 import { ownFittingHrefV3, PERSONAS, personaHrefV3 } from './personas'
 
 const STEPS = [
@@ -17,6 +19,8 @@ const STEPS = [
  */
 export function Welcome() {
   useEnterKey(() => window.location.assign(ownFittingHrefV3()), true)
+  const units = useUnitsStore((s) => s.units)
+
   return (
     <div className="bg-bay relative flex min-h-screen md:h-screen w-full flex-col overflow-hidden font-sans antialiased">
       <div
@@ -39,6 +43,7 @@ export function Welcome() {
         </a>
         <Eyebrow className="flex-none text-washed-white">Fitter Studio</Eyebrow>
         <div className="h-px flex-1 bg-grey-3d max-md:hidden" />
+        <UnitsToggle className="max-md:hidden" />
         <Eyebrow className="flex-none text-grey-a3 max-md:hidden">Honestly better golf</Eyebrow>
       </header>
       {/* Phone hero: the club as a banner above the copy (M-01) instead of floating behind it. */}
@@ -67,7 +72,7 @@ export function Welcome() {
               Or try as a simulated golfer
             </span>
             {PERSONAS.map((p) => (
-              <Button key={p.id} href={personaHrefV3(p)} variant="ghostOnDark" size="sm" title={p.teaser} className="min-h-9 px-3.5 max-md:min-h-11">
+              <Button key={p.id} href={personaHrefV3(p)} variant="ghostOnDark" size="sm" title={convertProseUnits(p.teaser, units)} className="min-h-9 px-3.5 max-md:min-h-11">
                 {p.name}, {p.age}
               </Button>
             ))}
