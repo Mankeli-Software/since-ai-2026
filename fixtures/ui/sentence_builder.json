@@ -1,0 +1,12 @@
+{
+  "type": "sentence_builder",
+  "prompt": "Tap the words to change them",
+  "template": "I've played golf for {years}, about {often}, and I'm a {hand} handed {sex} aged {age}",
+  "tokens": [
+    {"id": "years", "placeholder": "how long", "options": [{"id": "new", "label": "Just started"}, {"id": "1_3", "label": "1–3 years"}, {"id": "3_10", "label": "3–10 years"}, {"id": "10_plus", "label": "10+ years"}], "value": null},
+    {"id": "often", "placeholder": "how often", "options": [{"id": "weekly", "label": "every week"}, {"id": "2_3_month", "label": "2–3 rounds a month"}, {"id": "season", "label": "a few a season"}, {"id": "starting", "label": "just starting"}], "value": null},
+    {"id": "hand", "placeholder": "right", "options": [{"id": "right", "label": "right"}, {"id": "left", "label": "left"}], "value": "right"},
+    {"id": "sex", "placeholder": "man or woman", "options": [{"id": "male", "label": "man"}, {"id": "female", "label": "woman"}], "value": null},
+    {"id": "age", "placeholder": "age", "options": [{"id": "u25", "label": "under 25"}, {"id": "25_34", "label": "25–34"}, {"id": "35_44", "label": "35–44"}, {"id": "45_54", "label": "45–54"}, {"id": "55_64", "label": "55–64"}, {"id": "65_plus", "label": "65+"}], "value": null}
+  ]
+}
