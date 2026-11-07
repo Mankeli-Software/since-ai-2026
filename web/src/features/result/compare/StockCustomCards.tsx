@@ -1,6 +1,7 @@
 import { useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { Eyebrow } from '@/components/studio'
 import { cn } from '@/lib/utils'
+import { ExamplePill } from '../chrome'
 
 export type Purchase = 'stock' | 'custom'
 
@@ -65,13 +66,16 @@ function TruckIcon({ color }: { color: string }) {
   )
 }
 
-function Fact({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+function Fact({ icon, label, value, pill }: { icon: ReactNode; label: string; value: string; pill?: boolean }) {
   return (
     <span className="flex items-center gap-2.5">
       <span className="inline-flex size-[30px] items-center justify-center rounded-8 bg-grey-1a">{icon}</span>
       <span className="flex flex-col">
         <span className="text-[12px] text-grey-8f">{label}</span>
-        <span className="text-[15px] font-semibold">{value}</span>
+        <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold">
+          {value}
+          {pill && <ExamplePill />}
+        </span>
       </span>
     </span>
   )
@@ -160,7 +164,7 @@ export function StockCustomCards({ value, onChange, stockTitle, customTitle, sto
             <span className={cn('text-[15px] font-semibold', custom ? 'text-tiger-orange' : 'text-grey-c8')}>{c.strike}</span>
             <span className="flex w-full gap-[22px] border-t border-grey-26 pt-2.5">
               <Fact icon={<ReturnIcon color={c.returnsOk ? GREEN : AMBER} />} label="Returns" value={c.returns} />
-              <Fact icon={<TruckIcon color={c.deliveryOk ? GREEN : AMBER} />} label="Delivery" value={c.delivery} />
+              <Fact icon={<TruckIcon color={c.deliveryOk ? GREEN : AMBER} />} label="Delivery" value={c.delivery} pill />
             </span>
           </button>
         )

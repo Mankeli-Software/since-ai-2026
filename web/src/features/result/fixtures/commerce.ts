@@ -35,10 +35,4 @@ export const PURCHASE_COPY: Record<Spec['purchase'], PurchaseCopy> = {
 }
 
 export const STATUS_TOOLTIP = 'Example stock and delivery'
-
-/*
- * EXAMPLE projection for the R1b "Confirm it with real shots" bar: where confidence usually lands after
- * a short simulator session. Not computed for this golfer; shown with a "~" and an "Example" tooltip.
- */
-export const EXAMPLE_PROJECTED_CONFIDENCE = 0.92
 export const CONFIRM_COPY = '10 shots with a 7-iron, about 15 minutes. I check the shaft and head against what you really hit.'
