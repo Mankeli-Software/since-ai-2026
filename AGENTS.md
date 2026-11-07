@@ -30,7 +30,6 @@
 1. **Always use an isolated git worktree + branch.**
    - Create worktrees under `.worktrees/<branch-slug>` on a short-lived branch (`feat/<lane>-<topic>`, `fix/<topic>`, `docs/<topic>`) branched from `origin/main`.
    - **Never commit or push directly to `main`.** Never `git push --force` on shared branches.
-   - Keep PRs small (< ~300 lines, ~1 hour of work) and merge frequently (`gh pr merge --auto --squash`).
 2. **Stay strictly inside your assigned lane's file globs (§2).**
    - Do **not** drive-by edit files owned by another lane.
    - If you need an endpoint, tool, or component from another lane that hasn't merged yet, code against `backend/app/schemas/` + static JSON in `fixtures/` and keep moving.
