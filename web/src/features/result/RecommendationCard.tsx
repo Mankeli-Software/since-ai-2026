@@ -1,5 +1,7 @@
 import social from '../../../../fixtures/social_proof.json'
 import { cardCls, eyebrowCls } from '../genui/ui'
+import { hasFlag } from '@/lib/flags'
+import { ArQrButton } from '@/features/ar/ArQrButton'
 import { HonestEnding } from './HonestEnding'
 import type { Spec, Gate } from './types'
 
@@ -89,6 +91,7 @@ export function RecommendationCardView(p: {
               </div>
             ))}
           </dl>
+          {hasFlag('ar') && <ArQrButton slug={p.spec.head} />}
           {p.runner_up && (
             <p className="border-t border-border pt-3 text-sm text-ink-500">
               <span className={`${eyebrowCls} mr-2`}>Runner-up</span>
