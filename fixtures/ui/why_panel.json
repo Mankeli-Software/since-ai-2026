@@ -1,0 +1,15 @@
+{
+  "type": "why_panel",
+  "depth": "standard",
+  "items": [
+    {"part": "head", "plain": "The 201T MKII suits your speed and your wish for a compact, controlled iron. The 201 MKII is close behind.", "numbers": {"head_score": 82.5, "runner_up_score": 80.1},
+     "sources": [{"source": "questionnaire", "note": "your answers"}],
+     "close_call": {"part": "head", "ours": "201t-mkii", "alt": "201-mkii", "share": 0.58, "next_step": "Hit both test clubs on a simulator to settle it."}},
+    {"part": "flex", "plain": "Regular flex fits your measured swing speed. Your 160 yd claim was higher than your shots show.", "numbers": {"speed_mph": 72, "claimed_carry_yd": 160, "measured_carry_yd": 124.7},
+     "sources": [{"source": "trackman", "n": 10, "note": "TrackMan, 10 shots"}]},
+    {"part": "lie", "plain": "The test-club shots point to 3 degrees upright. The chart alone said 2.", "numbers": {"chart_lie_deg": 2, "evidence_lie_deg": 3},
+     "sources": [{"source": "trackman", "n": 14, "note": "test-club shots"}, {"source": "derived", "note": "static fit chart"}]},
+    {"part": "length", "plain": "Standard length fits your height and wrist-to-floor measure.", "numbers": {"length_in": 37.0},
+     "sources": [{"source": "questionnaire", "note": "height and wrist-to-floor"}], "depth_hint": "beginner"}
+  ]
+}
