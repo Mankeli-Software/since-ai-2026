@@ -24,3 +24,4 @@ web/public/mock/
 .env
 .claude/worktrees/
 node_modules/
+web/dist/
