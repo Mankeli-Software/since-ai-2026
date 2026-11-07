@@ -1,3 +1,5 @@
+import { fmtLength } from '@/lib/units'
+import { useUnitsStore } from '@/store/units'
 import type { Spec } from './types'
 
 /** Display names, slug and spec -> the words the v3 results screens use ("201T MkII, KBS Tour Lite Regular"). */
@@ -64,9 +66,10 @@ const signed = (n: number) => `${n > 0 ? '+' : ''}${n}`
  * a value outside the delta range (an absolute length) is ignored rather than guessed at.
  */
 export function customDelta(spec: Spec): string[] {
+  const units = useUnitsStore.getState().units
   const out: string[] = []
   if (spec.lie_deg !== 0 && Math.abs(spec.lie_deg) <= 5) out.push(`${signed(spec.lie_deg)}° ${spec.lie_deg > 0 ? 'upright' : 'flat'}`)
-  if (spec.length_in !== 0 && Math.abs(spec.length_in) <= 3) out.push(`${signed(spec.length_in)} in`)
+  if (spec.length_in !== 0 && Math.abs(spec.length_in) <= 3) out.push(fmtLength(spec.length_in, units))
   if (spec.grip !== 'standard') out.push(`${spec.grip} grip`)
   return out
 }

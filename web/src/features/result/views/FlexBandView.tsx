@@ -1,6 +1,8 @@
 import type { UIBlock } from '@/api/client'
 import { Eyebrow } from '@/components/studio'
+import { fmtSpeed, speedValue, unitLabel } from '@/lib/units'
 import { cn } from '@/lib/utils'
+import { useUnitsStore } from '@/store/units'
 
 type FlexBandBlock = Extract<UIBlock, { type: 'flex_band' }>
 type Band = FlexBandBlock['band']
@@ -67,6 +69,7 @@ export function FlexBandView({
   title = 'Flex by 7-iron club speed',
   className,
 }: FlexBandViewProps) {
+  const units = useUnitsStore((s) => s.units)
   const t = tones[tone]
   const you = measured_mph == null ? null : mphToPercent(measured_mph)
   const ghost = ghost_mph == null ? null : mphToPercent(ghost_mph)
@@ -76,10 +79,10 @@ export function FlexBandView({
   const active = BANDS.find((b) => b.id === band)
 
   const summary = [
-    `Flex bands by 7-iron club speed: ${BANDS.map((b) => `${b.id} ${b.range}`).join(', ')} mph.`,
-    measured_mph != null ? `You: ${Math.round(measured_mph)} mph, measured.` : 'Club speed not measured yet.',
+    `Flex bands by 7-iron club speed: ${BANDS.map((b) => `${b.id} ${units === 'metric' ? (b.id === 'L' ? 'under 113' : b.id === 'R' ? '113 to 129' : b.id === 'S' ? '129 to 145' : 'over 145') : b.range}`).join(', ')} ${unitLabel('speed', units)}.`,
+    measured_mph != null ? `You: ${fmtSpeed(measured_mph, units)}, measured.` : 'Club speed not measured yet.',
     active ? `Your band: ${active.name}.` : '',
-    ghost_mph != null ? `${ghost_label ?? 'Your guess'}: ${Math.round(ghost_mph)} mph.` : '',
+    ghost_mph != null ? `${ghost_label ?? 'Your guess'}: ${fmtSpeed(ghost_mph, units)}.` : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -133,15 +136,15 @@ export function FlexBandView({
               className={cn('absolute -top-0.5 font-display text-[17px] font-bold whitespace-nowrap', t.you)}
               style={youLeft ? { right: `calc(${100 - you}% + 12px)` } : { left: `calc(${you}% + 12px)` }}
             >
-              YOU, {Math.round(measured_mph)} MPH
+              YOU, {fmtSpeed(measured_mph, units).toUpperCase()}
             </span>
           </div>
         )}
 
         <div aria-hidden="true" className={cn('absolute right-0 bottom-0 left-0 text-[13px] tabular-nums', t.axis)}>
-          <span className="absolute left-1/4 -translate-x-1/2">70</span>
-          <span className="absolute left-1/2 -translate-x-1/2">80</span>
-          <span className="absolute left-3/4 -translate-x-1/2 whitespace-nowrap">90 mph</span>
+          <span className="absolute left-1/4 -translate-x-1/2">{speedValue(70, units)}</span>
+          <span className="absolute left-1/2 -translate-x-1/2">{speedValue(80, units)}</span>
+          <span className="absolute left-3/4 -translate-x-1/2 whitespace-nowrap">{speedValue(90, units)} {unitLabel('speed', units)}</span>
         </div>
       </div>
     </div>

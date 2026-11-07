@@ -3,7 +3,9 @@ import { api } from '@/api/client'
 import type { components } from '@/api/schema.gen'
 import { Eyebrow } from '@/components/studio'
 import { hasFlag } from '@/lib/flags'
+import { convertProseUnits, distanceValue, unitLabel } from '@/lib/units'
 import { useSession } from '@/store/session'
+import { useUnitsStore } from '@/store/units'
 import { ResultsAside, ViewLink, useResultsChrome } from './chrome'
 import { StockCustomCards, type Purchase } from './compare/StockCustomCards'
 import { customDelta } from './specLabel'
@@ -53,6 +55,7 @@ export function R5Stock() {
   const [advice, setAdvice] = useState<StockAdvice | null>(null)
   const [stayStock, setStayStock] = useState(false)
   const prevBuySpecRef = useRef<Spec | null>(null)
+  const units = useUnitsStore((s) => s.units)
 
   const block = data.latest('stock_vs_custom')
   const best = data.best
@@ -109,7 +112,7 @@ export function R5Stock() {
           {block.reasons.map((r) => (
             <li key={r} className="flex items-baseline gap-2">
               <span aria-hidden="true" className="inline-block size-1.5 flex-none translate-y-[-2px] rounded-full bg-grey-8f" />
-              {r}
+              {convertProseUnits(r, units)}
             </li>
           ))}
         </ul>
@@ -128,7 +131,7 @@ export function R5Stock() {
               <span>Lie change: {advice.lie_change_deg > 0 ? `+${advice.lie_change_deg}°` : `${advice.lie_change_deg}°`}</span>
             )}
             {advice.carry_delta_yd != null && advice.carry_delta_yd !== 0 && (
-              <span>Carry difference: {advice.carry_delta_yd > 0 ? `+${advice.carry_delta_yd.toFixed(1)} yd` : `${advice.carry_delta_yd.toFixed(1)} yd`}</span>
+              <span>Carry difference: {`${advice.carry_delta_yd > 0 ? '+' : ''}${distanceValue(advice.carry_delta_yd, units, 1)} ${unitLabel('distance', units)}`}</span>
             )}
           </div>
         </div>

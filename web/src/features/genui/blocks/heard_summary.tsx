@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Button, EnterKbd, Eyebrow, useEnterKey } from '@/components/studio'
+import { convertProseUnits } from '@/lib/units'
+import { useUnitsStore } from '@/store/units'
 import type { BlockOf, BlockProps } from '../types'
 
 export const type = 'heard_summary'
@@ -29,6 +31,7 @@ function CheckCircle() {
 }
 
 function FactChips({ facts }: { facts: Fact[] }) {
+  const units = useUnitsStore((s) => s.units)
   return (
     <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
       {facts.map((f, i) => (
@@ -42,7 +45,7 @@ function FactChips({ facts }: { facts: Fact[] }) {
             <CheckCircle />
           )}
           <span className="sr-only">{f.source === 'measured' ? 'Measured: ' : 'You said: '}</span>
-          {f.label}
+          {convertProseUnits(f.label, units)}
         </li>
       ))}
     </ul>

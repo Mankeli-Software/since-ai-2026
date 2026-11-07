@@ -1,6 +1,8 @@
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { Button, EnterKbd, Kbd, useArrowKeys, useEnterKey, useNumberKeys } from '@/components/studio'
+import { convertProseUnits } from '@/lib/units'
 import { cn } from '@/lib/utils'
+import { useUnitsStore } from '@/store/units'
 import type { BlockProps } from '../types'
 import { Answered, BigNumber, cardLabelCls } from './_parts/Answered'
 import { HandFigure, HeightFigure, WristFigure } from './_parts/BodyFigures'
@@ -93,8 +95,11 @@ function Footer({ block, busy, respond, onNext, canNext }: PartProps & { onNext:
 }
 
 function useUnits(block: Block) {
+  const storeUnits = useUnitsStore((s) => s.units)
+  const defaultUnit: Unit = storeUnits === 'metric' ? 'cm' : 'in'
   const units: Unit[] = block.unit_options?.length ? block.unit_options : ['cm', 'in']
-  const [unit, setUnit] = useState<Unit>(units[0])
+  const initial = units.includes(defaultUnit) ? defaultUnit : units[0]
+  const [unit, setUnit] = useState<Unit>(initial)
   return { units, unit, setUnit }
 }
 
@@ -228,6 +233,7 @@ function Boxed({ block, busy, respond }: PartProps) {
 
 /** C6: size tiles (from `options`, else the 5 pack sizes) + dashed "Don't know?" helper. */
 function Glove({ block, busy, respond }: PartProps) {
+  const storeUnits = useUnitsStore((s) => s.units)
   const opts: { id: string; label: string; sub?: string | null }[] = block.options?.length ? block.options : GLOVES
   const groupId = useId()
   const [picked, setPicked] = useState<string | null>(() => opts.find((o) => o.id === String(block.value ?? ''))?.id ?? null)
@@ -243,7 +249,7 @@ function Glove({ block, busy, respond }: PartProps) {
 
   return (
     <>
-      <Panel><HandFigure label={chosen?.sub?.toUpperCase() ?? undefined} /></Panel>
+      <Panel><HandFigure label={chosen?.sub ? convertProseUnits(chosen.sub, storeUnits).toUpperCase() : undefined} /></Panel>
       <div className="flex flex-col justify-center gap-4">
         <span id={groupId} className={cardLabelCls}>{block.prompt || FIELD_LABEL.glove}</span>
         <div role="group" aria-labelledby={groupId} className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(opts.length, 5)}, minmax(0, 1fr))` }}>
@@ -263,7 +269,7 @@ function Glove({ block, busy, respond }: PartProps) {
                 )}
               >
                 <span className="font-display text-[28px] leading-none font-extrabold">{o.label}</span>
-                {o.sub && <span className="text-[12px] text-grey-55">{o.sub}</span>}
+                {o.sub && <span className="text-[12px] text-grey-55">{convertProseUnits(o.sub, storeUnits)}</span>}
                 {i < 9 && <Kbd className="absolute top-1 right-1 h-[18px] min-w-[18px] px-1 text-[11px]">{i + 1}</Kbd>}
               </button>
             )
@@ -276,7 +282,7 @@ function Glove({ block, busy, respond }: PartProps) {
           className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-12 border border-dashed border-grey-8f bg-transparent px-4 py-2 text-left font-sans text-[15px] font-medium text-grey-33 transition-ui hover:border-midnight disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span>
-            <b className="font-semibold text-midnight">Don't know?</b> Measure wrist crease to middle fingertip and match the cm, or tap here to skip.
+            <b className="font-semibold text-midnight">Don't know?</b> Measure wrist crease to middle fingertip and match the {storeUnits === 'metric' ? 'cm' : 'inches'}, or tap here to skip.
           </span>
         </button>
         <div className="flex items-center justify-end gap-3 border-t border-grey-e4 pt-2">

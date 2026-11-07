@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ConfidenceSegments, Eyebrow, LogoMark, StepBars, Wordmark } from '@/components/studio'
+import { ConfidenceSegments, Eyebrow, LogoMark, StepBars, UnitsToggle, Wordmark } from '@/components/studio'
 import { shortHead } from '@/features/result/compare/pair'
 import { hasFlag } from '@/lib/flags'
 import { cn } from '@/lib/utils'
@@ -188,6 +188,7 @@ export function StudioHeader({ variant, step, onBack }: StudioHeaderProps) {
             <span className="text-[13px] font-semibold">Add data</span>
           </button>
         )}
+        <UnitsToggle className="max-md:hidden" />
         <div className="relative flex-none">
         <button
           type="button"

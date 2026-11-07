@@ -1,4 +1,6 @@
 import { useId, useMemo } from "react";
+import { useUnitsStore } from "@/store/units";
+import { distanceValue, fmtDistance, unitLabel } from "@/lib/units";
 import type { Ellipse, FlightResult } from "./types";
 
 export interface FlightSvgProps {
@@ -35,7 +37,6 @@ const ML = 44;
 const GUT = 190;
 const PW = W - ML - GUT;
 const GAP = 52;
-const f0 = (n: number) => Math.round(n).toString();
 
 function ext(e: Ellipse) {
   const a = (e.angle_deg * Math.PI) / 180;
@@ -209,9 +210,11 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
   const TY = (z: number) => topY0 + topH / 2 + z * ts;
   const col = (slot: number) => `var(--fl-${slot})`;
 
+  const units = useUnitsStore((st) => st.units);
+
   const summary = [
-    ...items.map(({ name, h, rec }) => `${name}${rec ? " (recommended)" : ""}: carry ${f0(h.summary.carry.mean)} yd, apex ${f0(h.summary.apex)} yd`),
-    ...(ownShots.length > 0 ? [`Your 7-iron: carry ${f0(ownAvgCarry)} yd (${ownShots.length} shots)`] : []),
+    ...items.map(({ name, h, rec }) => `${name}${rec ? " (recommended)" : ""}: carry ${fmtDistance(h.summary.carry.mean, units)}, apex ${fmtDistance(h.summary.apex, units)}`),
+    ...(ownShots.length > 0 ? [`Your 7-iron: carry ${fmtDistance(ownAvgCarry, units)} (${ownShots.length} shots)`] : []),
   ].join("; ");
 
   const sideOrder = [...items].sort((a, b) => b.h.summary.apex - a.h.summary.apex);
@@ -227,23 +230,23 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
       style={{ display: "block", maxHeight: "100%", background: "var(--fl-bg)" }}
     >
       <title id={`${uid}t`}>Simulated ball flight, side and top view</title>
-      <desc id={`${uid}d`}>{summary}. Estimated by Takomo's physics model, yards.</desc>
+      <desc id={`${uid}d`}>{summary}. Estimated by Takomo's physics model, {unitLabel('distance_plural', units)}.</desc>
       <style>{STYLE}</style>
 
       {/* SIDE VIEW */}
       {!isTopOnly && (
         <>
-          <text x={ML} y={16} className="mut">SIDE VIEW (yd)</text>
+          <text x={ML} y={16} className="mut">SIDE VIEW ({unitLabel('distance', units)})</text>
           {ticks(xMax, 25).map((v) => (
             <g key={`sx${v}`}>
               <line x1={X(v)} x2={X(v)} y1={sideY0} y2={gy} stroke="var(--fl-grid)" />
-              <text x={X(v)} y={gy + 15} textAnchor="middle" className="mut">{v}</text>
+              <text x={X(v)} y={gy + 15} textAnchor="middle" className="mut">{distanceValue(v, units)}</text>
             </g>
           ))}
           {ticks(Math.floor(sideH / s), 10).slice(1).map((v) => (
             <g key={`sy${v}`}>
               <line x1={ML} x2={ML + PW} y1={SY(v)} y2={SY(v)} stroke="var(--fl-grid)" />
-              <text x={ML - 6} y={SY(v) + 4} textAnchor="end" className="mut">{v}</text>
+              <text x={ML - 6} y={SY(v) + 4} textAnchor="end" className="mut">{distanceValue(v, units)}</text>
             </g>
           ))}
           <line x1={ML} x2={ML + PW} y1={gy} y2={gy} stroke="var(--fl-axis)" strokeWidth={1.5} />
@@ -266,8 +269,8 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
                 <circle cx={X(ax)} cy={SY(h.summary.apex)} r={rec ? 5 : 4} fill={col(slot)} stroke="var(--fl-bg)" strokeWidth={2} />
                 {rec && (
                   <>
-                    <text x={X(ax)} y={SY(apexMax) - 12} textAnchor="middle" className="strong halo">apex {f0(h.summary.apex)} yd</text>
-                    <text x={X(h.summary.carry.mean)} y={gy + 29} textAnchor="middle" className="strong">carry {f0(h.summary.carry.mean)} yd</text>
+                    <text x={X(ax)} y={SY(apexMax) - 12} textAnchor="middle" className="strong halo">apex {fmtDistance(h.summary.apex, units)}</text>
+                    <text x={X(h.summary.carry.mean)} y={gy + 29} textAnchor="middle" className="strong">carry {fmtDistance(h.summary.carry.mean, units)}</text>
                   </>
                 )}
               </g>
@@ -276,7 +279,7 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
           {sideOrder.map(({ h, name, rec, slot, i }, k) => (
             <g key={`sg${h.head}-${i ?? k}`}>
               <circle cx={ML + PW + 16} cy={sideY0 + 8 + k * 17} r={4.5} fill={col(slot)} />
-              <text x={ML + PW + 26} y={sideY0 + 12 + k * 17} className={rec ? "strong" : undefined}>{name} · apex {f0(h.summary.apex)} yd</text>
+              <text x={ML + PW + 26} y={sideY0 + 12 + k * 17} className={rec ? "strong" : undefined}>{name} · apex {fmtDistance(h.summary.apex, units)}</text>
             </g>
           ))}
         </>
@@ -287,19 +290,19 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
         <>
           <text x={ML} y={topY0 - 8} className="mut">
             {ownShots.length > 0 && recItem
-              ? `OVERHEAD DISPERSION (yd) · your shots vs the ${recItem.name} · right of target is down`
-              : "OVERHEAD DISPERSION (yd) · right of target is down"}
+              ? `OVERHEAD DISPERSION (${unitLabel('distance', units)}) · your shots vs the ${recItem.name} · right of target is down`
+              : `OVERHEAD DISPERSION (${unitLabel('distance', units)}) · right of target is down`}
           </text>
           {ticks(xMax, 25).filter((v) => v >= xMin).map((v) => (
             <g key={`tx${v}`}>
               <line x1={TX(v)} x2={TX(v)} y1={topY0} y2={topY0 + topH} stroke="var(--fl-grid)" />
-              <text x={TX(v)} y={topY0 + topH + 15} textAnchor="middle" className="mut">{v}</text>
+              <text x={TX(v)} y={topY0 + topH + 15} textAnchor="middle" className="mut">{distanceValue(v, units)}</text>
             </g>
           ))}
           {[-30, -20, -10, 10, 20, 30].filter((v) => Math.abs(v) < lat).map((v) => (
             <g key={`ty${v}`}>
               <line x1={ML} x2={ML + PW} y1={TY(v)} y2={TY(v)} stroke="var(--fl-grid)" />
-              <text x={ML - 6} y={TY(v) + 4} textAnchor="end" className="mut">{v > 0 ? `R ${v}` : `L ${-v}`}</text>
+              <text x={ML - 6} y={TY(v) + 4} textAnchor="end" className="mut">{v > 0 ? `R ${distanceValue(v, units)}` : `L ${distanceValue(-v, units)}`}</text>
             </g>
           ))}
           <line x1={ML} x2={ML + PW} y1={TY(0)} y2={TY(0)} stroke="var(--fl-axis)" strokeWidth={1.5} strokeDasharray="4 4" />
@@ -378,7 +381,7 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
                 <polyline points={`${l.ax},${l.ay} ${lx - 4},${l.ay} ${lx},${ly}`} fill="none" stroke="var(--fl-axis)" />
                 <circle cx={lx + 6} cy={ly} r={4.5} fill={dotCol} />
                 <text x={lx + 16} y={ly + 4} className={l.rec ? "strong" : l.isOwn ? "mut" : undefined}>
-                  {l.name} · carry {f0(l.carry)} yd
+                  {l.name} · carry {fmtDistance(l.carry, units)}
                 </text>
               </g>
             );
@@ -386,8 +389,8 @@ export function FlightSvg({ data, recommendedSlug, className, view = "all", gues
 
           <text x={ML + PW} y={H - 6} textAnchor="end" className="mut">
             {caption ?? (guessed
-              ? "dashed = guessed carry · 68% / 95% dispersion · Estimated by Takomo's physics model, yards"
-              : "solid = 68% dispersion · dashed = 95% dispersion · Estimated by Takomo's physics model, yards")}
+              ? `dashed = guessed carry · 68% / 95% dispersion · Estimated by Takomo's physics model, ${unitLabel('distance_plural', units)}`
+              : `solid = 68% dispersion · dashed = 95% dispersion · Estimated by Takomo's physics model, ${unitLabel('distance_plural', units)}`)}
           </text>
         </>
       )}
