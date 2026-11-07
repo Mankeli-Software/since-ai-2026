@@ -30,6 +30,7 @@
 1. **Always use an isolated git worktree + branch.**
    - Create worktrees under `.claude/worktrees/<branch-slug>` (gitignored, plan §10.1) on a short-lived branch (`feat/<lane>-<topic>`, `fix/<topic>`, `docs/<topic>`) branched from `origin/main`.
    - **Never commit or push directly to `main`.** Never `git push --force` on shared branches.
+   - **Do not merge any pull request before CI checks are green.** All CI checks must pass before you merge.
    - **Claim the issue before you start.** Read its comments first (`gh issue view <n> --comments`). If another agent or teammate already claimed it, do not work on it; pick another issue. Otherwise post a claim comment before you change any files: `gh issue comment <n> --body "🚧 Being worked on by <agent/name> on branch <branch>."`
 2. **Stay strictly inside your assigned lane's file globs (§2).**
    - Do **not** drive-by edit files owned by another lane.
