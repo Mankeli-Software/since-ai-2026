@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { btnCls } from '@/features/genui/ui'
 import { arPageUrl, headLabel } from './heads'
 
-type QrFactory = (type: number, level: string) => { addData(s: string): void; make(): void; createSvgTag(o: { cellSize: number; margin: number; scalable: boolean }): string }
+export type QrFactory = (type: number, level: string) => { addData(s: string): void; make(): void; createSvgTag(o: { cellSize: number; margin: number; scalable: boolean }): string }
 const QR_SRC = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'
 
 /** Loads the pinned QR library once; the URL is encoded in the browser, never sent to a QR service. */
-function loadQr(): Promise<QrFactory> {
+export function loadQr(): Promise<QrFactory> {
   const w = window as unknown as { qrcode?: QrFactory }
   if (w.qrcode) return Promise.resolve(w.qrcode)
   return new Promise((ok, fail) => {

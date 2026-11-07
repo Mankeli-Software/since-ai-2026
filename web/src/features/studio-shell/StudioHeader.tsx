@@ -16,8 +16,10 @@ function welcomeHref() {
 
 /** Shared v3 header for both shells: logo, rule, steps (chat), fit confidence, Save to myTakomo. */
 export function StudioHeader({ variant, step }: StudioHeaderProps) {
-  const { state, demo, saved, save } = useSession()
+  const { state, demo, saved, save, engine: sessionEngine } = useSession()
   const pct = state?.confidence == null ? null : Math.round(state.confidence * 100)
+  const engineParam = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('engine') : null
+  const engine = engineParam === 'live' || engineParam === 'scripted' ? engineParam : sessionEngine
 
   return (
     <header className="flex shrink-0 items-center gap-5 px-14 pt-7">
@@ -30,6 +32,11 @@ export function StudioHeader({ variant, step }: StudioHeaderProps) {
       {demo && (
         <Eyebrow size={11} className="flex-none rounded-4 px-2 py-1 text-orange-light shadow-[inset_0_0_0_1px_var(--color-orange-light)]">
           Simulated golfer
+        </Eyebrow>
+      )}
+      {engine && (
+        <Eyebrow size={11} className="flex-none rounded-4 px-2 py-1 text-grey-c8 shadow-[inset_0_0_0_1px_var(--color-grey-3d)]">
+          {engine === 'live' ? 'Live AI' : 'Replay'}
         </Eyebrow>
       )}
       {variant === 'chat' && step != null && <StepBars step={step} />}
