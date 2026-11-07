@@ -17,8 +17,7 @@ from app.agent.guard import bind, check_vision
 from app.api.deps import SessionDep, StoreDep
 from app.api.guard_deps import DemoKeyHeader
 from app.core.errors import InvalidInputError
-from app.evidence.plausibility.extraction import validate_extraction
-from app.evidence.plausibility.shots import V1_SHOT_RULES
+from app.evidence.shot_checks import run_screenshot_rules
 from app.schemas.evidence import ExtractedSession
 from app.schemas.extraction import (
     ExtractionReview,
@@ -66,8 +65,9 @@ def _launch_monitor_review(
     import_id: str, s: ExtractedSession, synthetic: bool
 ) -> ExtractionReview:
     # V1 cell integrity, V2 units, V4 bounds/checksums/confidence (#34). Pure, no model calls.
-    # V3: the v1 S rules (#31) run on the read shots and map back to screen rows.
-    flags = validate_extraction(s, shot_rules=V1_SHOT_RULES, import_id=import_id)
+    # V3: the v1 S rules (#31; W2 too with EVIDENCE_WAVE2=1) run on the read shots and map back
+    # to screen rows.
+    flags = run_screenshot_rules(s, import_id=import_id)
     flagged = _flagged_cells(s, flags)
     hit = {(f.row, f.field) for f in flagged}
     columns = list(dict.fromkeys(c.field for c in s.cells))
