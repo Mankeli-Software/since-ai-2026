@@ -17,6 +17,7 @@ import type { Spec } from './types'
  *     hrefFor(view, part?)         deep-link href for an <a> (keeps engine/demo/ff params)
  *     data: ResultsData            live store data or the fixture preview (see useResultsData)
  *     setBuySpec(spec | null)      R5: the buy bar follows this spec instead of data.best (null = back to best)
+ *     buySpec: Spec | null         the spec set with setBuySpec (null = the buy bar shows data.best)
  *
  *   <ResultsNext label="Shaft" to={{ view: 'why', part: 'shaft' }} />    buy bar "Next: Shaft →"
  *   <ResultsNext label="Compare heads" to={{ view: 'compare' }} />
@@ -47,6 +48,8 @@ export interface ResultsChrome {
   hrefFor(view: ResultsView, part?: WhyPart): string
   data: ResultsData
   setBuySpec(spec: Spec | null): void
+  /** What setBuySpec last set (null = the buy bar follows data.best). Lets R5 show the current choice on return. */
+  buySpec: Spec | null
 }
 
 /** Portal targets owned by the shell. Internal: views use ResultsNext / ResultsAside. */

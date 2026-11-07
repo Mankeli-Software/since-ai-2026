@@ -100,8 +100,8 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
   )
 
   const chrome = useMemo<ResultsChrome>(
-    () => ({ view, part, go, setPart, hrefFor, data, setBuySpec }),
-    [view, part, go, setPart, hrefFor, data],
+    () => ({ view, part, go, setPart, hrefFor, data, setBuySpec, buySpec }),
+    [view, part, go, setPart, hrefFor, data, buySpec],
   )
 
   const registerAside = useCallback(() => {
