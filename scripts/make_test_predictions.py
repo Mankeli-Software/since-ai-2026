@@ -42,7 +42,7 @@ def predict_b2(d: Path) -> pd.DataFrame:
 
 
 def predict_app(d: Path) -> pd.DataFrame:
-    """The app's own build_answers + recommend_fit (scripts/score_dev.py): dev 85.59 vs B2 83.58."""
+    """The app's own build_answers + recommend_fit (scripts/score_dev.py): dev 86.19 vs B2 83.58."""
     import score_dev  # scripts/ is on sys.path when this script runs
 
     return score_dev.predict(d)
