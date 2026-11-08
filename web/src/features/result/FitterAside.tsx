@@ -23,13 +23,15 @@ export function AsideBody({ message, fallback, chips, block, children }: Results
   const ui = useSession((s) => s.ui)
   const respond = useSession((s) => s.respond)
   const messages = useSession((s) => s.messages)
+  const error = useSession((s) => s.error)
 
   let latestAssistant: ChatMessage | undefined
-  for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i].role === 'assistant' && messages[i].text.trim()) {
-      latestAssistant = messages[i]
-      break
-    }
+  let latestUser: ChatMessage | undefined
+  for (let i = messages.length - 1; i >= 0 && !(latestAssistant && latestUser); i--) {
+    const m = messages[i]
+    if (!m.text.trim()) continue
+    if (m.role === 'assistant') latestAssistant ??= m
+    else latestUser ??= m
   }
 
   const prevMessageRef = useRef<string | undefined>(message)
@@ -41,7 +43,16 @@ export function AsideBody({ message, fallback, chips, block, children }: Results
   }
 
   const isReplyNewer = Boolean(latestAssistant && latestAssistant.seq > baselineSeqRef.current)
-  const text = (isReplyNewer && latestAssistant ? latestAssistant.text : null) ?? message ?? defaults.assistantText ?? fallback ?? defaults.fallback
+  // A question the golfer sent from this view: echo it, then the answer, "Thinking…" until one streams in, or an error.
+  const asked = latestUser && latestUser.seq > baselineSeqRef.current ? latestUser : undefined
+  const answered = Boolean(asked && latestAssistant && latestAssistant.seq > asked.seq)
+  const thinking = Boolean(asked && busy && !answered)
+  const failed = Boolean(asked && error && !busy && !answered)
+  const text = asked
+    ? answered && latestAssistant
+      ? latestAssistant.text
+      : null
+    : ((isReplyNewer && latestAssistant ? latestAssistant.text : null) ?? message ?? defaults.assistantText ?? fallback ?? defaults.fallback)
 
   // Latest pending ui_input block in session store (stock_vs_custom is handled on R5).
   const pending = [...ui].reverse().find((u) => u.interactive && !u.answered && u.block.type !== 'stock_vs_custom')
@@ -49,9 +60,21 @@ export function AsideBody({ message, fallback, chips, block, children }: Results
 
   return (
     <>
+      {asked && (
+        <p className="m-0 text-[14px] leading-[1.45] text-grey-a3">
+          <span className="mr-1.5 text-[11px] font-semibold tracking-wider text-grey-8f uppercase">You</span>
+          {asked.text}
+        </p>
+      )}
       {text && (
         <p className="m-0 text-[18px] leading-[1.5] text-washed-white">
           <RevealText text={text} animate={Boolean(isReplyNewer && latestAssistant?.live)} />
+        </p>
+      )}
+      {thinking && <AsideThinking />}
+      {failed && (
+        <p role="alert" className="m-0 text-[14px] text-orange-on-page">
+          Couldn't answer that. Try again.
         </p>
       )}
       {children}
@@ -83,6 +106,20 @@ export function AsideBody({ message, fallback, chips, block, children }: Results
         </div>
       )}
     </>
+  )
+}
+
+/** Subtle animated dots while the fitter works on the golfer's question. */
+function AsideThinking() {
+  return (
+    <p role="status" className="m-0 flex items-center gap-2 text-[14px] text-grey-8f">
+      <span>Thinking</span>
+      <span aria-hidden="true" className="flex items-center gap-1">
+        {[0, 160, 320].map((d) => (
+          <span key={d} className="size-1.5 animate-pulse rounded-full bg-grey-8f" style={{ animationDelay: `${d}ms` }} />
+        ))}
+      </span>
+    </p>
   )
 }
 
