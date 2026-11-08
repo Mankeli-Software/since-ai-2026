@@ -35,6 +35,7 @@
 }
 
 .fs-banner__tag {
+  flex: none;
   display: inline-flex;
   align-items: center;
   height: 24px;
@@ -46,17 +47,26 @@
 }
 
 .fs-banner__title {
+  flex: none;
+  white-space: nowrap;
   font: 700 20px/1 'Barlow Condensed', 'Barlow', sans-serif;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
+/* Zero basis: the text takes the space left on the row and wraps inside itself, so the CTA stays on the
+   same row instead of dropping to a line of its own. The min-width still lets the row wrap on narrow screens.
+   Balanced wrapping keeps a two-line tagline from leaving one word on its own line. */
 .fs-banner__text {
+  flex: 1 1 0;
+  min-width: 240px;
+  text-wrap: balance;
   font: 400 15px/1.3 'Barlow', sans-serif;
   color: #c8c8c8;
 }
 
 .fs-banner__cta {
+  flex: none;
   margin-left: auto;
   display: flex;
   align-items: center;
