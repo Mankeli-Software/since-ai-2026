@@ -33,6 +33,7 @@ from app.agent import why_router
 from app.agent.engines.base import answer_of, load_tools, stored, user_text
 from app.agent.guard import REPLAY_TEXT
 from app.agent.tools._common import commit_state, recompute_session_state
+from app.agent.turn import BLOCKS, shown_blocks
 from app.core.tooling import ToolContext, get_tool
 from app.schemas.chat import StreamEvent, TextEvent, TextMessage, TurnRequest, UiEvent
 from app.schemas.session import StoredMessage
@@ -138,6 +139,33 @@ async def _apply_review_answer(ctx: ToolContext, value: Any) -> None:
     await spec.fn(ctx, args)
 
 
+async def _reshow_pending(ctx: ToolContext) -> None:
+    """Show the pending input card again, after a reply that did not answer it (a why-question in
+    the results aside, or free text in replay mode). The runner and the web already marked the old
+    card answered with that text, so it moves: the old block leaves the stored cards, the same block
+    goes out as a fresh `ui` event with a new id, and the script waits on that id. A tap on it
+    resumes the script at the step the old card ended."""
+    s = ctx.session
+    if s.pending_ui_id is None:
+        return
+    blocks = shown_blocks(s)
+    old = next((b for b in blocks if b.id == s.pending_ui_id), None)
+    if old is None:
+        return
+    s.ui_blocks_json = BLOCKS.dump_json([b for b in blocks if b.id != old.id]).decode()
+    spec = get_tool(f"ui_{old.block.type}")
+    new_id: list[str] = []
+
+    async def capture(ev: StreamEvent) -> None:
+        if isinstance(ev, UiEvent):
+            new_id.append(ev.id)
+        await ctx.emit(ev)
+
+    sub = ToolContext(session=s, emit=capture, store=ctx.store, budget=ctx.budget)
+    await spec.fn(sub, old.block)
+    s.pending_ui_id = new_id[0]
+
+
 class ScriptedEngine:
     async def run_turn(
         self, ctx: ToolContext, request: TurnRequest, history: list[StoredMessage]
@@ -199,9 +227,11 @@ class ScriptedEngine:
 
         if replay_free_text:
             await say(REPLAY_TEXT)
+            await _reshow_pending(ctx)
             return [user, stored("assistant", "scripted", REPLAY_TEXT)]
         if why_question:
             await say(await why_router.answer(ctx, user_text(request)))
+            await _reshow_pending(ctx)
             return [user, stored("assistant", "scripted", texts[0])]
         if s.notice is not None and s.script_cursor == 0:
             await say(s.notice.message)
