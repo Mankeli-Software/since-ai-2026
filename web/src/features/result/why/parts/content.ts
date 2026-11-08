@@ -72,7 +72,8 @@ export interface PartContent {
   /** Short value for the part list. */
   listValue: string
   title: string
-  provenance: { kind: 'measured' | 'chart'; text: string } | null
+  /** The visible line says which kind it is ("Measured: …", "From your answers"); the dot repeats it. */
+  provenance: { kind: ProvenanceKind; text: string } | null
   reason: string
   chart: ReactNode
   stats: Stat[]
@@ -156,37 +157,79 @@ export const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s)
 
 // ---- provenance ----
 
+/**
+ * measured: only shots or measurements (TrackMan, radar, ball-line test, photo, video, screenshot);
+ * mixed: some measured, some answers or chart; answers: the golfer's answers as given;
+ * estimated: worked out from answers or averages (a speed from reported carry, a guessed glove);
+ * chart: a fitting chart alone.
+ */
+export type ProvenanceKind = 'measured' | 'mixed' | 'answers' | 'estimated' | 'chart'
+
 const MEASURED = new Set<WhySource['source']>(['trackman', 'radar', 'photo', 'video', 'ball_line', 'vision'])
-const SOURCE_WORDS: Record<WhySource['source'], string> = {
-  questionnaire: 'your answers',
+const SHOTS = new Set<WhySource['source']>(['trackman', 'radar'])
+const SOURCE_WORDS: Partial<Record<WhySource['source'], string>> = {
   photo: 'a photo',
   video: 'a video',
   trackman: 'your TrackMan shots',
   radar: 'your radar shots',
   ball_line: 'the ball-line test',
-  vision: 'a photo',
-  derived: 'a fitting chart',
+  vision: 'a screenshot',
+}
+const KIND_LABEL: Record<ProvenanceKind, string> = {
+  measured: 'Measured',
+  mixed: 'Partly measured',
+  answers: 'From your answers',
+  estimated: 'Estimated from your answers',
+  chart: 'From a fitting chart',
+}
+const ESTIMATED_NOTE = /estimat|guess|not sure|default|average/i
+
+function kindOf(s: WhySource): ProvenanceKind {
+  // Own-7-iron Dynamic Lie and the ball-line test are fused with the chart, never override it (plan §3.3).
+  if (MEASURED.has(s.source)) return /fused/i.test(s.note ?? '') ? 'mixed' : 'measured'
+  if (s.source === 'derived') return !s.note || /chart/i.test(s.note) ? 'chart' : 'estimated'
+  return ESTIMATED_NOTE.test(s.note ?? '') ? 'estimated' : 'answers'
 }
 
 const joinAnd = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`)
 
 /**
- * Solid dot = measured (shots, or something the golfer measured); hollow ring = from the chart.
- * The line reads the sources' notes: "From 24 TrackMan shots", "From your shots and what you want".
+ * The provenance line from the why item's sources (Provenance.source, plan §3.3). Only shots and measurements
+ * count as measured: "Measured: mean of 10 shots …", "Estimated from your answers: speed estimated from reported
+ * carry 160 yd", "From your answers". The details are the sources' own notes (tool output).
  */
 export function provenanceOf(sources: WhySource[] | undefined): PartContent['provenance'] {
   if (!sources?.length) return null
-  const measured = sources.some(
-    (s) => MEASURED.has(s.source) || (s.source === 'questionnaire' && !/guess|not sure|default/i.test(s.note ?? '')),
-  )
-  const words = [...new Set(sources.map((s) => (s.note?.trim() || SOURCE_WORDS[s.source]).replace(/\.$/, '')))]
-  return { kind: measured ? 'measured' : 'chart', text: `From ${joinAnd(words)}` }
+  const kinds = new Set(sources.map(kindOf))
+  // A chart next to a measurement (lie: shots fused with or overriding the chart) does not make it "partly".
+  if (kinds.has('measured')) kinds.delete('chart')
+  const anyMeasured = kinds.has('measured') || kinds.has('mixed')
+  const kind: ProvenanceKind = anyMeasured
+    ? kinds.size === 1 && kinds.has('measured')
+      ? 'measured'
+      : 'mixed'
+    : kinds.has('estimated')
+      ? 'estimated'
+      : kinds.has('answers')
+        ? 'answers'
+        : 'chart'
+  const details = [
+    ...new Set(
+      sources
+        .map((s) => (s.note?.trim() || SOURCE_WORDS[s.source] || '').replace(/\.$/, ''))
+        .filter((d) => d && d.toLowerCase() !== 'static fit chart'),
+    ),
+  ]
+  const label = KIND_LABEL[kind]
+  return { kind, text: details.length ? `${label}: ${joinAnd(details)}` : label }
 }
 
 /** What a part is "Based on", for the stat tile. */
 export function basedOn(sources: WhySource[] | undefined): string | null {
   if (!sources?.length) return null
-  if (sources.some((s) => MEASURED.has(s.source))) return 'Shots'
+  if (sources.some((s) => SHOTS.has(s.source))) return 'Shots'
+  if (sources.some((s) => s.source === 'ball_line')) return 'Ball-line test'
+  if (sources.some((s) => MEASURED.has(s.source))) return 'Measured'
   if (sources.every((s) => s.source === 'derived')) return 'Chart'
   return 'Your answers'
 }

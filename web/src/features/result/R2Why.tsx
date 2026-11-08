@@ -3,6 +3,7 @@ import { Button, ClubImage, Eyebrow, SpecPartIcon, StatTile } from '@/components
 import { cn } from '@/lib/utils'
 import { useSession, type UiItem } from '@/store/session'
 import type { CameraPreset, CameraPresetName } from '../stage3d'
+import { Text } from '../chat/Text'
 import { StageBoundary } from '../studio-shell/StageBoundary'
 import { ResultsAside, ResultsNext, WHY_PARTS, useResultsChrome, type WhyPart } from './chrome'
 import { PhoneNext } from './PhoneBits'
@@ -128,15 +129,18 @@ function ProvenanceLine({ p, example }: { p: PartContent['provenance']; example:
     <span className="inline-flex flex-wrap items-center gap-2 text-[14px] text-on-page-2">
       {p && (
         <>
-          {p.kind === 'measured' ? (
+          {p.kind === 'measured' || p.kind === 'mixed' ? (
             <span aria-hidden="true" className="inline-block size-2 flex-none rounded-full bg-tiger-orange" />
           ) : (
-            <span aria-hidden="true" className="inline-block size-[9px] flex-none rounded-full border-[1.5px] border-dashed border-on-page-2" />
+            <span
+              aria-hidden="true"
+              className={cn(
+                'inline-block size-[9px] flex-none rounded-full border-[1.5px] border-on-page-2',
+                p.kind !== 'answers' && 'border-dashed',
+              )}
+            />
           )}
-          <span>
-            <span className="sr-only">{p.kind === 'measured' ? 'Measured. ' : 'From a chart, not measured. '}</span>
-            {p.text}
-          </span>
+          <span>{p.text}</span>
         </>
       )}
       {example && (
@@ -192,7 +196,9 @@ function Reason({ c, example }: { c: PartContent; example: boolean }) {
         <h1 className="m-0 font-display text-[44px] leading-[.9] font-extrabold uppercase max-md:text-[36px]">{c.title}</h1>
         <ProvenanceLine p={c.provenance} example={example} />
       </div>
-      <p className="m-0 text-[19px] leading-[1.45] text-on-page-2 max-md:text-[17px]">{c.reason}</p>
+      <p className="m-0 text-[19px] leading-[1.45] text-on-page-2 max-md:text-[17px]">
+        <Text text={c.reason} />
+      </p>
       {c.chart && <div className="min-w-0 max-md:overflow-x-auto">{c.chart}</div>}
       {n > 0 && (
         <div className={cn('grid gap-2.5', n >= 4 ? 'grid-cols-4 max-[1400px]:grid-cols-2' : 'grid-cols-3 max-md:grid-cols-2')}>

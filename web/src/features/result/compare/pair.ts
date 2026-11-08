@@ -40,5 +40,14 @@ export function comparePair(data: ResultsData): HeadOption[] {
 /** "201T", "201", "301" for labels and chips (the family number, no MkII / CB suffix). */
 export const shortHead = (head: string) => head.split('-')[0].toUpperCase()
 
+/**
+ * Display label that tells heads in one family apart: "301 CB" / "301 MB", while "201T", "201", "101" stay short
+ * (MkII is the only generation, so it is dropped). Use this where two heads can be on screen together.
+ */
+export const headLabel = (head: string) => {
+  const [family, variant] = head.toUpperCase().split('-')
+  return variant && variant !== 'MKII' ? `${family} ${variant}` : family
+}
+
 /** Rounded for display; the block keeps the precision. */
 export const num = (n: number) => String(Math.round(n))

@@ -3,7 +3,7 @@ import { ArQr } from './ar/ArQr'
 import { arUrl } from './ar/arLink'
 import { PhoneMock } from './ar/PhoneMock'
 import { ResultsAside, useResultsChrome } from './chrome'
-import { shortHead } from './compare/pair'
+import { headLabel } from './compare/pair'
 import { PhoneNote } from './PhoneBits'
 
 const ASIDE_MESSAGE = 'Hold your phone where the ball would be. Check how the topline looks to you at address.'
@@ -20,7 +20,7 @@ export function R4AR() {
   // The selected head (#221): QR, link, copy and phone mock all follow it; the chip offers the other one.
   const head = selected.head
   const url = arUrl(head)
-  const chips = [other && `Show the ${shortHead(other.head)} in AR too`, 'How much offset is that?'].filter((c): c is string => !!c)
+  const chips = [other && `Show the ${headLabel(other.head)} in AR too`, 'How much offset is that?'].filter((c): c is string => !!c)
 
   return (
     <>
@@ -31,7 +31,7 @@ export function R4AR() {
             Put it on your carpet.
           </h1>
           <p className="m-0 max-w-[520px] text-[20px] leading-[1.5] text-on-page-2 max-md:text-[16px]">
-            Open it on your phone. The {shortHead(head)} appears at real size, so you can check how the topline and offset look at
+            Open it on your phone. The {headLabel(head)} appears at real size, so you can check how the topline and offset look at
             address.
           </p>
           <div className="flex flex-col gap-2 md:hidden">
