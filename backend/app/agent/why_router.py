@@ -12,14 +12,17 @@ from app.core.tooling import ToolContext, get_tool
 from app.schemas.common import Part
 
 CLOSE = "close"
-# First match wins: "the other head" is a close-call question, not a head question.
+# First match wins. Parts come first, so "Why stiff instead of regular?" is a flex question and
+# "Why +2 lie vs standard?" a lie question. Comparison wording only means the close call when no
+# part matched, i.e. it is about the heads ("What about the other head?"), so it sits above head.
 ROUTES: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\b(close|vs|versus|other|runner|instead|alternative)\b"), CLOSE),
-    (re.compile(r"\b(shaft|flex|stiff|regular|graphite|steel)\b"), "flex"),
-    (re.compile(r"\b(length|long|longer|short|shorter|inch|inches)\b"), "length"),
+    (re.compile(r"\b(shaft|shafts|flex|stiff|regular|graphite|steel)\b"), "flex"),
     (re.compile(r"\b(lie|upright|flat|flatter)\b"), "lie"),
+    # No bare "long"/"short": "How long until it ships?" is not a length question.
+    (re.compile(r"\b(length|lengths|longer|shorter|inch|inches)\b"), "length"),
     (re.compile(r"\b(grip|grips|glove)\b"), "grip"),
-    (re.compile(r"\b(head|club|clubs|iron|irons|101|201|201t|301|mb|cb|mkii)\b"), "head"),
+    (re.compile(r"\b(close|vs|versus|other|runner|instead|alternative)\b"), CLOSE),
+    (re.compile(r"\b(head|heads|club|clubs|iron|irons|101|201|201t|301|mb|cb|mkii)\b"), "head"),
 ]
 HELP = (
     "I can explain any part of your fit: the head, the shaft and flex, the length, the lie "
