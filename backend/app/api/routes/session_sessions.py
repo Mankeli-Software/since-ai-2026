@@ -5,6 +5,7 @@ from fastapi import APIRouter, status
 from starlette.concurrency import run_in_threadpool
 
 from app.agent.guard import check_session_create, pick_engine
+from app.agent.turn import shown_blocks
 from app.api.demo import seed_demo_session
 from app.api.deps import SessionDep, SettingsDep, StoreDep
 from app.api.guard_deps import DemoKeyHeader
@@ -70,6 +71,7 @@ async def get_session(session: SessionDep, store: StoreDep) -> PublicSession:
         status=session.status,
         state=session.state,
         transcript=transcript,
+        blocks=shown_blocks(session),
         notice=session.notice,
     )
 

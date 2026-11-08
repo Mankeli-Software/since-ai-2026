@@ -1,27 +1,63 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { Button, EnterKbd, Eyebrow, Kbd, useEnterKey, useNumberKeys } from '@/components/studio'
+import { useEffect, useId, useState, type ReactNode } from 'react'
+import { Button, EnterKbd, useEnterKey } from '@/components/studio'
 import type { FittingState } from '@/api/client'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/store/session'
 import type { BlockProps } from '../types'
-import { Answered, cardLabelCls } from './_parts/Answered'
+import { Answered, ReadOnly, cardLabelCls, isReadOnly } from './_parts/Answered'
+import { SampleDialog, type SampleOption } from './_parts/SampleDialog'
 import diagrams from '../../../../../fixtures/diagrams.json'
 
 export const type = 'data_import'
 
-// The pack's test clubs (club ids in demo/shots.csv).
-const CLUBS: [string, string][] = [
-  ['own_7i', 'My own 7-iron'],
-  ['takomo_201-mkii_kbs-tour-regular_std', 'Takomo 201 MKII test club'],
-  ['takomo_101-mkii_kbs-tour-lite-regular_std', 'Takomo 101 MKII test club'],
-]
+// The pack's test clubs (club ids in demo/shots.csv): neutral names for the own-fitting sample list.
+const CLUBS: Record<string, string> = {
+  own_7i: '7-iron session',
+  'takomo_201-mkii_kbs-tour-regular_std': 'Takomo 201 MKII test-club session',
+  'takomo_101-mkii_kbs-tour-lite-regular_std': 'Takomo 101 MKII test-club session',
+}
 const LINE_STEPS = diagrams.ball_line_test.steps
 const UNAVAILABLE = "Couldn't parse that CSV. Ensure it's an unedited TrackMan export, or skip for now."
 const LINE_FAILED = "Couldn't use those readings. Each one needs to be between -15° and +15°."
 
 // Local minimal types: these demo routes are not in the generated client yet.
-interface Sample { sample_id: string; kind?: string; label?: string }
+interface Sample { sample_id: string; kind?: string; club?: string | null; label?: string }
 interface DemoGolfer { golfer_id: string; sample_imports?: Sample[] }
+/** A sample with the demo golfer whose file it is, and the label the dialog shows. */
+interface Pick { golfer: string; s: Sample; label: string }
+
+// #216 comment 1: simulated photo reads of the ball-line test. Each fills the five boxes; all inside the G15 window
+// (readings within ±9°). No photo is taken or analysed.
+const PHOTO_READS: (SampleOption & { readings: number[] })[] = [
+  { id: 'toe', label: 'Toe-up lean', sub: 'Marks lean a little toward the toe', readings: [2, 1.5, 2.5, 2, 1] },
+  { id: 'level', label: 'About level', sub: 'Marks close to straight up', readings: [0.5, -0.5, 0, 0.5, 0] },
+  { id: 'heel', label: 'Heel-down lean', sub: 'Marks lean a little toward the heel', readings: [-1.5, -2, -1, -2, -1.5] },
+]
+
+/**
+ * The samples the dialog lists. Persona sessions: that golfer's own sample imports, as labelled. Own fittings: the
+ * TrackMan sessions of every demo golfer for the card's club (all of them when none match), plus ball-line sets on a
+ * card that takes the ball-line test, numbered under neutral names (never a persona's name).
+ */
+function samplesFor(list: DemoGolfer[], demo: string | null, club: string, ballLine: boolean): Pick[] {
+  if (demo) {
+    const g = list.find((x) => x.golfer_id === demo)
+    return (g?.sample_imports ?? []).map((s) => ({ golfer: demo, s, label: s.label ?? s.sample_id }))
+  }
+  const all = list.flatMap((g) => (g.sample_imports ?? []).map((s) => ({ golfer: g.golfer_id, s })))
+  const seen = new Set<string>()
+  const unique = all.filter(({ golfer, s }) => !seen.has(`${golfer}/${s.sample_id}`) && !!seen.add(`${golfer}/${s.sample_id}`))
+  const tm = unique.filter(({ s }) => s.kind === 'trackman_csv')
+  const forClub = tm.filter(({ s }) => (s.club ?? 'own_7i') === club)
+  const line = ballLine ? unique.filter(({ s }) => s.kind === 'ball_line') : []
+  const n: Record<string, number> = {}
+  const name = (s: Sample) => (s.kind === 'ball_line' ? 'Ball-line readings' : CLUBS[s.club ?? 'own_7i'] ?? 'TrackMan session')
+  return [...(forClub.length ? forClub : tm), ...line].map(({ golfer, s }) => {
+    const base = name(s)
+    n[base] = (n[base] ?? 0) + 1
+    return { golfer, s, label: `${base} ${n[base]}` }
+  })
+}
 interface ImportResult { import_id?: string; status?: string; report?: { n_shots?: number }; state?: FittingState | null }
 
 // C4c phone-mock illustrations (dark 120px panels), copied from V3-C4c-TrackMan.
@@ -158,9 +194,10 @@ const boxCls =
 const noSpinCls = '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 
 /**
- * C4c guided import. Working actions: TrackMan CSV upload, persona sample imports ("Simulated"),
- * ball-line readings, skip. The share-link field is shown disabled (link importer cut, plan L6).
- * Keys: Enter opens the CSV upload, number keys run the sample imports. The ball-line panel focuses its first reading;
+ * C4c guided import. Working actions: sample imports ("Simulated", in a dialog), ball-line readings (typed or from a
+ * simulated photo read), skip. The share-link field is shown disabled (link importer cut, plan L6).
+ * #216: "Upload TrackMan CSV" opens the sample dialog; no file from the golfer's computer is read or uploaded.
+ * Keys: Enter opens the dialog, number keys pick inside it. The ball-line panel focuses its first reading;
  * Enter in a filled reading moves to the next one, and Enter on an empty or the last one sends (at least 3).
  * Payloads unchanged: `{import_id}` or `{skipped: true}`.
  */
@@ -169,31 +206,38 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   const [lineOpen, setLineOpen] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
-  const [club, setClub] = useState<string>(block.club_hint ?? 'own_7i')
   const [readings, setReadings] = useState(['', '', '', '', ''])
-  const [samples, setSamples] = useState<Sample[]>([])
-  const fileRef = useRef<HTMLInputElement>(null)
-  const clubId = useId()
+  // The readings a simulated photo read filled in; null when none was used.
+  const [photo, setPhoto] = useState<string[] | null>(null)
+  const [golfers, setGolfers] = useState<DemoGolfer[] | null>(null)
+  const [dialog, setDialog] = useState<'samples' | 'photo' | null>(null)
+  const uid = useId()
   const live = interactive && !answer
   const off = !live || busy || working
 
   useEffect(() => {
-    if (!demo || !live) return
+    if (!live) return
     fetch('/api/demo')
       .then((r) => (r.ok ? (r.json() as Promise<DemoGolfer[]>) : []))
-      .then((list) => setSamples(list.find((g) => g.golfer_id === demo)?.sample_imports ?? []))
-      .catch(() => {}) // route may not exist yet
-  }, [demo, live])
+      .then(setGolfers)
+      .catch(() => setGolfers([])) // route may not exist yet
+  }, [live])
 
   const has = (s: string) => block.sources.includes(s as (typeof block.sources)[number])
   const guided = has('trackman_link') || has('csv')
-  // Keydown is a user gesture, so Enter may open the file picker. Samples run on 1-9 (persona sessions only).
-  useEnterKey(() => fileRef.current?.click(), guided && !off)
-  useNumberKeys(samples.length, (i) => void sendSample(samples[i]), !off)
+  const samples = golfers ? samplesFor(golfers, demo, block.club_hint ?? 'own_7i', has('ball_line')) : []
+  useEnterKey(() => setDialog('samples'), guided && !off && dialog === null)
 
+  if (isReadOnly(interactive, answer)) {
+    return (
+      <ReadOnly answer={answer!}>
+        <p className={cn('m-0', cardLabelCls)}>{block.prompt}</p>
+      </ReadOnly>
+    )
+  }
   if (!live) return <Answered prompt={block.prompt} answer={answer} />
 
-  const done = (r: Response, n?: string) =>
+  const done = (r: Response, n?: string, suffix = '') =>
     r.json().then(async (j: ImportResult) => {
       if (!j.import_id) throw new Error('no id')
       if (j.state) mergeState(j.state)
@@ -207,15 +251,15 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         if (confirmed.state) mergeState(confirmed.state)
       }
       const shots = j.report?.n_shots
-      respond({ import_id: j.import_id }, n ?? (shots ? `Imported ${shots} shots` : 'Imported my shots'))
+      respond({ import_id: j.import_id }, (n ?? (shots ? `Imported ${shots} shots` : 'Imported my shots')) + suffix)
     })
 
-  const run = async (go: () => Promise<Response>, text?: string, fail = UNAVAILABLE) => {
+  const run = async (go: () => Promise<Response>, text?: string, fail = UNAVAILABLE, suffix = '') => {
     setWorking(true); setMsg(null)
     try {
       const r = await go()
       if (!r.ok) throw new Error(String(r.status))
-      await done(r, text)
+      await done(r, text, suffix)
     } catch {
       setMsg(fail)
     } finally {
@@ -229,29 +273,44 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     fd.append('file', f, name); fd.append('club', c)
     return fetch(`${base}/trackman-csv`, { method: 'POST', body: fd })
   }
+  // The readings came from a simulated photo read and the golfer has not changed them.
+  const fromPhoto = photo !== null && readings.every((x, i) => x === photo[i])
   const sendLine = () => {
     const nums = readings.filter((x) => x !== '').map(Number)
     return run(() =>
       fetch(`${base}/ball-line`, {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ readings_deg: nums, club: block.club_hint ?? undefined, append_to: block.append_to ?? undefined }),
-      }), `Ball-line readings: ${nums.join(', ')}`, LINE_FAILED)
+      }), `Ball-line readings: ${nums.join(', ')}${fromPhoto ? ' (simulated photo)' : ''}`, LINE_FAILED)
   }
-  const sendSample = (s: Sample) =>
+  // A sample goes through the same import path as a real file: fetch it, post it, confirm it.
+  const sendSample = ({ golfer, s }: Pick) =>
     run(async () => {
-      const g = await fetch(`/api/demo/${demo}/samples/${s.sample_id}`)
+      const g = await fetch(`/api/demo/${golfer}/samples/${s.sample_id}`)
       if (!g.ok) return g
       if (s.kind === 'ball_line') {
         return fetch(`${base}/ball-line`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: await g.text() })
       }
-      return csvPost(await g.blob(), s.sample_id, block.club_hint ?? 'own_7i')
-    })
+      return csvPost(await g.blob(), `${s.sample_id}.csv`, s.club ?? block.club_hint ?? 'own_7i')
+    }, undefined, UNAVAILABLE, ' (simulated sample)')
+  const pickSample = (i: number) => {
+    const p = samples[i]
+    setDialog(null)
+    if (p) void sendSample(p)
+  }
+  const pickPhoto = (i: number) => {
+    const p = PHOTO_READS[i]
+    setDialog(null)
+    if (!p) return
+    const filled = p.readings.map(String)
+    setReadings(filled)
+    setPhoto(filled)
+  }
 
   // The ball-line offer: the test is explained up front, the reading boxes open on "Enter my readings".
   const lineOnly = has('ball_line') && !guided
   const showLine = has('ball_line') && lineOpen
   const shots = has('screenshot') || has('round_stats_screenshot')
-  const clubs = CLUBS.some(([v]) => v === club) ? CLUBS : [...CLUBS, [club, club] as [string, string]]
   const filled = readings.filter((x) => x !== '')
   const avg = filled.length ? filled.reduce((s, x) => s + Number(x), 0) / filled.length : null
   const lean =
@@ -279,9 +338,9 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
           {has('trackman_link') && (
             <div className="flex flex-col gap-1.5">
               <div className="flex gap-2.5">
-                <label htmlFor={`${clubId}-link`} className="sr-only">TrackMan report link (coming soon)</label>
+                <label htmlFor={`${uid}-link`} className="sr-only">TrackMan report link (coming soon)</label>
                 <input
-                  id={`${clubId}-link`}
+                  id={`${uid}-link`}
                   type="url"
                   disabled
                   placeholder="TrackMan share link (coming soon)"
@@ -293,48 +352,14 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
             </div>
           )}
 
-          <div className="flex flex-wrap items-end gap-2.5 max-md:flex-col max-md:items-stretch">
-            <label htmlFor={clubId} className="flex flex-col gap-1.5 text-[14px] font-semibold max-md:[&>select]:w-full">
-              Hit with
-              <select id={clubId} className={boxCls} value={club} disabled={off} onChange={(e) => setClub(e.target.value)}>
-                {clubs.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
-            </label>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="sr-only"
-              tabIndex={-1}
-              aria-hidden="true"
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                e.target.value = ''
-                if (f) void run(() => csvPost(f, f.name, club))
-              }}
-            />
-            <Button variant="primary" className="min-h-12 pr-3 max-md:min-h-[52px]" disabled={off} aria-keyshortcuts="Enter" onClick={() => fileRef.current?.click()}>
+          <div className="flex flex-wrap items-center gap-2.5 max-md:flex-col max-md:items-stretch">
+            <Button variant="primary" className="min-h-12 pr-3 max-md:min-h-[52px]" disabled={off} aria-keyshortcuts="Enter" aria-haspopup="dialog" onClick={() => setDialog('samples')}>
               {working ? 'Crunching your shots…' : 'Upload TrackMan CSV'}
               <EnterKbd tone="primary" />
             </Button>
+            <span className="text-[14px] text-grey-55">Opens a few simulated sessions to try.</span>
           </div>
         </>
-      )}
-
-      {samples.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Eyebrow className="text-grey-55">Try a sample</Eyebrow>
-          {samples.map((s, i) => (
-            <Button key={s.sample_id} size="sm" variant="outline" className="max-md:min-h-11 max-md:w-full max-md:justify-between" disabled={off} aria-keyshortcuts={i < 9 ? String(i + 1) : undefined} onClick={() => void sendSample(s)}>
-              {i < 9 && <Kbd className="h-[22px] min-w-[22px] text-[12px]">{i + 1}</Kbd>}
-              {s.label ?? s.sample_id}
-              <span className="rounded-4 bg-grey-ed px-1.5 py-0.5 font-sans text-[11px] font-semibold tracking-normal text-grey-44 normal-case">Simulated</span>
-            </Button>
-          ))}
-          {lineOnly && samples.some((s) => s.kind === 'trackman_csv') && (
-            <span className="basis-full text-[14px] text-grey-55">TrackMan shots carry lie data too, so a sample works instead of the test.</span>
-          )}
-        </div>
       )}
 
       {showLine && (
@@ -347,7 +372,13 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
             <span className="text-[12px] text-grey-8f">Tilt drawn larger so it shows.</span>
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-3">
-            <span className="text-[16px] font-semibold">Your ball-line readings</span>
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <span className="text-[16px] font-semibold">Your ball-line readings</span>
+              <Button size="sm" variant="outline" className="pl-4" disabled={off} aria-haspopup="dialog" onClick={() => setDialog('photo')}>
+                <CameraIcon />
+                Read it from a photo
+              </Button>
+            </div>
             {!lineOnly && (
               <ol className="m-0 flex list-none flex-col gap-2 p-0">
                 {LINE_STEPS.map((s, i) => (
@@ -380,6 +411,12 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
                 </label>
               ))}
             </div>
+            {photo !== null && (
+              <span role="status" className="inline-flex items-center gap-2 text-[14px] text-grey-55">
+                <span className="rounded-4 bg-grey-ed px-1.5 py-0.5 text-[11px] font-semibold text-grey-44">Simulated</span>
+                {fromPhoto ? 'Simulated photo read. Edit any number.' : 'Started from a simulated photo read, then edited.'}
+              </span>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-[14px] text-grey-55">At least 3 shots, up to 5.</span>
               <Button variant="dark" className="ml-auto" disabled={off || filled.length < 3} onClick={() => void sendLine()}>
@@ -394,6 +431,11 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
 
       {(has('ball_line') || shots || has('skip')) && (
       <div className="flex flex-wrap items-center gap-3 border-t border-grey-e4 pt-3.5">
+        {lineOnly && samples.length > 0 && (
+          <Button variant="outline" size="sm" disabled={off} aria-haspopup="dialog" onClick={() => setDialog('samples')}>
+            Try a sample
+          </Button>
+        )}
         {has('ball_line') && (
           <Button
             variant={lineOnly && !lineOpen ? 'dark' : 'outline'}
@@ -420,6 +462,37 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         )}
       </div>
       )}
+
+      <SampleDialog
+        open={dialog === 'samples'}
+        title="Pick a sample session"
+        note={
+          lineOnly && samples.some((p) => p.s.kind === 'trackman_csv')
+            ? 'These are simulated. Nothing is uploaded from your computer. TrackMan shots carry lie data too, so a session works instead of the test.'
+            : 'These are simulated sessions. Nothing is uploaded from your computer.'
+        }
+        options={samples.map((p) => ({ id: `${p.golfer}/${p.s.sample_id}`, label: p.label }))}
+        empty={golfers === null ? 'Loading the samples…' : 'No sample sessions are available right now.'}
+        onPick={pickSample}
+        onClose={() => setDialog(null)}
+      />
+      <SampleDialog
+        open={dialog === 'photo'}
+        title="Read it from a photo"
+        note="Simulated photo reads: no photo is taken or analysed. Pick one to fill in your readings, then edit any number."
+        options={PHOTO_READS}
+        onPick={pickPhoto}
+        onClose={() => setDialog(null)}
+      />
     </div>
+  )
+}
+
+function CameraIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
   )
 }

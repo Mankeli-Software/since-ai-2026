@@ -1,13 +1,26 @@
 import { useId, useState } from 'react'
-import { Button, EnterKbd, OptTile, useEnterKey, useNumberKeys } from '@/components/studio'
+import { Button, EnterKbd, Kbd, OptTile, useEnterKey, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockProps } from '../types'
-import { Answered, cardLabelCls } from './_parts/Answered'
+import { Answered, ReadOnly, cardLabelCls } from './_parts/Answered'
 
 export const type = 'choice_chips'
 
 // C2: `.opt` grid, 2-4 columns by count (5-6 options wrap as 3 + 3).
 const COLS: Record<number, string> = { 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4' }
+
+// #216: a picture per option, one SVG per file at `visuals/<field>/<option id, spaces as dashes>.svg`. Collected here,
+// so adding a picture is a file drop; options without one keep the text-only tile.
+const VISUALS: Record<string, string> = Object.fromEntries(
+  Object.entries(import.meta.glob<string>('../visuals/*/*.svg', { eager: true, query: '?url', import: 'default' })).map(
+    ([path, url]) => [path.replace(/^\.\.\/visuals\/|\.svg$/g, ''), url],
+  ),
+)
+const visualOf = (field: string | null | undefined, id: string) => (field ? VISUALS[`${field}/${id.replace(/\s+/g, '-')}`] : undefined)
+
+/** The option ids an answer picked: an id, an id list (multi), or nothing for "Not sure" and free text. */
+const pickedOf = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : typeof value === 'string' ? [value] : []
 
 /**
  * Reference block: copy this shape for every new block.
@@ -43,6 +56,45 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   }
   useEnterKey(sendMulti, live && !!block.multi && canSendMulti)
 
+  const pictured = opts.some((o) => visualOf(block.field, o.id))
+  const tiles = (selected: string[], readOnly = false) => (
+    <div className={cn('grid gap-3', COLS[opts.length] ?? 'grid-cols-3')}>
+      {opts.map((o, i) => {
+        const kbd = !readOnly && i < 9 ? i + 1 : undefined
+        const src = visualOf(block.field, o.id)
+        return (
+          <OptTile
+            key={o.id}
+            kbd={pictured ? undefined : kbd}
+            selected={selected.includes(o.id)}
+            disabled={!readOnly && busy}
+            title={o.hint ?? undefined}
+            onClick={() => pick(i)}
+            className={pictured ? 'relative flex-col items-stretch gap-0 px-3 pt-3 pb-3.5' : undefined}
+          >
+            {pictured && (
+              <span className="mb-2.5 flex h-[72px] items-center justify-center rounded-10 bg-grey-ed">
+                {src && <img src={src} alt="" draggable={false} className="h-full w-auto max-w-full py-1.5" />}
+              </span>
+            )}
+            <span className="block">{o.label}</span>
+            {o.hint && <span className="block text-[14px] font-normal leading-snug text-grey-55">{o.hint}</span>}
+            {pictured && kbd !== undefined && <Kbd className="absolute top-4 right-4 bg-white">{kbd}</Kbd>}
+          </OptTile>
+        )
+      })}
+    </div>
+  )
+
+  // #216 comment 8: in the history, the real tiles with the golfer's pick selected.
+  if (!interactive && answer) {
+    return (
+      <ReadOnly answer={answer}>
+        <p className={cn('m-0', cardLabelCls)}>{block.prompt}</p>
+        {tiles(pickedOf(answer.value), true)}
+      </ReadOnly>
+    )
+  }
   if (!interactive || answer) return <Answered prompt={block.prompt} answer={answer} />
 
   const sendText = () => {
@@ -54,21 +106,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     <div className="flex flex-col gap-[18px]">
       <p className={cn('m-0', cardLabelCls)}>{block.prompt}</p>
       {block.multi && <span className="-mt-2.5 text-[16px] text-grey-33">Pick all that fit.</span>}
-      <div className={cn('grid gap-3', COLS[opts.length] ?? 'grid-cols-3')}>
-        {opts.map((o, i) => (
-          <OptTile
-            key={o.id}
-            kbd={i < 9 ? i + 1 : undefined}
-            selected={picked.includes(o.id)}
-            disabled={busy}
-            title={o.hint ?? undefined}
-            onClick={() => pick(i)}
-          >
-            <span className="block">{o.label}</span>
-            {o.hint && <span className="block text-[14px] font-normal leading-snug text-grey-55">{o.hint}</span>}
-          </OptTile>
-        ))}
-      </div>
+      {tiles(picked)}
 
       {block.allow_free_text && (
         <form

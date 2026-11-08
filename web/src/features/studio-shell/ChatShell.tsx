@@ -53,7 +53,9 @@ export function ChatShell() {
   const respondTo = (id: string, v: unknown, d: string) => void respond(id, v, d)
 
   return (
-    <div className="bg-bay relative flex min-h-screen w-full flex-col overflow-hidden font-sans antialiased">
+    // overflow-x-clip, not overflow-hidden: a hidden overflow makes this div the sticky container, so the header and the
+    // composer would scroll away with the page. Clip still hides the ghost club's overhang without a scroll box.
+    <div className="bg-bay relative flex min-h-screen w-full flex-col overflow-x-clip font-sans antialiased">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-[165px] -right-[46px] h-[442px] w-[408px] bg-[radial-gradient(ellipse_at_50%_60%,rgba(255,110,1,.14),transparent_65%)] max-md:hidden"
@@ -66,11 +68,14 @@ export function ChatShell() {
       <div className="hidden max-[1023px]:block border-b border-page-line bg-page px-4 py-2 text-center text-[13px] text-on-page-2">
         Best on a laptop for this demo.
       </div>
-      <StudioHeader variant="chat" />
+      {/* The header stays at the top while only the conversation scrolls (#216). */}
+      <div className="sticky top-0 z-30 bg-[linear-gradient(to_bottom,var(--color-page)_80%,transparent)] pb-5 max-md:pb-2">
+        <StudioHeader variant="chat" />
+      </div>
       <main
         className={cn(
           'relative mx-auto flex w-full flex-1 flex-col px-10 max-md:px-4',
-          view.first ? 'max-w-[1060px] gap-6 pt-11 max-md:gap-4 max-md:pt-2' : 'max-w-[960px] gap-[22px] pt-8 max-md:gap-4 max-md:pt-2',
+          view.first ? 'max-w-[1060px] gap-6 pt-6 max-md:gap-4 max-md:pt-1' : 'max-w-[960px] gap-[22px] pt-3 max-md:gap-4 max-md:pt-1',
         )}
       >
         <ConversationHistory messages={view.history.messages} ui={view.history.ui} />
@@ -114,7 +119,7 @@ export function ChatShell() {
             <VoiceBar />
           </div>
         ) : (
-          <div className="sticky bottom-0 mt-auto bg-[linear-gradient(to_top,var(--color-page)_55%,transparent)] pt-4 pb-7 max-md:-mx-4 max-md:px-4 max-md:pt-2.5 max-md:pb-[18px]">
+          <div className="sticky bottom-0 z-20 mt-auto bg-[linear-gradient(to_top,var(--color-page)_55%,transparent)] pt-4 pb-7 max-md:-mx-4 max-md:px-4 max-md:pt-2.5 max-md:pb-[18px]">
             <VoiceBar className="mb-2.5" />
             <Composer onSend={(t) => void say(t)} disabled={sendDisabled} />
           </div>

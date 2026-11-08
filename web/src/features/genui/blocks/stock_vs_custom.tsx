@@ -1,7 +1,7 @@
 import { useSession } from '@/store/session'
 import { StockVsCustomView } from '../../result/StockVsCustom'
 import type { BlockProps } from '../types'
-import { Answered } from './_parts/Answered'
+import { Answered, ReadOnly, isReadOnly } from './_parts/Answered'
 
 export const type = 'stock_vs_custom'
 
@@ -28,6 +28,21 @@ function ReturnabilityAlert() {
 }
 
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'stock_vs_custom'>) {
+  if (isReadOnly(interactive, answer) && answer) {
+    return (
+      <ReadOnly answer={answer}>
+        <StockVsCustomView
+          question={block.question}
+          reasons={block.reasons ?? []}
+          stockReturnDays={block.stock_return_days ?? 30}
+          customReturnable={block.custom_returnable ?? false}
+          locked
+          picked={typeof answer.value === 'string' ? answer.value : undefined}
+          onPick={() => {}}
+        />
+      </ReadOnly>
+    )
+  }
   if (!interactive || answer) return <Answered prompt={block.question} answer={answer} />
   return (
     <>

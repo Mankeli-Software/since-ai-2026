@@ -94,3 +94,13 @@ export function convertProseUnits(text: string, units: Units): string {
     .replace(/(\d+(?:\.\d+)?)\s*m\b/gi, (_, n) => `${Math.round(Number(n) / YARDS_TO_METERS)} yd`)
     .replace(/(\d+(?:\.\d+)?)\s*km\/h\b/gi, (_, n) => `${Math.round(Number(n) / MPH_TO_KMH)} mph`)
 }
+
+/** Convert inline body-length mentions (e.g. "17 cm" -> "6.7 in"). Separate from `convertProseUnits`, which the
+ *  results use for distances and speeds only. */
+export function convertProseLengths(text: string, units: Units): string {
+  if (!text) return text
+  if (units === 'imperial') {
+    return text.replace(/(\d+(?:\.\d+)?)\s*cm\b/gi, (_, n) => `${Math.round((Number(n) / INCHES_TO_CM) * 10) / 10} in`)
+  }
+  return text.replace(/(\d+(?:\.\d+)?)\s*(?:in|inches)\b/gi, (_, n) => `${Math.round(Number(n) * INCHES_TO_CM * 10) / 10} cm`)
+}

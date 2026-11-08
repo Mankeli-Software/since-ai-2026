@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Button, EnterKbd, Eyebrow, useEnterKey } from '@/components/studio'
-import { convertProseUnits } from '@/lib/units'
-import { useUnitsStore } from '@/store/units'
+import { INCHES_TO_CM, YARDS_TO_METERS, convertProseLengths, convertProseUnits } from '@/lib/units'
+import { useUnitsStore, type Units } from '@/store/units'
 import type { BlockOf, BlockProps } from '../types'
+import { ReadOnly, isReadOnly } from './_parts/Answered'
+import { UnitSwitch } from './_parts/UnitSwitch'
 
 export const type = 'heard_summary'
 
@@ -15,6 +17,18 @@ function fieldLabel(field: string, unit: string) {
   const words = field.replace(/_(cm|mm|in|m|kg|mph)$/, '').replace(/_/g, ' ')
   return `${words.charAt(0).toUpperCase()}${words.slice(1)} in ${unit}`
 }
+
+/** The missing field in the golfer's unit choice: the shown unit and the conversion back to the field's own unit,
+ *  so the sent number keeps its meaning (invariant 14). Units outside cm/in and m/yd show as they are. */
+function shownUnit(unit: string, units: Units): { shown: string; toOwn: (n: number) => number; toShown: (n: number) => number } {
+  const same = { shown: unit, toOwn: (n: number) => n, toShown: (n: number) => n }
+  if (unit === 'cm' && units === 'imperial') return { shown: 'in', toOwn: (n) => n * INCHES_TO_CM, toShown: (n) => n / INCHES_TO_CM }
+  if (unit === 'in' && units === 'metric') return { shown: 'cm', toOwn: (n) => n / INCHES_TO_CM, toShown: (n) => n * INCHES_TO_CM }
+  if (unit === 'm' && units === 'imperial') return { shown: 'yd', toOwn: (n) => n * YARDS_TO_METERS, toShown: (n) => n / YARDS_TO_METERS }
+  if (unit === 'yd' && units === 'metric') return { shown: 'm', toOwn: (n) => n / YARDS_TO_METERS, toShown: (n) => n * YARDS_TO_METERS }
+  return same
+}
+const round1 = (n: number) => Math.round(n * 10) / 10
 
 /** The prompt without the bold lead, if the model already wrote it. */
 const promptRest = (prompt: string) =>
@@ -45,23 +59,29 @@ function FactChips({ facts }: { facts: Fact[] }) {
             <CheckCircle />
           )}
           <span className="sr-only">{f.source === 'measured' ? 'Measured: ' : 'You said: '}</span>
-          {convertProseUnits(f.label, units)}
+          {convertProseLengths(convertProseUnits(f.label, units), units)}
         </li>
       ))}
     </ul>
   )
 }
 
-/** C2b: confirm everything read from one long message; ask only for the missing field. */
+/**
+ * C2b: confirm everything read from one long message; ask only for the missing field. The shared metric / imperial
+ * switch (#216) changes the chips and the missing field's unit; the sent `missing_value` stays in `missing.unit`.
+ * In the history the answered card renders read-only.
+ */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'heard_summary'>) {
   const [raw, setRaw] = useState('')
+  const units = useUnitsStore((s) => s.units)
   const live = interactive && !answer
   const { missing } = block
+  const mu = shownUnit(missing?.unit ?? '', units)
 
   const send = () => {
     if (busy) return
     const n = Number(raw.trim().replace(',', '.'))
-    const missing_value = raw.trim() !== '' && Number.isFinite(n) ? n : undefined
+    const missing_value = raw.trim() !== '' && Number.isFinite(n) ? round1(mu.toOwn(n)) : undefined
     respond({ missing_value }, 'Show my fit')
   }
   // Enter in the number field submits the form natively; this covers Enter anywhere else.
@@ -69,7 +89,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
 
   if (!live) {
     const v = (answer?.value as { missing_value?: number } | undefined)?.missing_value
-    return (
+    const summary = (
       <div className="flex flex-col gap-3">
         <Eyebrow className="text-grey-55">Here's what I heard</Eyebrow>
         <FactChips facts={block.facts} />
@@ -77,12 +97,13 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
           <p className="m-0 text-[15px] text-grey-55">
             {fieldLabel(missing.field, missing.unit).replace(/ in \S+$/, '')}:{' '}
             <strong className="font-semibold text-midnight">
-              {v} {missing.unit}
+              {round1(mu.toShown(v))} {mu.shown}
             </strong>
           </p>
         )}
       </div>
     )
+    return isReadOnly(interactive, answer) && answer ? <ReadOnly answer={answer}>{summary}</ReadOnly> : summary
   }
 
   const skipped = block.skipped_count
@@ -94,7 +115,10 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       }}
       className="flex flex-col gap-[18px]"
     >
-      <Eyebrow className="text-grey-55">Here's what I heard</Eyebrow>
+      <div className="flex items-center justify-between gap-3">
+        <Eyebrow className="text-grey-55">Here's what I heard</Eyebrow>
+        <UnitSwitch labels={{ metric: 'Metric', imperial: 'Imperial' }} disabled={busy} />
+      </div>
       <FactChips facts={block.facts} />
       {missing && (
         <div className="flex items-center gap-4 rounded-12 bg-orange-tint px-4 py-3.5 text-midnight">
@@ -104,8 +128,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
           <input
             type="text"
             inputMode="decimal"
-            aria-label={fieldLabel(missing.field, missing.unit)}
-            placeholder={missing.unit}
+            aria-label={fieldLabel(missing.field, mu.shown)}
+            placeholder={mu.shown}
             value={raw}
             disabled={busy}
             onChange={(e) => setRaw(e.target.value)}
