@@ -2,9 +2,8 @@ import type { ReactNode } from 'react'
 import type { UIBlock } from '@/api/client'
 import type { CameraPresetName, ClubPart } from '@/features/stage3d'
 import forgeTopics from '../../../../../../fixtures/forge_topics.json'
-import type { BlockOf } from '../../../genui/types'
 import type { ResultsView, WhyPart } from '../../chrome'
-import type { ResultsData } from '../../useResultsData'
+import { whyItems, type ResultsData, type WhyItem } from '../../useResultsData'
 import type { Spec } from '../../types'
 
 /**
@@ -17,7 +16,7 @@ import type { Spec } from '../../types'
  * A stat with no data is left out, never filled in.
  */
 
-export type WhyItem = BlockOf<'why_panel'>['items'][number]
+export type { WhyItem }
 export type WhySource = NonNullable<WhyItem['sources']>[number]
 type DataPart = WhyItem['part']
 
@@ -104,9 +103,12 @@ const DATA_PARTS: Record<WhyPart, DataPart[]> = {
   grip: ['grip'],
 }
 
-/** The why_panel item for a UI part (the data's `flex` is the UI's shaft). */
+/**
+ * The why item for a UI part (the data's `flex` is the UI's shaft): the fitter's latest why_panel item first,
+ * else the deterministic fit explanation (GET /fit).
+ */
 export function findItem(data: ResultsData, part: WhyPart): WhyItem | null {
-  const items = data.why?.items ?? []
+  const items = whyItems(data)
   for (const p of DATA_PARTS[part]) {
     const hit = items.find((i) => i.part === p)
     if (hit) return hit
