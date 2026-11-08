@@ -41,13 +41,16 @@ import { isFixtureFlag, seedFixtureHeader, useResultsData, type ResultsData } fr
 const SUMMARY_FALLBACK = "Here's your build. The TL;DR is right above, and every number is open for inspection below."
 const DETAIL_FALLBACK = "All the raw numbers and specs are right here. Ask me anything—or poke holes in what looks off."
 
-/** Default suggestion chips (spec R1), built from the fit so they never ask about the wrong flex or head. */
-function defaultChips(data: ResultsData): string[] {
+/**
+ * Default suggestion chips (spec R1), built from the fit so they never ask about the wrong flex or head.
+ * The head chip names the head that is not selected (#221).
+ */
+function defaultChips(data: ResultsData, other: Spec | null): string[] {
   const chips: string[] = []
   const best = data.best
   const stiffer = best ? stifferFlex(best.flex) : null
   if (best && stiffer) chips.push(`Why ${flexName(best.flex).toLowerCase()}, not ${flexName(stiffer).toLowerCase()}?`)
-  if (data.runnerUp && data.runnerUp.head !== best?.head) chips.push(`Is the ${headName(data.runnerUp.head)} better for me?`)
+  if (other) chips.push(`Is the ${headName(other.head)} better for me?`)
   chips.push('How does it sound?')
   return chips
 }
@@ -141,7 +144,7 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
     () => ({ assistantText: data.assistantText, fallback: view === 'summary' ? SUMMARY_FALLBACK : DETAIL_FALLBACK }),
     [data.assistantText, view],
   )
-  const chips = useMemo(() => defaultChips(data), [data])
+  const chips = useMemo(() => defaultChips(data, other), [data, other])
 
   return (
     <ResultsChromeContext.Provider value={chrome}>

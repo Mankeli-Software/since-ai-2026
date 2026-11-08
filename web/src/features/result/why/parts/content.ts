@@ -35,6 +35,8 @@ export interface GloveAnswer {
 export interface PartCtx {
   data: ResultsData
   best: Spec
+  /** The head the golfer picked in the results (#221): best, or the backend's runner-up spec. Only the head screen reads it. */
+  selected: Spec
   item: WhyItem | null
   /** Fixture preview: design copy, labelled "Example". */
   example: boolean
