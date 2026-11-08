@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '@/api/client'
 import { Eyebrow, StatTile } from '@/components/studio'
 import { distanceValue, unitLabel } from '@/lib/units'
-import { useUnitsStore } from '@/store/units'
+import { useUnitsStore, type Units } from '@/store/units'
 import { FlightCompare, flightTwoHeads, type FlightCompareArc, type FlightResult, type HeadFlight } from '../flight'
 import { ResultsAside, ResultsNext, useResultsChrome } from './chrome'
 import { HeadSelector } from './compare/HeadSelector'
@@ -63,9 +63,9 @@ function CompareTiles({
 
 /**
  * One side-view arc per head, from the flight API (carry mean, apex, landing angle) or, when that head has no
- * flight, its club_compare row. FlightCompare labels and scales in metres, so yards are converted for drawing.
+ * flight, its club_compare row. Drawn in the golfer's units (their pick, else the locale; store/units.ts).
  */
-function arcFor(o: HeadOption | null, flight: HeadFlight | null): FlightCompareArc | null {
+function arcFor(o: HeadOption | null, flight: HeadFlight | null, units: Units): FlightCompareArc | null {
   if (!o) return null
   const src =
     flight && flight.summary.land_angle != null
@@ -77,14 +77,14 @@ function arcFor(o: HeadOption | null, flight: HeadFlight | null): FlightCompareA
   return {
     id: o.head,
     label: shortHead(o.head),
-    carry: distanceValue(src.carry, 'metric', 1),
-    apex: distanceValue(src.apex, 'metric', 1),
+    carry: distanceValue(src.carry, units, 1),
+    apex: distanceValue(src.apex, units, 1),
     land_angle: src.land,
   }
 }
 
-const describeArc = (a: FlightCompareArc) =>
-  `${a.label} carries ${Math.round(a.carry)} metres, apex ${Math.round(a.apex)}, lands at ${Math.round(a.land_angle)} degrees.`
+const describeArc = (a: FlightCompareArc, plural: string) =>
+  `${a.label} carries ${Math.round(a.carry)} ${plural}, apex ${Math.round(a.apex)}, lands at ${Math.round(a.land_angle)} degrees.`
 
 function FlightPanel({
   sel,
@@ -101,8 +101,10 @@ function FlightPanel({
   const selFlight = activeFlight.per_head.find((h) => h.head === sel.head) ?? null
   const otherFlight = activeFlight.per_head.find((h) => h.head === other?.head) ?? null
 
-  const arcs = [arcFor(sel, selFlight), arcFor(other, otherFlight)].filter((a): a is FlightCompareArc => !!a)
-  const estCaption = "Estimated by Takomo's physics model, meters"
+  const units = useUnitsStore((s) => s.units)
+  const plural = unitLabel('distance_plural', units)
+  const arcs = [arcFor(sel, selFlight, units), arcFor(other, otherFlight, units)].filter((a): a is FlightCompareArc => !!a)
+  const estCaption = `Estimated by Takomo's physics model, ${plural}`
 
   return (
     <>
@@ -122,7 +124,8 @@ function FlightPanel({
             arcs={arcs}
             selected={sel.head}
             guessed={guessed}
-            ariaLabel={`${arcs.map(describeArc).join(' ')} ${estCaption}.`}
+            unit={unitLabel('distance', units).toUpperCase()}
+            ariaLabel={`${arcs.map((a) => describeArc(a, plural)).join(' ')} ${estCaption}.`}
           />
         ) : (
           <p className="m-0 py-6 text-[14px] text-grey-a3">The flight is on its way.</p>
