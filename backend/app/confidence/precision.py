@@ -185,7 +185,7 @@ def _length_rung(est: InputEstimates) -> Rung | None:
     sd = h.sd / math.sqrt(2)  # a second, careful measurement
     return Rung(
         "length_remeasure",
-        "Measure my height again in golf shoes",
+        "Measure my height again when wearing my golf shoes",
         "You're close to the next length. A careful measurement settles it.",
         estimates=dataclasses.replace(est, height=Estimate(h.value, sd, _measured("offer"))),
     )
