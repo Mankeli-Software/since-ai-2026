@@ -278,7 +278,7 @@ function FocusPanel({ best, stage }: { best: Spec; stage: PartContent['stage'] }
 // ---- the screen ----
 
 export function R2Why() {
-  const { part, setPart, data } = useResultsChrome()
+  const { part, setPart, data, selected } = useResultsChrome()
   const ui = useSession((s) => s.ui)
   const best = data.best
   const example = data.source === 'fixture'
@@ -286,8 +286,8 @@ export function R2Why() {
   const contents = useMemo(() => {
     if (!best) return null
     const glove = example ? null : gloveFrom(ui)
-    return WHY_PARTS.map((p) => BUILD[p]({ data, best, item: findItem(data, p), example, glove }))
-  }, [data, best, example, ui])
+    return WHY_PARTS.map((p) => BUILD[p]({ data, best, selected: selected ?? best, item: findItem(data, p), example, glove }))
+  }, [data, best, selected, example, ui])
 
   if (!best || !contents) {
     return (
@@ -304,7 +304,7 @@ export function R2Why() {
       <div className="grid flex-1 grid-cols-[200px_minmax(0,1fr)_270px] gap-7 max-[1400px]:grid-cols-[176px_minmax(0,1fr)_236px] max-[1400px]:gap-5 max-md:grid-cols-1 max-md:gap-4">
         <PartList contents={contents} active={c.part} onPick={setPart} />
         <Reason key={c.part} c={c} example={example} />
-        <FocusPanel best={best} stage={c.stage} />
+        <FocusPanel best={selected ?? best} stage={c.stage} />
         <div className="order-4 md:hidden">
           <PhoneNext label={c.next.label} to={c.next.to} />
         </div>

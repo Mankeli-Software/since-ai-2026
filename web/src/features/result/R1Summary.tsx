@@ -21,16 +21,28 @@ const R1B_CHIPS = ['What do real shots change?', "Looks good, I'll take it now"]
 
 const firstSentence = (s: string) => s.trim().split(/(?<=[.!?])\s+/)[0] ?? s
 
+const short = (slug: string) => headName(slug).replace(/\s+MkII$/i, '')
+
 /**
  * Hero line from tool output (the fitter's why_panel, else the fit explanation from GET /fit): the head reason
  * + the flex reason, first sentence each. A head close call keeps the whole head reason, runner-up included.
+ * The head reason is about the recommended head: with the runner-up selected (#221), the line says so and uses
+ * the head close-call trade-off when there is one, so the best head's reason never reads as the runner-up's.
  */
-function whySentence(data: ResultsData): string | null {
+function whySentence(data: ResultsData, selected: Spec): string | null {
   const items = whyItems(data)
   const pick = (...parts: string[]) => items.find((i) => parts.includes(i.part))
   const head = pick('head')
   const flex = pick('flex', 'shaft_model')
-  const lines = [head && (head.close_call ? head.plain.trim() : firstSentence(head.plain)), flex && firstSentence(flex.plain)]
+  const best = data.best
+  let headLine: string | null | undefined = head && (head.close_call ? head.plain.trim() : firstSentence(head.plain))
+  if (best && selected.head !== best.head) {
+    const closeCall = data.latest('close_call')
+    const tradeoff = closeCall?.part === 'head' ? closeCall.tradeoff.trim() : null
+    const lead = `The ${short(selected.head)} came second to the ${short(best.head)}, the recommended head.`
+    headLine = tradeoff ? `${lead} ${tradeoff}` : head ? `${lead} Why the ${short(best.head)}: ${firstSentence(head.plain)}` : lead
+  }
+  const lines = [headLine, flex && firstSentence(flex.plain)]
   const out = lines.filter((x): x is string => !!x)
   return out.length ? out.join(' ') : null
 }
@@ -51,7 +63,7 @@ function Check() {
 /** `spec` is the selected head (best by default); name, 3D model and status ticks follow it. */
 function Hero({ spec, data }: { spec: Spec; data: ResultsData }) {
   const name = headName(spec.head)
-  const why = whySentence(data)
+  const why = whySentence(data, spec)
   const copy = PURCHASE_COPY[spec.purchase]
   return (
     <div className="mt-2 grid grid-cols-[270px_minmax(0,1fr)] items-center gap-9 max-md:mt-0 max-md:grid-cols-1 max-md:gap-4">

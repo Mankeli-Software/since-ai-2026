@@ -146,11 +146,10 @@ function FlightPanel({
  * Phones (M-R3): one column, no head photo panel, the fitter's note inline and a Next card at the bottom.
  */
 export function R3Compare() {
-  const { data } = useResultsChrome()
+  const { data, selected, selectHead } = useResultsChrome()
   const sessionId = useSession((s) => s.sessionId)
   const guessed = (data.state?.shots ?? []).length === 0
   const options = comparePair(data)
-  const [picked, setPicked] = useState<string | null>(null)
 
   const [flightResult, setFlightResult] = useState<FlightResult | null>(null)
 
@@ -188,7 +187,8 @@ export function R3Compare() {
   const labelHead = (l: string) => l.trim().split(/\s+/)[0].toUpperCase()
   const headCall =
     closeCall?.part === 'head' && onScreen.has(labelHead(closeCall.a.label)) && onScreen.has(labelHead(closeCall.b.label)) ? closeCall : null
-  const sel = options.find((o) => o.head === picked) ?? options[0] ?? null
+  // The shared selected head (#221): picking here changes R1, the buy bar, R4/QR and R5 too.
+  const sel = options.find((o) => o.head === selected?.head) ?? options[0] ?? null
   const other = options.find((o) => o.head !== sel?.head) ?? null
 
   const sameShaft = !data.runnerUp || !best || data.runnerUp.shaft === best.shaft
@@ -229,7 +229,7 @@ export function R3Compare() {
         <FlightPanel sel={sel} other={other} guessed={guessed} flightResult={flightResult} />
       </div>
 
-      <HeadSelector options={options} selected={sel.head} onSelect={setPicked} shaft={best?.shaft} />
+      <HeadSelector options={options} selected={sel.head} onSelect={selectHead} shaft={best?.shaft} />
 
       <PhoneNote text={ASIDE_MESSAGE} />
       <PhoneNext label="In your hands" to={{ view: 'ar' }} />
