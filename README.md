@@ -7,6 +7,8 @@ Team **Mankeli** created this project for the **Since AI Hackathon 2026** (Takom
 > **Note on data:** All golfer profiles and shot data in this demo are synthetic.
 
 - **Try Live Demo:** [https://fitteri.mankelisolutions.fi](https://fitteri.mankelisolutions.fi)
+- **One-Page Write-Up:** [docs/writeup/mankeli-one-pager.pdf](docs/writeup/mankeli-one-pager.pdf)
+- **Pitch Deck:** [docs/writeup/mankeli-pitch-deck.pdf](docs/writeup/mankeli-pitch-deck.pdf)
 
 ---
 
@@ -124,6 +126,7 @@ schemas      Pydantic data models and interfaces (no internal dependencies)
 - **Video Walkthrough:** TODO(Matti): add link to YouTube walkthrough video
 - **Video Walkthrough Script:** [`docs/video_script.md`](docs/video_script.md)
 - **One-Page Write-Up:** [`docs/writeup/mankeli-one-pager.pdf`](docs/writeup/mankeli-one-pager.pdf)
+- **Pitch Deck:** [`docs/writeup/mankeli-pitch-deck.pdf`](docs/writeup/mankeli-pitch-deck.pdf)
 - **Test Predictions CSV:** [`mankeli_takomo_test_predictions.csv`](mankeli_takomo_test_predictions.csv)
 - **Implementation Plan:** [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md)
 - **Product Vision:** [`docs/VISION.md`](docs/VISION.md)
