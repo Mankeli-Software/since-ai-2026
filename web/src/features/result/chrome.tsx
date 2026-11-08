@@ -16,8 +16,12 @@ import type { Spec } from './types'
  *     setPart(part)                switch the R2 part without leaving the view
  *     hrefFor(view, part?)         deep-link href for an <a> (keeps engine/demo/ff params)
  *     data: ResultsData            live store data or the fixture preview (see useResultsData)
- *     setBuySpec(spec | null)      R5: the buy bar follows this spec instead of data.best (null = back to best)
- *     buySpec: Spec | null         the spec set with setBuySpec (null = the buy bar shows data.best)
+ *     setBuySpec(spec | null)      R5: the buy bar follows this spec instead of `selected` (null = back to it)
+ *     buySpec: Spec | null         the spec set with setBuySpec (null = the buy bar shows `selected`)
+ *     selectedHead: string | null  the head the golfer picked (null = data.best, the default until they pick)
+ *     selectHead(head)             pick a head (best or runner-up); every view, the buy bar and the QR follow it
+ *     selected: Spec | null        data.best or data.runnerUp, whichever is picked (full backend specs, never rebuilt)
+ *     other: Spec | null           the one of the two that is not picked (null when there is no distinct runner-up)
  *
  *   <ResultsNext label="Shaft" to={{ view: 'why', part: 'shaft' }} />    buy bar "Next: Shaft →"
  *   <ResultsNext label="Compare heads" to={{ view: 'compare' }} />
@@ -48,8 +52,16 @@ export interface ResultsChrome {
   hrefFor(view: ResultsView, part?: WhyPart): string
   data: ResultsData
   setBuySpec(spec: Spec | null): void
-  /** What setBuySpec last set (null = the buy bar follows data.best). Lets R5 show the current choice on return. */
+  /** What setBuySpec last set (null = the buy bar follows `selected`). Lets R5 show the current choice on return. */
   buySpec: Spec | null
+  /** The picked head slug; null = data.best (the default until the golfer picks). */
+  selectedHead: string | null
+  /** Pick the best or the runner-up head for the whole results flow (clears an R5 buySpec for the old head). */
+  selectHead(head: string): void
+  /** data.best or data.runnerUp, whichever head is picked. Both are full backend specs. */
+  selected: Spec | null
+  /** The other of the two (null when there is no distinct runner-up). */
+  other: Spec | null
 }
 
 /** Portal targets owned by the shell. Internal: views use ResultsNext / ResultsAside. */

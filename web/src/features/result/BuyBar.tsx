@@ -8,7 +8,7 @@ import { specTitle } from './specLabel'
 import type { Spec } from './types'
 
 export interface BuyBarProps {
-  /** The build to buy (data.best, or the R5 choice). Null while the fit is still loading. */
+  /** The build to buy (the selected head, or the R5 choice). Null while the fit is still loading. */
   spec: Spec | null
   /** Portal target for the optional "Next: … →" link (ResultsNext). */
   nextRef: (el: HTMLElement | null) => void

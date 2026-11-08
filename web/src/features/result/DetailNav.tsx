@@ -13,7 +13,7 @@ const swipeRow =
   'max-md:overflow-x-auto max-md:[scrollbar-width:none] max-md:[mask-image:linear-gradient(90deg,#000_88%,transparent)] max-md:[&::-webkit-scrollbar]:hidden'
 
 /**
- * Detail nav (spec §2.2, R2–R5): back pill to the summary + three tabs. Not shown on the summary.
+ * Detail nav (spec §2.2, R2–R5): back pill (with the selected head) to the summary + three tabs. Not shown on the summary.
  * Phones (M-R2): the back pill moves to the header chevron and the tabs become a swipe row with short labels.
  */
 export function DetailNav({ view, head }: { view: ResultsView; head: string | null }) {
