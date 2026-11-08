@@ -7,6 +7,7 @@ import { convertProseUnits, distanceValue, unitLabel } from '@/lib/units'
 import { useSession } from '@/store/session'
 import { useUnitsStore } from '@/store/units'
 import { ResultsAside, ViewLink, useResultsChrome } from './chrome'
+import { shortHead } from './compare/pair'
 import { StockCustomCards, type Purchase } from './compare/StockCustomCards'
 import { customDelta } from './specLabel'
 import type { Spec } from './types'
@@ -16,17 +17,17 @@ type StockAdvice = components['schemas']['StockAdvice']
 const ASIDE_FALLBACK = 'Custom pays off when your shots agree on it. Stock still plays fine if you would rather keep the returns.'
 const CHIPS = ['Show me the toe strikes', 'What if I buy stock?']
 
-/** The two builds: custom keeps the fit's deltas; stock is the same club at standard length and lie. */
-function builds(best: Spec): Record<Purchase, Spec> {
+/** The two builds of the selected head: custom keeps the fit's deltas; stock is the same club at standard length and lie. */
+function builds(spec: Spec): Record<Purchase, Spec> {
   return {
-    custom: { ...best, purchase: 'custom' },
-    stock: { ...best, purchase: 'stock', lie_deg: 0, length_in: 0 },
+    custom: { ...spec, purchase: 'custom' },
+    stock: { ...spec, purchase: 'stock', lie_deg: 0, length_in: 0 },
   }
 }
 
-function NothingCustom({ best }: { best: Spec | null }) {
-  const custom = best?.purchase === 'custom'
-  const delta = best ? customDelta(best) : []
+function NothingCustom({ spec }: { spec: Spec | null }) {
+  const custom = spec?.purchase === 'custom'
+  const delta = spec ? customDelta(spec) : []
   return (
     <section className="flex flex-col items-start gap-3 rounded-16 border border-page-line bg-panel p-8 max-md:p-5">
       <Eyebrow className="text-orange-on-page">Stock or custom</Eyebrow>
@@ -50,7 +51,7 @@ function NothingCustom({ best }: { best: Spec | null }) {
  * honest "stock fits" panel. The radio drives the buy bar through setBuySpec.
  */
 export function R5Stock() {
-  const { data, buySpec, setBuySpec } = useResultsChrome()
+  const { data, buySpec, setBuySpec, selected } = useResultsChrome()
   const { sessionId } = useSession()
   const [advice, setAdvice] = useState<StockAdvice | null>(null)
   const [stayStock, setStayStock] = useState(false)
@@ -85,18 +86,22 @@ export function R5Stock() {
     }
   }, [stockadv, sessionId])
 
-  if (!block || !best) {
-    return <NothingCustom best={best} />
+  if (!block || !best || !selected) {
+    return <NothingCustom spec={selected ?? best} />
   }
 
-  const b = builds(best)
-  if (stockadv && advice?.stock) {
+  // /stock-advice is computed for state.best only (#221): its stock spec and flight deltas apply to the
+  // runner-up only as "for the {best}", so they are labelled, and the stock build comes from the selected spec.
+  const forBest = selected.head === best.head
+  const forBestNote = forBest ? '' : ` (for the ${shortHead(best.head)})`
+  const b = builds(selected)
+  if (stockadv && advice?.stock && forBest) {
     b.stock = advice.stock as Spec
   }
 
-  const value: Purchase = buySpec?.purchase ?? best.purchase
+  const value: Purchase = buySpec?.purchase ?? selected.purchase
   const delta = customDelta(b.custom)
-  const lieDelta = best.lie_deg !== 0 && Math.abs(best.lie_deg) <= 5
+  const lieDelta = selected.lie_deg !== 0 && Math.abs(selected.lie_deg) <= 5
   const lean = stockadv && advice ? advice.lean : undefined
 
   return (
@@ -128,10 +133,10 @@ export function R5Stock() {
           )}
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-on-page-3">
             {advice.lie_change_deg !== 0 && (
-              <span>Lie change: {advice.lie_change_deg > 0 ? `+${advice.lie_change_deg}°` : `${advice.lie_change_deg}°`}</span>
+              <span>Lie change{forBestNote}: {advice.lie_change_deg > 0 ? `+${advice.lie_change_deg}°` : `${advice.lie_change_deg}°`}</span>
             )}
             {advice.carry_delta_yd != null && advice.carry_delta_yd !== 0 && (
-              <span>Carry difference: {`${advice.carry_delta_yd > 0 ? '+' : ''}${distanceValue(advice.carry_delta_yd, units, 1)} ${unitLabel('distance', units)}`}</span>
+              <span>Carry difference{forBestNote}: {`${advice.carry_delta_yd > 0 ? '+' : ''}${distanceValue(advice.carry_delta_yd, units, 1)} ${unitLabel('distance', units)}`}</span>
             )}
           </div>
         </div>
@@ -159,6 +164,7 @@ export function R5Stock() {
           </label>
           {stayStock && advice.side_delta_yd != null && (
             <p className="m-0 text-[14px] text-on-page-2">
+              {!forBest && <span className="text-on-page-3">For the {shortHead(best.head)}: </span>}
               {advice.side_delta_yd === 0
                 ? 'Your start line stays on target.'
                 : `With stock lie, your start line shifts about ${Math.abs(advice.side_delta_yd).toFixed(1)} yards to the ${advice.side_delta_yd > 0 ? 'right' : 'left'}.`}
