@@ -185,7 +185,8 @@ const KIND_LABEL: Record<ProvenanceKind, string> = {
 const ESTIMATED_NOTE = /estimat|guess|not sure|default|average/i
 
 function kindOf(s: WhySource): ProvenanceKind {
-  if (MEASURED.has(s.source)) return 'measured'
+  // Own-7-iron Dynamic Lie and the ball-line test are fused with the chart, never override it (plan §3.3).
+  if (MEASURED.has(s.source)) return /fused/i.test(s.note ?? '') ? 'mixed' : 'measured'
   if (s.source === 'derived') return !s.note || /chart/i.test(s.note) ? 'chart' : 'estimated'
   return ESTIMATED_NOTE.test(s.note ?? '') ? 'estimated' : 'answers'
 }
@@ -202,8 +203,9 @@ export function provenanceOf(sources: WhySource[] | undefined): PartContent['pro
   const kinds = new Set(sources.map(kindOf))
   // A chart next to a measurement (lie: shots fused with or overriding the chart) does not make it "partly".
   if (kinds.has('measured')) kinds.delete('chart')
-  const kind: ProvenanceKind = kinds.has('measured')
-    ? kinds.size === 1
+  const anyMeasured = kinds.has('measured') || kinds.has('mixed')
+  const kind: ProvenanceKind = anyMeasured
+    ? kinds.size === 1 && kinds.has('measured')
       ? 'measured'
       : 'mixed'
     : kinds.has('estimated')
