@@ -1,6 +1,7 @@
 import { Kbd, useNumberKeys } from '@/components/studio'
 import { cn } from '@/lib/utils'
 import type { BlockOf, BlockProps } from '../types'
+import { ReadOnly, isReadOnly } from './_parts/Answered'
 
 export const type = 'yes_no_fork'
 
@@ -54,7 +55,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   const pick = (i: number) => respond(block.options[i].id, block.options[i].title)
   useNumberKeys(block.options.length, pick, live && !busy)
 
-  if (!live) {
+  const readOnly = isReadOnly(interactive, answer)
+  if (!live && !readOnly) {
     const picked = block.options.find((o) => o.id === answer?.value)
     return (
       <p className="m-0 text-[15px] text-grey-55">
@@ -64,22 +66,24 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     )
   }
 
-  return (
+  const tiles = (
     <div className="flex flex-col gap-[18px]">
       <div role="group" aria-label={block.prompt} className="grid grid-cols-2 gap-3.5">
         {block.options.map((o, i) => {
+          // Nothing is picked while live: a tap answers at once. In the history the pick shows selected.
+          const on = readOnly && o.id === answer?.value
           return (
             <button
               key={o.id}
               type="button"
-              // Nothing is picked while live: a tap answers at once and the card turns read-only.
-              aria-pressed={false}
+              aria-pressed={on}
               aria-keyshortcuts={String(i + 1)}
               disabled={busy}
               onClick={() => pick(i)}
               className={cn(
                 'flex cursor-pointer flex-col gap-3.5 rounded-16 border border-grey-d9 bg-white p-5 text-left text-midnight transition-ui disabled:cursor-not-allowed disabled:opacity-50',
                 'enabled:hover:border-midnight enabled:hover:shadow-[inset_0_0_0_1px_#0B0B0B]',
+                on && 'border-midnight shadow-[inset_0_0_0_1px_#0B0B0B]',
               )}
             >
               <Art kind={o.illustration} />
@@ -94,7 +98,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
           )
         })}
       </div>
-      {block.footnote && <p className="m-0 text-[15px] text-grey-33 underline">{block.footnote}</p>}
+      {block.footnote && !readOnly && <p className="m-0 text-[15px] text-grey-33 underline">{block.footnote}</p>}
     </div>
   )
+  return readOnly && answer ? <ReadOnly answer={answer}>{tiles}</ReadOnly> : tiles
 }
