@@ -153,12 +153,13 @@ async def _presave(
     if fields is None:
         return {}
     marks = {k: fields.pop(k) for k in list(fields) if k == flow.SIM_BRAND}
-    # An untouched typical value (`defaulted`, flow.answer_fields): answered, not known. Recorded
-    # first; update_profile then recomputes and commits the state (also with nothing to save).
+    # An untouched typical value (`defaulted`, flow.answer_fields) comes back as None: saved as
+    # answered but not known (`not_known`), never as the golfer's number.
     typical = [k for k, v in fields.items() if v is None]
     fields = {k: v for k, v in fields.items() if v is not None}
-    flow.leave_unknown(s, *typical)
-    saved = await _run(ctx, "update_profile", fields) if fields or typical else {"saved": []}
+    if typical:
+        fields["not_known"] = typical
+    saved = await _run(ctx, "update_profile", fields) if fields else {"saved": []}
     if saved is None:
         return {}
     flow.mark(s, **marks)

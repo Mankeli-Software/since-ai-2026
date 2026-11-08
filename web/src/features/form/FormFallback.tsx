@@ -76,6 +76,10 @@ export function FormFallback() {
       if (value != null && typeof value === 'object' && 'value_cm' in value) {
         finalVal = (value as { value_cm: number }).value_cm
         unit = 'cm'
+      } else if (value != null && typeof value === 'object' && 'field' in value) {
+        // Glove sends its size id as `value`. "Not sure" and an untouched typical value (`defaulted`, #216) send
+        // `value: null`: saved as not known, never as a number.
+        finalVal = (value as { value?: unknown }).value ?? null
       }
     } else if (nq.component?.type === 'slider') {
       // Case 3: Slider (null, number, or { value, measured })

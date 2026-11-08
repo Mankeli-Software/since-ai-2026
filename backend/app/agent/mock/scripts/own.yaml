@@ -209,8 +209,9 @@ steps:
       actions: [keep, exclude, confirm_value]
 
   # ---- C6a: height
-  # Body answers save only what the golfer gave: "Not sure" or an untouched default (`defaulted`, #216)
-  # saves nothing, so the fit uses its population prior, marked "not measured yet".
+  # Body answers save only what the golfer gave. "Not sure" or an untouched default (#216: no
+  # `value_cm`) saves the field as not known, so the fit uses its population prior, marked
+  # "not measured yet".
   - text: "Last three, and they're quick. Your body sets the length and lie. How tall are you?"
   - ui:
       type: body_measure
@@ -223,7 +224,9 @@ steps:
   # ---- C6b: wrist to floor
   - tool_call:
       name: update_profile
-      args: {height_cm: {by: "$answer.defaulted ?? false", cases: {"False": $answer.value_cm}}}
+      args:
+        height_cm: $answer.value_cm
+        not_known: {by: "$answer.value_cm ?? null", cases: {"None": [height_cm]}}
   - text: "Now wrist-to-floor. Grab someone, or a wall and a tape measure."
   - ui:
       type: body_measure
@@ -236,7 +239,9 @@ steps:
   # ---- C6: glove size
   - tool_call:
       name: update_profile
-      args: {wrist_to_floor_cm: {by: "$answer.defaulted ?? false", cases: {"False": $answer.value_cm}}}
+      args:
+        wrist_to_floor_cm: $answer.value_cm
+        not_known: {by: "$answer.value_cm ?? null", cases: {"None": [wrist_to_floor_cm]}}
   - text: "Last one. What glove size do you wear? It sets your grip."
   - ui:
       type: body_measure

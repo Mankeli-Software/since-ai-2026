@@ -43,7 +43,10 @@ async def run_fit(ctx: ToolContext, args: RunFitIn) -> RunFitOut:
     """Run the fit on everything known: best and runner-up iron spec, the 5-head ranking and
     where each input came from. If inputs are missing it returns status "needs_info" and the
     list: ask for those first. Every spec number you quote comes from here."""
-    missing = missing_of(ctx)
+    # Height / wrist to floor answered as not known (a typical value left untouched, #216): the
+    # fit uses its population prior there, and the provenance says "not measured yet".
+    unknown = {k for k in flow.TYPICAL_OK if flow.left_unknown(ctx.session, k)}
+    missing = [m for m in missing_of(ctx) if m not in unknown]
     if missing:
         return RunFitOut(status="needs_info", missing=missing)
 
@@ -61,7 +64,7 @@ async def run_fit(ctx: ToolContext, args: RunFitIn) -> RunFitOut:
 
     intake = intake_of(ctx)
     evidence = evidence_of(ctx.session)
-    answers = build_answers(intake, evidence)
+    answers = build_answers(intake, evidence, fill_priors=bool(unknown))
 
     conf_str = (
         f"{ctx.session.state.confidence:.2f}"

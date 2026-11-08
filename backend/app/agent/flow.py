@@ -157,6 +157,12 @@ def leave_unknown(s: FitSession, *keys: str) -> None:
         s.profile[k] = ProvenancedValue(source="questionnaire", value=None, note=TYPICAL_NOTE)
 
 
+def left_unknown(s: FitSession, key: str) -> bool:
+    """True when `key` was answered as not known (value None)."""
+    pv = s.profile.get(key)
+    return pv is not None and pv.value is None
+
+
 def _import_card(s: FitSession) -> DataImport:
     fallback = "TrackMan" if s.demo_golfer_id else "launch monitor"  # persona samples: TrackMan
     name = SIMS.get(str(_value(s, SIM_BRAND)), (fallback, ""))[0]
