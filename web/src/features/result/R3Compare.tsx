@@ -1,21 +1,17 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '@/api/client'
 import { Eyebrow, StatTile } from '@/components/studio'
 import { distanceValue, unitLabel } from '@/lib/units'
-import { useUnitsStore } from '@/store/units'
-import { FlightSvg, flightTwoHeads, type FlightResult, type HeadFlight } from '../flight'
+import { useUnitsStore, type Units } from '@/store/units'
+import { FlightCompare, flightTwoHeads, type FlightCompareArc, type FlightResult, type HeadFlight } from '../flight'
 import { ResultsAside, ResultsNext, useResultsChrome } from './chrome'
 import { HeadSelector } from './compare/HeadSelector'
-import { HeadStage } from './compare/HeadStage'
 import { comparePair, shortHead, type CompareRow, type HeadOption } from './compare/pair'
 import { VideoTile } from './compare/VideoTile'
 import { PhoneNext, PhoneNote } from './PhoneBits'
-import { headName, shaftLabel } from './specLabel'
+import { shaftLabel } from './specLabel'
 import { CloseCallView } from './views/CloseCallView'
 import { useSession } from '@/store/session'
-
-// Lazy so three.js only loads when "Show all five heads" is opened.
-const ClubRow = lazy(() => import('../stage3d/ClubRow'))
 
 const ASIDE_MESSAGE =
   "I kept your shaft and only swapped the head. That's how a fitter does it at the range: one change at a time."
@@ -65,6 +61,31 @@ function CompareTiles({
   )
 }
 
+/**
+ * One side-view arc per head, from the flight API (carry mean, apex, landing angle) or, when that head has no
+ * flight, its club_compare row. Drawn in the golfer's units (their pick, else the locale; store/units.ts).
+ */
+function arcFor(o: HeadOption | null, flight: HeadFlight | null, units: Units): FlightCompareArc | null {
+  if (!o) return null
+  const src =
+    flight && flight.summary.land_angle != null
+      ? { carry: flight.summary.carry.mean, apex: flight.summary.apex, land: flight.summary.land_angle }
+      : o.row
+        ? { carry: o.row.carry, apex: o.row.apex, land: o.row.land_angle }
+        : null
+  if (!src) return null
+  return {
+    id: o.head,
+    label: shortHead(o.head),
+    carry: distanceValue(src.carry, units, 1),
+    apex: distanceValue(src.apex, units, 1),
+    land_angle: src.land,
+  }
+}
+
+const describeArc = (a: FlightCompareArc, plural: string) =>
+  `${a.label} carries ${Math.round(a.carry)} ${plural}, apex ${Math.round(a.apex)}, lands at ${Math.round(a.land_angle)} degrees.`
+
 function FlightPanel({
   sel,
   other,
@@ -80,23 +101,16 @@ function FlightPanel({
   const selFlight = activeFlight.per_head.find((h) => h.head === sel.head) ?? null
   const otherFlight = activeFlight.per_head.find((h) => h.head === other?.head) ?? null
 
-  const headsOnScreen = new Set([sel.head, other?.head].filter(Boolean))
-  const displayData: FlightResult = {
-    own_shots: activeFlight.own_shots ?? [],
-    per_head: activeFlight.per_head.filter((h) => headsOnScreen.has(h.head)),
-  }
-
-  const hasOwnShots = (displayData.own_shots?.length ?? 0) > 0
-  const title = hasOwnShots ? `Your shots vs the ${shortHead(sel.head)}` : 'Your swing, dispersion'
-
   const units = useUnitsStore((s) => s.units)
-  const estCaption = `Estimated by Takomo's physics model, ${unitLabel('distance_plural', units)}`
+  const plural = unitLabel('distance_plural', units)
+  const arcs = [arcFor(sel, selFlight, units), arcFor(other, otherFlight, units)].filter((a): a is FlightCompareArc => !!a)
+  const estCaption = `Estimated by Takomo's physics model, ${plural}`
 
   return (
     <>
       <div className="rounded-16 border border-grey-26 bg-grey-12 px-[18px] pt-3 pb-1 max-md:px-3.5">
         <div className="flex items-baseline justify-between gap-4 max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-0.5">
-          <Eyebrow className="text-grey-a3">{title}</Eyebrow>
+          <Eyebrow className="text-grey-a3">Your swing, side view</Eyebrow>
           <span
             title={guessed ? 'Dashed: your carry is a guess. Import shots to measure it.' : "Estimated by Takomo's physics model"}
             className="text-[12px] text-grey-8f"
@@ -104,14 +118,18 @@ function FlightPanel({
             {estCaption}
           </span>
         </div>
-        <FlightSvg
-          className="block w-full"
-          data={displayData}
-          recommendedSlug={sel.head}
-          view="top"
-          guessed={guessed}
-          caption={estCaption}
-        />
+        {arcs.length > 0 ? (
+          <FlightCompare
+            className="block w-full"
+            arcs={arcs}
+            selected={sel.head}
+            guessed={guessed}
+            unit={unitLabel('distance', units).toUpperCase()}
+            ariaLabel={`${arcs.map((a) => describeArc(a, plural)).join(' ')} ${estCaption}.`}
+          />
+        ) : (
+          <p className="m-0 py-6 text-[14px] text-grey-a3">The flight is on its way.</p>
+        )}
       </div>
       <CompareTiles
         selFlight={selFlight}
@@ -128,13 +146,10 @@ function FlightPanel({
  * Phones (M-R3): one column, no head photo panel, the fitter's note inline and a Next card at the bottom.
  */
 export function R3Compare() {
-  const { data } = useResultsChrome()
+  const { data, selected, selectHead } = useResultsChrome()
   const sessionId = useSession((s) => s.sessionId)
   const guessed = (data.state?.shots ?? []).length === 0
   const options = comparePair(data)
-  const [picked, setPicked] = useState<string | null>(null)
-  const [showRow, setShowRow] = useState(false)
-  const rowRef = useRef<HTMLDivElement>(null)
 
   const [flightResult, setFlightResult] = useState<FlightResult | null>(null)
 
@@ -165,10 +180,6 @@ export function R3Compare() {
     }
   }, [sessionId, data.state?.evidence_version])
 
-  useEffect(() => {
-    if (showRow) rowRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  }, [showRow])
-
   const best = data.best
   const closeCall = data.latest('close_call')
   // Only the head close call, and only when its two labels are the heads on screen ("201T" / "201").
@@ -176,7 +187,8 @@ export function R3Compare() {
   const labelHead = (l: string) => l.trim().split(/\s+/)[0].toUpperCase()
   const headCall =
     closeCall?.part === 'head' && onScreen.has(labelHead(closeCall.a.label)) && onScreen.has(labelHead(closeCall.b.label)) ? closeCall : null
-  const sel = options.find((o) => o.head === picked) ?? options[0] ?? null
+  // The shared selected head (#221): picking here changes R1, the buy bar, R4/QR and R5 too.
+  const sel = options.find((o) => o.head === selected?.head) ?? options[0] ?? null
   const other = options.find((o) => o.head !== sel?.head) ?? null
 
   const sameShaft = !data.runnerUp || !best || data.runnerUp.shaft === best.shaft
@@ -204,18 +216,6 @@ export function R3Compare() {
     )
   }
 
-  const rowToggle = (
-    <button
-      type="button"
-      aria-expanded={showRow}
-      aria-controls="all-heads"
-      onClick={() => setShowRow((v) => !v)}
-      className="cursor-pointer border-0 bg-transparent p-0 text-[14px] text-on-page-2 underline transition-ui hover:text-orange-on-page"
-    >
-      {showRow ? 'Hide the other heads' : 'Show all five heads'}
-    </button>
-  )
-
   return (
     <>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -225,42 +225,11 @@ export function R3Compare() {
         {sub && <span className="text-[15px] text-on-page-2">{sub}</span>}
       </div>
 
-      <div data-surface="dark" className="grid flex-[1_0_auto] grid-cols-[230px_minmax(0,1fr)] gap-4 max-md:flex-none max-md:grid-cols-1">
-        <div className="flex flex-col gap-1.5 max-md:hidden">
-          <HeadStage selected={sel.head} other={other?.head ?? null} />
-          <span className="text-center text-[11px] text-grey-8f">Illustrative 3D model</span>
-        </div>
-        <div className="flex min-w-0 flex-col gap-3">
-          <FlightPanel sel={sel} other={other} guessed={guessed} flightResult={flightResult} />
-        </div>
+      <div data-surface="dark" className="flex min-w-0 flex-[1_0_auto] flex-col gap-3 max-md:flex-none">
+        <FlightPanel sel={sel} other={other} guessed={guessed} flightResult={flightResult} />
       </div>
 
-      <HeadSelector options={options} selected={sel.head} onSelect={setPicked} shaft={best?.shaft} rowToggle={rowToggle} />
-
-      {showRow && (
-        <div
-          ref={rowRef}
-          id="all-heads"
-          role="region"
-          aria-label="All five heads"
-          data-surface="dark"
-          className="relative h-[260px] flex-none overflow-hidden rounded-16 border border-grey-26 bg-grey-12"
-        >
-          <Suspense fallback={<p className="m-0 p-4 text-[14px] text-grey-a3">Loading the heads…</p>}>
-            <ClubRow
-              best={best?.head ?? sel.head}
-              selected={sel.head}
-              onSelect={(h) => {
-                if (options.some((o) => o.head === h)) setPicked(h)
-              }}
-            />
-          </Suspense>
-          <div className="pointer-events-none absolute right-3 bottom-2.5 left-3 flex items-center justify-between text-[12px] text-grey-8f">
-            <span>Tap the {options.map((o) => headName(o.head)).join(' or the ')} to see it fly. Drag to turn the row.</span>
-            <span>Illustrative 3D model</span>
-          </div>
-        </div>
-      )}
+      <HeadSelector options={options} selected={sel.head} onSelect={selectHead} shaft={best?.shaft} />
 
       <PhoneNote text={ASIDE_MESSAGE} />
       <PhoneNext label="In your hands" to={{ view: 'ar' }} />

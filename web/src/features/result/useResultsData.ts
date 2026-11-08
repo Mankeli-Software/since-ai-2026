@@ -1,9 +1,19 @@
-import { useMemo } from 'react'
-import type { FittingState, UIBlock } from '@/api/client'
+import { useEffect, useMemo, useState } from 'react'
+import { api, type FittingState, type UIBlock } from '@/api/client'
 import { hasFlag } from '@/lib/flags'
 import { useSession, type ChatMessage, type UiItem } from '@/store/session'
 import type { BlockOf, BlockType } from '../genui/types'
 import type { Spec } from './types'
+
+export type WhyItem = BlockOf<'why_panel'>['items'][number]
+
+/** All why items, the fitter's why_panel items first (newest block first), then the fit explanation. */
+export function whyItems(data: ResultsData): WhyItem[] {
+  return [...data.panelWhy, ...(data.fitWhy ?? [])]
+}
+
+const panelItems = (blocks: UIBlock[]): WhyItem[] =>
+  blocks.flatMap((b) => (b.type === 'why_panel' ? [b.items] : [])).reverse().flat()
 
 /**
  * Everything the results screens read, from one place. Live: the session store (`state` plus the latest
@@ -18,6 +28,13 @@ export interface ResultsData {
   runnerUp: Spec | null
   recommendation: BlockOf<'recommendation_card'> | null
   why: BlockOf<'why_panel'> | null
+  /** Every why_panel item the fitter showed, newest block first (the agent's explain_part). */
+  panelWhy: WhyItem[]
+  /**
+   * The deterministic fit explanation (`GET /api/sessions/{id}/fit` -> `why`, from explain_fit), so every part
+   * has a reason even when the agent never called explain_part. Null until it loads, and in the fixture preview.
+   */
+  fitWhy: WhyItem[] | null
   compare: BlockOf<'club_compare'> | null
   /** The latest block of any type (close_call, flex_band, stock_vs_custom, simulator_map, …), or null. */
   latest: <T extends BlockType>(type: T) => BlockOf<T> | null
@@ -86,6 +103,8 @@ function fixtureData(): ResultsData {
     runnerUp: FIXTURE_RUNNER_UP,
     recommendation: latest('recommendation_card'),
     why: latest('why_panel'),
+    panelWhy: panelItems(fixtureBlocks),
+    fitWhy: null,
     compare: latest('club_compare'),
     latest,
     assistantText: null,
@@ -95,8 +114,9 @@ function fixtureData(): ResultsData {
 
 // ---- live ----
 
-function liveData(state: FittingState | null, ui: UiItem[], messages: ChatMessage[]): ResultsData {
-  const latest = latestIn(ui.map((u) => u.block))
+function liveData(state: FittingState | null, ui: UiItem[], messages: ChatMessage[], fitWhy: WhyItem[] | null): ResultsData {
+  const blocks = ui.map((u) => u.block)
+  const latest = latestIn(blocks)
   const recommendation = latest('recommendation_card')
   let assistant: ChatMessage | undefined
   for (let i = messages.length - 1; i >= 0 && !assistant; i--) {
@@ -109,11 +129,65 @@ function liveData(state: FittingState | null, ui: UiItem[], messages: ChatMessag
     runnerUp: state?.runner_up ?? recommendation?.runner_up ?? null,
     recommendation,
     why: latest('why_panel'),
+    panelWhy: panelItems(blocks),
+    fitWhy,
     compare: latest('club_compare'),
     latest,
     assistantText: assistant?.text ?? null,
     noSim: !state || state.gate !== 'confident' || (state.import_ids ?? []).length === 0,
   }
+}
+
+/** Wait for the running turn to end (the fit endpoint answers 409 while a turn holds the session lock). */
+function turnEnded(): Promise<void> {
+  if (!useSession.getState().busy) return Promise.resolve()
+  return new Promise((resolve) => {
+    const off = useSession.subscribe((s) => {
+      if (!s.busy) {
+        off()
+        resolve()
+      }
+    })
+  })
+}
+
+const RETRY_MS = 1500
+
+/**
+ * `GET /api/sessions/{id}/fit` once per session, evidence version and best spec. On any failure it waits for
+ * the turn to end, retries once, and otherwise keeps the text it had: never an error on the page.
+ */
+function useFitWhy(sessionId: string | null, evidenceVersion: number | null, best: Spec | null): WhyItem[] | null {
+  const [fit, setFit] = useState<{ sessionId: string; items: WhyItem[] } | null>(null)
+  const bestKey = best ? JSON.stringify(best) : null
+  useEffect(() => {
+    if (!sessionId || !bestKey) return
+    let cancelled = false
+    const load = async () => {
+      const res = await api.GET('/api/sessions/{session_id}/fit', { params: { path: { session_id: sessionId } } })
+      if (!res.data) throw new Error(`fit ${res.response.status}`)
+      return res.data.why ?? []
+    }
+    const retry = async () => {
+      await turnEnded()
+      await new Promise((r) => setTimeout(r, RETRY_MS))
+      if (cancelled) throw new Error('cancelled')
+      return load()
+    }
+    load()
+      .catch(retry)
+      .then((items) => {
+        if (!cancelled) setFit({ sessionId, items })
+      })
+      .catch(() => {
+        // Keep the old text; the R2 parts fall back to "not explained yet" only when nothing ever loaded.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [sessionId, evidenceVersion, bestKey])
+  // A text from another session (persona switch) is never shown.
+  return fit && fit.sessionId === sessionId ? fit.items : null
 }
 
 /** `fixture` forces the preview (dev.html); otherwise `?ff=results-fixture` decides. */
@@ -122,8 +196,11 @@ export function useResultsData(fixture = false): ResultsData {
   const state = useSession((s) => s.state)
   const ui = useSession((s) => s.ui)
   const messages = useSession((s) => s.messages)
+  const sessionId = useSession((s) => s.sessionId)
+  const best = useFixture ? null : (state?.best ?? null)
+  const fitWhy = useFitWhy(useFixture ? null : sessionId, state?.evidence_version ?? null, best)
   return useMemo(
-    () => (useFixture ? fixtureData() : liveData(state, ui, messages)),
-    [useFixture, state, ui, messages],
+    () => (useFixture ? fixtureData() : liveData(state, ui, messages, fitWhy)),
+    [useFixture, state, ui, messages, fitWhy],
   )
 }

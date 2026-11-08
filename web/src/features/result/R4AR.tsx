@@ -14,14 +14,13 @@ const ASIDE_MESSAGE = 'Hold your phone where the ball would be. Check how the to
  * AR Quick Look / Scene Viewer directly.
  */
 export function R4AR() {
-  const { data } = useResultsChrome()
-  const best = data.best
-  if (!best) return <p className="m-0 text-on-page-2">Your fit is on its way.</p>
+  const { selected, other } = useResultsChrome()
+  if (!selected) return <p className="m-0 text-on-page-2">Your fit is on its way.</p>
 
-  const head = best.head
+  // The selected head (#221): QR, link, copy and phone mock all follow it; the chip offers the other one.
+  const head = selected.head
   const url = arUrl(head)
-  const runner = data.runnerUp && data.runnerUp.head !== head ? data.runnerUp.head : null
-  const chips = [runner && `Show the ${shortHead(runner)} in AR too`, 'How much offset is that?'].filter((c): c is string => !!c)
+  const chips = [other && `Show the ${shortHead(other.head)} in AR too`, 'How much offset is that?'].filter((c): c is string => !!c)
 
   return (
     <>

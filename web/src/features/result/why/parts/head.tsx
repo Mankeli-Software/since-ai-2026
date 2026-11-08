@@ -18,23 +18,36 @@ const EXAMPLE = {
   line2: 'Thin topline',
 }
 
+/**
+ * The head screen follows the selected head (#221). The why item and its close call describe the recommended
+ * head (state.best), so when the runner-up is selected the screen names the recommended head as such and shows
+ * the runner-up's own club_compare row and the head close-call trade-off, never the best head's reason as its own.
+ */
 export function headContent(ctx: PartCtx): PartContent {
   const units = useUnitsStore.getState().units
   const { best, item, data, example } = ctx
-  const name = headName(best.head)
+  const selected = example ? best : ctx.selected
+  const isBest = selected.head === best.head
+  const name = headName(selected.head)
+  const bestShort = shortHead(headName(best.head))
+  const selShort = shortHead(name)
   const cc = closeCallOf(ctx, 'head')
-  const altSlug = (typeof cc?.alt === 'string' ? cc.alt : null) ?? (data.runnerUp && data.runnerUp.head !== best.head ? data.runnerUp.head : null)
+  // The other of the two heads: the runner-up when the best is selected, else the best.
+  const altSlug = isBest
+    ? ((typeof cc?.alt === 'string' ? cc.alt : null) ?? (data.runnerUp && data.runnerUp.head !== best.head ? data.runnerUp.head : null))
+    : best.head
   const alt = altSlug ? shortHead(headName(altSlug)) : null
 
   const stats: Stat[] = []
   if (!example) {
-    const row = data.compare?.heads.find((h) => h.head === best.head)
+    const row = data.compare?.heads.find((h) => h.head === selected.head)
     if (row) {
       stats.push({ label: 'Peak height', value: fmtDistance(row.apex, units), accent: true })
       stats.push({ label: 'Lands at', value: `${fmt(row.land_angle, 0)}°` })
       stats.push({ label: 'Side spread', value: `±${fmtDistance(row.side_sd, units)}` })
     }
-    const score = num(item, 'head_score') ?? row?.score_total ?? null
+    // The item's head_score is the recommended head's; the runner-up's score comes from its own row.
+    const score = (isBest ? num(item, 'head_score') : null) ?? row?.score_total ?? null
     if (score != null) stats.push({ label: 'Fit score', value: fmt(score, 0) })
   } else {
     stats.push(
@@ -47,14 +60,25 @@ export function headContent(ctx: PartCtx): PartContent {
 
   // Aside: the close-call trade-off from the close_call block (tool copy), else a plain line.
   const closeBlock = data.latest('close_call')
-  const tradeoff = closeBlock?.part === 'head' ? closeBlock.tradeoff : null
+  const tradeoff = closeBlock?.part === 'head' ? convertProseUnits(closeBlock.tradeoff, units) : null
   const message = example
     ? convertProseUnits(EXAMPLE.aside, units)
-    : cc && tradeoff
-      ? `Two heads were close, and I picked the ${shortHead(name)}. ${tradeoff}`
-      : cc && alt
-        ? `Two heads were close: the ${shortHead(name)} and the ${alt}. I picked the ${shortHead(name)}.`
-        : `The ${name} came out on top for you. Ask me about any of the other heads.`
+    : !isBest
+      ? tradeoff
+        ? `Two heads were close. I picked the ${bestShort}; you're looking at the ${selShort}. ${tradeoff}`
+        : `I picked the ${bestShort}; the ${selShort} came second. Compare the two to see how each flies for you.`
+      : cc && tradeoff
+        ? `Two heads were close, and I picked the ${selShort}. ${tradeoff}`
+        : cc && alt
+          ? `Two heads were close: the ${selShort} and the ${alt}. I picked the ${selShort}.`
+          : `The ${name} came out on top for you. Ask me about any of the other heads.`
+
+  // The why item explains the recommended head: on the runner-up it is shown as that, not as this head's reason.
+  const runnerReason = tradeoff
+    ? `The ${selShort} came second to the ${bestShort}, the recommended head. ${tradeoff}`
+    : item?.plain
+      ? `The ${selShort} came second. Why the ${bestShort} is the recommended head: ${item.plain}`
+      : `The ${selShort} came second to the ${bestShort}, the recommended head.`
 
   return {
     part: 'head',
@@ -62,8 +86,8 @@ export function headContent(ctx: PartCtx): PartContent {
     listValue: name,
     title: name,
     provenance: example ? EXAMPLE.provenance : provenanceOf(item?.sources),
-    reason: example ? convertProseUnits(EXAMPLE.reason, units) : (item?.plain ?? NOT_EXPLAINED),
-    chart: <HeadRangeScale best={best.head} />,
+    reason: example ? convertProseUnits(EXAMPLE.reason, units) : isBest ? (item?.plain ?? NOT_EXPLAINED) : runnerReason,
+    chart: <HeadRangeScale best={selected.head} />,
     stats,
     callout: null,
     actions: alt ? [{ label: `Compare with the ${alt}`, variant: 'lightOnDark', view: 'compare' }] : [{ label: 'Compare heads', variant: 'lightOnDark', view: 'compare' }],
@@ -72,14 +96,14 @@ export function headContent(ctx: PartCtx): PartContent {
       focus: 'headFace',
       highlight: 'head',
       label: 'head',
-      lines: [name, best.head === '201t-mkii' ? EXAMPLE.line2 : headBlurb(best.head)],
+      lines: [name, selected.head === '201t-mkii' ? EXAMPLE.line2 : headBlurb(selected.head)],
       at: 22,
       caption: 'Shaft and grip dimmed.',
       drag: true,
     },
     aside: {
       message,
-      chips: [alt ? `Why not the ${alt}?` : 'Why this head?', best.head.startsWith('301') ? 'Show me the 201T' : 'Show me the 301'],
+      chips: [alt ? `Why not the ${alt}?` : 'Why this head?', selected.head.startsWith('301') ? 'Show me the 201T' : 'Show me the 301'],
     },
     next: { label: 'Shaft', to: { view: 'why', part: 'shaft' } },
   }

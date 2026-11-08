@@ -10,7 +10,7 @@ import { ConfirmWithShots } from './ConfirmWithShots'
 import { PURCHASE_COPY, STATUS_TOOLTIP } from './fixtures/commerce'
 import type { HeadSlug, HeadVideoData, VideoItem } from './ProductVideo'
 import { headBlurb, headName } from './specLabel'
-import type { ResultsData } from './useResultsData'
+import { whyItems, type ResultsData } from './useResultsData'
 import type { Spec } from './types'
 
 const productVideos = rawProductVideos as unknown as Record<HeadSlug, HeadVideoData>
@@ -21,12 +21,30 @@ const R1B_CHIPS = ['What do real shots change?', "Looks good, I'll take it now"]
 
 const firstSentence = (s: string) => s.trim().split(/(?<=[.!?])\s+/)[0] ?? s
 
-/** Hero line from the why_panel (tool output): the head reason + the flex reason, first sentence each. */
-function whySentence(data: ResultsData): string | null {
-  const items = data.why?.items ?? []
-  const pick = (...parts: string[]) => items.find((i) => parts.includes(i.part))?.plain
-  const lines = [pick('head'), pick('flex', 'shaft_model')].filter((x): x is string => !!x).map(firstSentence)
-  return lines.length ? lines.join(' ') : null
+const short = (slug: string) => headName(slug).replace(/\s+MkII$/i, '')
+
+/**
+ * Hero line from tool output (the fitter's why_panel, else the fit explanation from GET /fit): the head reason
+ * + the flex reason, first sentence each. A head close call keeps the whole head reason, runner-up included.
+ * The head reason is about the recommended head: with the runner-up selected (#221), the line says so and uses
+ * the head close-call trade-off when there is one, so the best head's reason never reads as the runner-up's.
+ */
+function whySentence(data: ResultsData, selected: Spec): string | null {
+  const items = whyItems(data)
+  const pick = (...parts: string[]) => items.find((i) => parts.includes(i.part))
+  const head = pick('head')
+  const flex = pick('flex', 'shaft_model')
+  const best = data.best
+  let headLine: string | null | undefined = head && (head.close_call ? head.plain.trim() : firstSentence(head.plain))
+  if (best && selected.head !== best.head) {
+    const closeCall = data.latest('close_call')
+    const tradeoff = closeCall?.part === 'head' ? closeCall.tradeoff.trim() : null
+    const lead = `The ${short(selected.head)} came second to the ${short(best.head)}, the recommended head.`
+    headLine = tradeoff ? `${lead} ${tradeoff}` : head ? `${lead} Why the ${short(best.head)}: ${firstSentence(head.plain)}` : lead
+  }
+  const lines = [headLine, flex && firstSentence(flex.plain)]
+  const out = lines.filter((x): x is string => !!x)
+  return out.length ? out.join(' ') : null
 }
 
 const scoreOf = (data: ResultsData, head: string) => {
@@ -42,15 +60,16 @@ function Check() {
   )
 }
 
-function Hero({ best, data }: { best: Spec; data: ResultsData }) {
-  const name = headName(best.head)
-  const why = whySentence(data)
-  const copy = PURCHASE_COPY[best.purchase]
+/** `spec` is the selected head (best by default); name, 3D model and status ticks follow it. */
+function Hero({ spec, data }: { spec: Spec; data: ResultsData }) {
+  const name = headName(spec.head)
+  const why = whySentence(data, spec)
+  const copy = PURCHASE_COPY[spec.purchase]
   return (
     <div className="mt-2 grid grid-cols-[270px_minmax(0,1fr)] items-center gap-9 max-md:mt-0 max-md:grid-cols-1 max-md:gap-4">
       <div data-surface="dark" className="relative flex h-[270px] items-center justify-center rounded-18 border border-grey-26 bg-[radial-gradient(ellipse_80%_60%_at_50%_65%,rgba(255,110,1,.22),#121212_70%)] max-md:h-[220px]">
         <ClubModel
-          slug={best.head}
+          slug={spec.head}
           alt={`Takomo ${name} 7-iron`}
           className="absolute inset-0 aspect-auto drop-shadow-[0_30px_40px_rgba(0,0,0,.75)]"
         />
@@ -58,9 +77,12 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
       </div>
       <div className="flex min-w-0 flex-col gap-2.5">
         <h1 className="m-0 font-display text-[104px] leading-[.84] font-extrabold uppercase max-md:text-[56px] max-md:leading-[.88]">{name}</h1>
-        <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-on-page max-md:text-[17px]">
-          {why ? <Text text={why} /> : 'No guesswork, no marketing fluff. Every single spec has a reason below.'}
-        </p>
+        {/* Hero only renders with a best spec, so no generic line: the reason shows once the fit explanation loads. */}
+        {why && (
+          <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-on-page max-md:text-[17px]">
+            <Text text={why} />
+          </p>
+        )}
         <ul title={STATUS_TOOLTIP} className="m-0 flex list-none flex-wrap items-center gap-x-[22px] gap-y-1 p-0 pt-0.5 pb-1 max-md:gap-x-4">
           {copy.ticks.map((t) => (
             <li key={t} className="inline-flex items-center gap-2 text-[15px] text-on-page max-md:text-[14px]">
@@ -77,33 +99,53 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
   )
 }
 
-function HeadCard({ spec, rank, score, strength }: { spec: Spec; rank: 1 | 2; score: number | null; strength?: string | null }) {
-  const first = rank === 1
-  const label = first ? (strength === 'low' ? 'Add data to firm this up' : '1st, your fit') : '2nd, close behind'
+/** One of the two heads. Rank labels stay on the same heads; the orange style marks the selected one. */
+function HeadCard({
+  spec,
+  rank,
+  score,
+  strength,
+  selected,
+  onSelect,
+}: {
+  spec: Spec
+  rank: 1 | 2
+  score: number | null
+  strength?: string | null
+  selected: boolean
+  onSelect: (head: string) => void
+}) {
+  const label = rank === 1 ? (strength === 'low' ? 'Add data to firm this up' : '1st, your fit') : '2nd, close behind'
   return (
-    <ViewLink
-      view="compare"
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={() => {
+        if (!selected) onSelect(spec.head)
+      }}
       className={cn(
-        'flex min-w-0 flex-1 items-center gap-3.5 rounded-14 px-4 py-3 text-on-page no-underline transition-ui',
-        first ? 'border-2 border-tiger-orange bg-selected-dark' : 'border border-page-line bg-panel hover:border-page-line-2',
+        'flex min-w-0 flex-1 items-center gap-3.5 rounded-14 px-4 py-3 text-left text-on-page transition-ui',
+        selected
+          ? 'cursor-default border-2 border-tiger-orange bg-selected-dark'
+          : 'cursor-pointer border border-page-line bg-panel hover:border-page-line-2',
       )}
     >
       <ClubImage slug={spec.head} className="h-[62px] w-auto flex-none max-md:hidden" />
       <span className="flex min-w-0 flex-col gap-[3px]">
-        <Eyebrow className={first ? 'text-orange-on-page' : 'text-on-page-3'}>{label}</Eyebrow>
+        <Eyebrow className={selected ? 'text-orange-on-page' : 'text-on-page-3'}>{label}</Eyebrow>
         <span className="font-display text-[22px] font-bold uppercase">{headName(spec.head)}</span>
         <span className="truncate text-[14px] text-on-page-2">{headBlurb(spec.head)}</span>
       </span>
       {score != null && (
         <span
           title="Fit score"
-          className={cn('ml-auto font-display text-[28px] font-extrabold tabular-nums', first ? 'text-orange-on-page' : 'text-on-page-2')}
+          className={cn('ml-auto font-display text-[28px] font-extrabold tabular-nums', selected ? 'text-orange-on-page' : 'text-on-page-2')}
         >
           <span className="sr-only">Fit score </span>
           {score}
         </span>
       )}
-    </ViewLink>
+    </button>
   )
 }
 
@@ -269,9 +311,9 @@ function SeeItHit({ head }: { head: string }) {
 
 /** R1 "Your fit: summary first" (V3-R1), with the R1b aside when there are no measured shots (V3-R1b). */
 export function R1Summary() {
-  const { data } = useResultsChrome()
+  const { data, selected, other, selectHead } = useResultsChrome()
   const best = data.best
-  if (!best) return <p className="text-on-page-2">Your fit is on its way.</p>
+  if (!best || !selected) return <p className="text-on-page-2">Your fit is on its way.</p>
 
   const runnerUp = data.runnerUp && data.runnerUp.head !== best.head ? data.runnerUp : null
   const measured = !data.noSim
@@ -279,7 +321,7 @@ export function R1Summary() {
 
   return (
     <>
-      <Hero best={best} data={data} />
+      <Hero spec={selected} data={data} />
 
       {runnerUp && (
         <section aria-labelledby="two-best" className="mt-7 flex flex-col gap-2.5">
@@ -287,8 +329,21 @@ export function R1Summary() {
             {sameShaft ? 'Your two best heads, same shaft' : 'Your two best heads'}
           </Eyebrow>
           <div className="flex gap-3 max-md:flex-col max-md:gap-2.5">
-            <HeadCard spec={best} rank={1} score={scoreOf(data, best.head)} strength={data.state?.strength} />
-            <HeadCard spec={runnerUp} rank={2} score={scoreOf(data, runnerUp.head)} />
+            <HeadCard
+              spec={best}
+              rank={1}
+              score={scoreOf(data, best.head)}
+              strength={data.state?.strength}
+              selected={selected.head === best.head}
+              onSelect={selectHead}
+            />
+            <HeadCard
+              spec={runnerUp}
+              rank={2}
+              score={scoreOf(data, runnerUp.head)}
+              selected={selected.head === runnerUp.head}
+              onSelect={selectHead}
+            />
           </div>
         </section>
       )}
@@ -308,7 +363,7 @@ export function R1Summary() {
           title="Compare heads"
           text="Swap the head and watch your flight change."
           cta="Compare →"
-          preview={<ComparePreview best={best.head} runnerUp={runnerUp?.head ?? null} />}
+          preview={<ComparePreview best={selected.head} runnerUp={other?.head ?? null} />}
         />
         <DrillCard
           view="ar"
@@ -316,7 +371,7 @@ export function R1Summary() {
           title="In your hands"
           text="Drop the 7-iron on your carpet at 1:1 scale."
           cta="Open AR →"
-          preview={<ArPreview head={best.head} />}
+          preview={<ArPreview head={selected.head} />}
         />
       </div>
 
@@ -334,7 +389,7 @@ export function R1Summary() {
         </ViewLink>
       )}
 
-      <SeeItHit head={best.head} />
+      <SeeItHit head={selected.head} />
 
       {/* L13: irons only, so every result ends with the static driver teaser (the driver_teaser block may never be emitted). */}
       <DriverTeaserView className="mt-9 border border-grey-26 bg-grey-12 px-6 py-5 max-md:mt-6" />

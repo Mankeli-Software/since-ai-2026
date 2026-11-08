@@ -41,15 +41,26 @@ import { isFixtureFlag, seedFixtureHeader, useResultsData, type ResultsData } fr
 const SUMMARY_FALLBACK = "Here's your build. The TL;DR is right above, and every number is open for inspection below."
 const DETAIL_FALLBACK = "All the raw numbers and specs are right here. Ask me anything—or poke holes in what looks off."
 
-/** Default suggestion chips (spec R1), built from the fit so they never ask about the wrong flex or head. */
-function defaultChips(data: ResultsData): string[] {
+/**
+ * Default suggestion chips (spec R1), built from the fit so they never ask about the wrong flex or head.
+ * The head chip names the head that is not selected (#221).
+ */
+function defaultChips(data: ResultsData, other: Spec | null): string[] {
   const chips: string[] = []
   const best = data.best
   const stiffer = best ? stifferFlex(best.flex) : null
   if (best && stiffer) chips.push(`Why ${flexName(best.flex).toLowerCase()}, not ${flexName(stiffer).toLowerCase()}?`)
-  if (data.runnerUp && data.runnerUp.head !== best?.head) chips.push(`Is the ${headName(data.runnerUp.head)} better for me?`)
+  if (other) chips.push(`Is the ${headName(other.head)} better for me?`)
   chips.push('How does it sound?')
   return chips
+}
+
+/** The picked spec and the other one. Falls back to best when the picked head is no longer the runner-up. */
+function pickPair(data: ResultsData, selectedHead: string | null): { selected: Spec | null; other: Spec | null } {
+  const best = data.best
+  const runner = data.runnerUp && data.runnerUp.head !== best?.head ? data.runnerUp : null
+  if (runner && selectedHead === runner.head) return { selected: runner, other: best }
+  return { selected: best, other: runner }
 }
 
 function View({ view }: { view: ResultsView }) {
@@ -72,6 +83,7 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
   const [view, setView] = useState<ResultsView>(readViewFromUrl)
   const [part, setPartState] = useState<WhyPart>(() => readPartFromUrl() ?? 'head')
   const [buySpec, setBuySpec] = useState<Spec | null>(null)
+  const [selectedHead, setSelectedHead] = useState<string | null>(null)
   const [nextEl, setNextEl] = useState<HTMLElement | null>(null)
   const [asideEl, setAsideEl] = useState<HTMLElement | null>(null)
   const [asideOverrides, setAsideOverrides] = useState(0)
@@ -104,9 +116,22 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
     [view],
   )
 
+  // One selected head for the whole results flow (#221): best by default, or the backend's runner-up spec.
+  const { selected, other } = useMemo(() => pickPair(data, selectedHead), [data, selectedHead])
+
+  const selectHead = useCallback(
+    (head: string) => {
+      const next = head === data.best?.head ? null : head
+      if (next === selectedHead) return
+      setSelectedHead(next)
+      setBuySpec(null) // an R5 stock/custom choice was built for the old head
+    },
+    [data.best?.head, selectedHead],
+  )
+
   const chrome = useMemo<ResultsChrome>(
-    () => ({ view, part, go, setPart, hrefFor, data, setBuySpec, buySpec }),
-    [view, part, go, setPart, hrefFor, data, buySpec],
+    () => ({ view, part, go, setPart, hrefFor, data, setBuySpec, buySpec, selectedHead, selectHead, selected, other }),
+    [view, part, go, setPart, hrefFor, data, buySpec, selectedHead, selectHead, selected, other],
   )
 
   const registerAside = useCallback(() => {
@@ -119,7 +144,7 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
     () => ({ assistantText: data.assistantText, fallback: view === 'summary' ? SUMMARY_FALLBACK : DETAIL_FALLBACK }),
     [data.assistantText, view],
   )
-  const chips = useMemo(() => defaultChips(data), [data])
+  const chips = useMemo(() => defaultChips(data, other), [data, other])
 
   return (
     <ResultsChromeContext.Provider value={chrome}>
@@ -129,7 +154,7 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
             <StudioHeader variant="results" onBack={view !== 'summary' ? () => go('summary') : undefined} />
             <div className="flex min-h-0 flex-1">
               <div className="flex min-w-0 flex-1 flex-col">
-                {view !== 'summary' && <DetailNav view={view} head={data.best?.head ?? null} />}
+                {view !== 'summary' && <DetailNav view={view} head={selected?.head ?? null} />}
                 <main
                   ref={mainRef}
                   className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-10 py-[18px] max-md:px-4 max-md:pt-3 max-md:pb-20"
@@ -149,7 +174,7 @@ export default function ResultsShell({ fixture = false }: { fixture?: boolean })
                     Ask the fitter
                   </button>
                 </div>
-                <BuyBar spec={buySpec ?? data.best} nextRef={setNextEl} />
+                <BuyBar spec={buySpec ?? selected} nextRef={setNextEl} />
               </div>
               <FitterAside
                 chips={chips}
