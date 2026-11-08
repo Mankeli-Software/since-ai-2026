@@ -1,8 +1,9 @@
-"""Why-questions after the scripted engine's script ends (#220). The results aside posts free text
+"""Why-questions from the results aside in the scripted engine (#220). The aside posts free text
 on the same session; with no LLM we route it by keywords to a real tool and say what the tool
 returns: `explain_part` for a part, `get_close_call` for the runner-up. No numbers are typed here;
 every number in an answer comes from a tool output. Unmatched text gets one line on what we can
-explain."""
+explain. While script steps remain, the engine routes text here only when the results are showing
+and `matches` is True, so other text still moves the script on."""
 
 import re
 from typing import Any
@@ -31,6 +32,11 @@ def route(text: str) -> str | None:
     """The part to explain (a `Part`), CLOSE for the close call, or None."""
     t = text.lower()
     return next((target for pattern, target in ROUTES if pattern.search(t)), None)
+
+
+def matches(text: str | None) -> bool:
+    """True when `answer` would explain something (a keyword matched), False for the HELP line."""
+    return route(text or "") is not None
 
 
 async def _call(ctx: ToolContext, name: str, args: dict[str, Any]) -> dict[str, Any]:
