@@ -11,6 +11,7 @@ import { PURCHASE_COPY, STATUS_TOOLTIP } from './fixtures/commerce'
 import type { HeadSlug, HeadVideoData, VideoItem } from './ProductVideo'
 import { headBlurb, headName } from './specLabel'
 import { whyItems, type ResultsData } from './useResultsData'
+import { cameSecond, shortHead } from './why/parts/content'
 import type { Spec } from './types'
 
 const productVideos = rawProductVideos as unknown as Record<HeadSlug, HeadVideoData>
@@ -21,10 +22,10 @@ const R1B_CHIPS = ['What do real shots change?', "Looks good, I'll take it now"]
 
 const firstSentence = (s: string) => s.trim().split(/(?<=[.!?])\s+/)[0] ?? s
 
-const short = (slug: string) => headName(slug).replace(/\s+MkII$/i, '')
+const short = (slug: string) => shortHead(headName(slug))
 
 /**
- * Hero line from tool output (the fitter's why_panel, else the fit explanation from GET /fit): the head reason
+ * Hero line from tool output (the fit explanation from GET /fit, else the fitter's why_panel): the head reason
  * + the flex reason, first sentence each. A head close call keeps the whole head reason, runner-up included.
  * The head reason is about the recommended head: with the runner-up selected (#221), the line says so and uses
  * the head close-call trade-off when there is one, so the best head's reason never reads as the runner-up's.
@@ -39,7 +40,7 @@ function whySentence(data: ResultsData, selected: Spec): string | null {
   if (best && selected.head !== best.head) {
     const closeCall = data.latest('close_call')
     const tradeoff = closeCall?.part === 'head' ? closeCall.tradeoff.trim() : null
-    const lead = `The ${short(selected.head)} came second to the ${short(best.head)}, the recommended head.`
+    const lead = cameSecond(selected.head, best.head)
     headLine = tradeoff ? `${lead} ${tradeoff}` : head ? `${lead} Why the ${short(best.head)}: ${firstSentence(head.plain)}` : lead
   }
   const lines = [headLine, flex && firstSentence(flex.plain)]

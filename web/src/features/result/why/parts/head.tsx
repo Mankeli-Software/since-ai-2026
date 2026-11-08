@@ -2,7 +2,7 @@ import { convertProseUnits, fmtDistance } from '@/lib/units'
 import { useUnitsStore } from '@/store/units'
 import { headBlurb, headName } from '../../specLabel'
 import { HeadRangeScale } from '../charts/HeadRangeScale'
-import { NOT_EXPLAINED, closeCallOf, fmt, forgeLink, num, provenanceOf, shortHead, type PartContent, type PartCtx, type Stat } from './content'
+import { NOT_EXPLAINED, cameSecond, closeCallOf, fmt, forgeLink, num, provenanceOf, shortHead, type PartContent, type PartCtx, type Stat } from './content'
 
 /** Design copy (V3-R2-Head), used only in the fixture preview. */
 const EXAMPLE = {
@@ -75,10 +75,10 @@ export function headContent(ctx: PartCtx): PartContent {
 
   // The why item explains the recommended head: on the runner-up it is shown as that, not as this head's reason.
   const runnerReason = tradeoff
-    ? `The ${selShort} came second to the ${bestShort}, the recommended head. ${tradeoff}`
+    ? `${cameSecond(selected.head, best.head)} ${tradeoff}`
     : item?.plain
       ? `The ${selShort} came second. Why the ${bestShort} is the recommended head: ${item.plain}`
-      : `The ${selShort} came second to the ${bestShort}, the recommended head.`
+      : cameSecond(selected.head, best.head)
 
   return {
     part: 'head',
