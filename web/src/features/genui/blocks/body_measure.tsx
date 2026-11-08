@@ -291,7 +291,9 @@ function Boxed({ block, busy, respond, ro, seedCm }: PartProps) {
   const [touched, setTouched] = useState(false)
   const id = useId()
   const range = unit === 'in' ? cfg.in : cfg.cm
-  const shown = round1(unit === 'in' ? cm / INCHES_TO_CM : cm)
+  const exact = unit === 'in' ? cm / INCHES_TO_CM : cm
+  // An untouched default shows on the unit's own step (86 cm reads 34 in, not 33.9) and sends what it shows.
+  const shown = touched || ro ? round1(exact) : round1(Math.round(exact / range.step) * range.step)
   const toCm = (v: number) => (unit === 'in' ? v * INCHES_TO_CM : v)
   const set = (v: number) => {
     setCm(toCm(v))
@@ -307,7 +309,7 @@ function Boxed({ block, busy, respond, ro, seedCm }: PartProps) {
   useArrowKeys((dir, big) => set(stepValue(shown, dir, big, range)), !busy && !ro)
   const submit = () =>
     respond(
-      { field: block.field, value_cm: round1(cm), unit, raw: shown, ...(touched ? {} : { defaulted: true }) },
+      { field: block.field, value_cm: round1(touched ? cm : toCm(shown)), unit, raw: shown, ...(touched ? {} : { defaulted: true }) },
       `${shown} ${unit}${touched ? '' : DEFAULTED}`,
     )
   const steps = STEPS[block.field] ?? []
