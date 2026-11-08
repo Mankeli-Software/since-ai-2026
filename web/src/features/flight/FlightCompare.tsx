@@ -3,7 +3,7 @@
  * top in orange, the others grey, landing dots and a label per arc.
  *
  * The arcs are DRAWN, not simulated: each is a cubic bezier from the tee to `carry` whose highest point is
- * exactly `apex` and whose end tangent is exactly `land_angle`, on one shared scale (metres, x and y equal).
+ * exactly `apex` and whose end tangent is exactly `land_angle`, on one shared scale (one unit, metres or yards, x and y equal).
  * Solid arcs = carry from measured shots, dashed = guessed carry.
  * Deterministic, no physics claims; the host labels it "estimate". Replace with real trajectories once
  * the flight API exists (FIT #26).
@@ -31,6 +31,8 @@ export interface FlightCompareProps {
   className?: string
   /** Carry is a guess, not from measured shots: arcs are dashed. */
   guessed?: boolean
+  /** Unit shown in the apex label ("M" or "YD"). Carry and apex are drawn in whatever unit the caller passes. */
+  unit?: string
 }
 
 const W = 900
@@ -51,7 +53,7 @@ function controls(a: FlightCompareArc) {
   return { h, p1x, p2x, apexX: (3 * p1x + 3 * p2x + a.carry) / 8 }
 }
 
-export function FlightCompare({ arcs, selected, ariaLabel, className, guessed }: FlightCompareProps) {
+export function FlightCompare({ arcs, selected, ariaLabel, className, guessed, unit = 'M' }: FlightCompareProps) {
   const valid = arcs.filter((a) => a.carry > 0 && a.apex > 0)
   const maxCarry = Math.max(1, ...valid.map((a) => a.carry))
   const maxApex = Math.max(1, ...valid.map((a) => a.apex))
@@ -101,7 +103,7 @@ export function FlightCompare({ arcs, selected, ariaLabel, className, guessed }:
               stroke="var(--color-panel,#121212)"
               strokeWidth="4"
             >
-              {a.label.toUpperCase()}: APEX {fmt(a.apex)} M, LANDS {fmt(a.land_angle)}°
+              {a.label.toUpperCase()}: APEX {fmt(a.apex)} {unit}, LANDS {fmt(a.land_angle)}°
             </text>
           </g>
         )
