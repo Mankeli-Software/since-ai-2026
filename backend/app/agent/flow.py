@@ -150,6 +150,19 @@ def mark(s: FitSession, **values: Any) -> None:
         s.profile[k] = ProvenancedValue(source="derived", value=v)
 
 
+def leave_unknown(s: FitSession, *keys: str) -> None:
+    """Record `keys` as answered but not known (value None), noting the golfer left the card's
+    typical value untouched. The mapping then uses its prior, marked "not measured yet"."""
+    for k in keys:
+        s.profile[k] = ProvenancedValue(source="questionnaire", value=None, note=TYPICAL_NOTE)
+
+
+def left_unknown(s: FitSession, key: str) -> bool:
+    """True when `key` was answered as not known (value None)."""
+    pv = s.profile.get(key)
+    return pv is not None and pv.value is None
+
+
 def _import_card(s: FitSession) -> DataImport:
     fallback = "TrackMan" if s.demo_golfer_id else "launch monitor"  # persona samples: TrackMan
     name = SIMS.get(str(_value(s, SIM_BRAND)), (fallback, ""))[0]
@@ -276,6 +289,10 @@ def shown(s: FitSession, step: Step) -> None:
 
 # Card field -> profile field, where they differ.
 _PROFILE_FIELD = {"height": "height_cm", "wrist_to_floor": "wrist_to_floor_cm"}
+# Profile fields an untouched default may leave unknown: the fit has a population prior for them.
+TYPICAL_OK = frozenset({"height_cm", "wrist_to_floor_cm"})
+# Provenance note on such a field (value None = answered, not known).
+TYPICAL_NOTE = "typical value left untouched: not measured"
 
 
 def answer_fields(tool: str, block: dict[str, Any], value: Any, s: FitSession) -> dict | None:
@@ -298,6 +315,12 @@ def answer_fields(tool: str, block: dict[str, Any], value: Any, s: FitSession) -
     field = block.get("field")
     if not isinstance(field, str):
         return None
+    if isinstance(value, dict) and value.get("defaulted"):
+        # The golfer sent the card's typical start value untouched (#216): never their measurement.
+        # Height and wrist to floor save None (answered, not known), so the card does not come back
+        # and the fit uses its population prior, marked "not measured yet". Else the model decides.
+        name = _PROFILE_FIELD.get(field, field)
+        return {name: None} if name in TYPICAL_OK else None
     if isinstance(value, dict):  # slider with toggle, body_measure
         value = value["value_cm"] if "value_cm" in value else value.get("value")
     if value is None or value == "":

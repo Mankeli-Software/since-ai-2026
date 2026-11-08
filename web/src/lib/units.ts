@@ -95,12 +95,28 @@ export function convertProseUnits(text: string, units: Units): string {
     .replace(/(\d+(?:\.\d+)?)\s*km\/h\b/gi, (_, n) => `${Math.round(Number(n) / MPH_TO_KMH)} mph`)
 }
 
-/** Convert inline body-length mentions (e.g. "17 cm" -> "6.7 in"). Separate from `convertProseUnits`, which the
- *  results use for distances and speeds only. */
+// "6 ft 1 in", "6 ft 1", "6 ft", "6 feet 1 inch", 6'1" / 6′1″: one height, converted as a whole.
+const FEET_INCHES =
+  /(\d+)\s*(?:ft\b|feet\b|foot\b)(?:\s*(\d+(?:\.\d+)?)(?:\s*(?:inches|inch|in)\b)?)?|(\d+)\s*['′]\s*(\d+(?:\.\d+)?)\s*["″]/gi
+// "N inch(es)" always; "N in" only when it reads as a length: not "85 in 18 holes", "in a round", "in my bag".
+const INCHES =
+  /([-+−]?\d+(?:\.\d+)?)\s*(?:inches|inch\b|in\b(?!\s+(?:\d|(?:a|an|the|my|your|his|her|their|our|this|that|each|every|one|two|three|four|five|six|seven|eight|nine|ten|last|under|over|about|total)\b)))/gi
+const cm1 = (inches: number) => Math.round(inches * INCHES_TO_CM * 10) / 10
+
+/** Convert inline body-length mentions (e.g. "17 cm" -> "6.7 in", "6 ft 1 in" -> "185 cm"). Separate from
+ *  `convertProseUnits`, which the results use for distances and speeds only. */
 export function convertProseLengths(text: string, units: Units): string {
   if (!text) return text
   if (units === 'imperial') {
     return text.replace(/(\d+(?:\.\d+)?)\s*cm\b/gi, (_, n) => `${Math.round((Number(n) / INCHES_TO_CM) * 10) / 10} in`)
   }
-  return text.replace(/(\d+(?:\.\d+)?)\s*(?:in|inches)\b/gi, (_, n) => `${Math.round(Number(n) * INCHES_TO_CM * 10) / 10} cm`)
+  return text
+    .replace(FEET_INCHES, (_, ft, inch, ft2, inch2) => {
+      const total = Number(ft ?? ft2) * 12 + Number(inch ?? inch2 ?? 0)
+      return `${Math.round(total * INCHES_TO_CM)} cm`
+    })
+    .replace(INCHES, (_, n: string) => {
+      const sign = /^[-+−]/.test(n) ? n[0] : '' // keep the sign as written ("+0.5 in" -> "+1.3 cm")
+      return `${sign}${cm1(Number(sign ? n.slice(1) : n))} cm`
+    })
 }

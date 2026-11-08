@@ -33,6 +33,11 @@ log = logging.getLogger(__name__)
 
 LOCK_TTL_S = 300
 BLOCKS = TypeAdapter(list[PublicBlock])
+# The stored cards (`ui_blocks_json`) are capped so a long session stays well under the 900 KB
+# session-document limit (`encode_for_firestore`). Older cards drop first; their turns then show
+# as text only in "Show conversation". The pending card and the newest card of each type stay.
+MAX_STORED_BLOCKS = 80
+MAX_STORED_BLOCKS_BYTES = 300_000
 _TASKS: set[asyncio.Task] = set()  # strong refs: a background turn must not be garbage collected
 
 
@@ -119,7 +124,7 @@ async def _run(store, session, history, request, turn_id, queue) -> None:
         last = len(history) + len(new) - 1
         if shown:
             blocks = shown_blocks(session) + [b.model_copy(update={"turn_no": last}) for b in shown]
-            session.ui_blocks_json = BLOCKS.dump_json(blocks).decode()
+            session.ui_blocks_json = _dump_capped(blocks, session.pending_ui_id)
         state = await store.commit_turn(session.id, turn_id, messages, session, expected_version)
         committed = True
         await emit(StateEvent(seq=0, state=state))
@@ -151,6 +156,22 @@ def _record_answer(session, request: TurnRequest) -> None:
             b.answer = {"value": value, "display_text": display_text}
             session.ui_blocks_json = BLOCKS.dump_json(blocks).decode()
             return
+
+
+def _dump_capped(blocks: list[PublicBlock], pending_id: str | None) -> str:
+    """`blocks` as JSON, oldest dropped first past MAX_STORED_BLOCKS / MAX_STORED_BLOCKS_BYTES.
+    Never drops the pending card or the newest card of each type (the resumed studio needs them)."""
+    newest = {b.block.type: i for i, b in enumerate(blocks)}
+    keep_always = set(newest.values()) | {i for i, b in enumerate(blocks) if b.id == pending_id}
+    size = [len(b.model_dump_json()) + 1 for b in blocks]  # + the comma between items
+    keep, total = list(range(len(blocks))), sum(size) + 2
+    for i in range(len(blocks)):
+        if len(keep) <= MAX_STORED_BLOCKS and total <= MAX_STORED_BLOCKS_BYTES:
+            break
+        if i not in keep_always:
+            keep.remove(i)
+            total -= size[i]
+    return BLOCKS.dump_json([blocks[i] for i in keep]).decode()
 
 
 def shown_blocks(session) -> list[PublicBlock]:

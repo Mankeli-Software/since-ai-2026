@@ -53,9 +53,9 @@ function useShownScale(block: Block) {
 /**
  * C3b `slider_guess`: label + provenance pill, big number, range, typed field, scale, guess/measured toggle,
  * Not sure / That's it (Enter). ← / → move the slider from anywhere on the page (Shift = 10 steps). Distance sliders
- * get the shared metric / imperial switch (#216). Until the golfer moves it, the start value is marked "Default";
- * sending it untouched adds "(default)" to the text and, with the toggle, `defaulted: true` and `measured: false`.
- * Payload: `value` (block's own unit), or `{value, measured}` (+ `defaulted`) with the toggle; unknown = null.
+ * get the shared metric / imperial switch (#216). Until the golfer moves it, types a number or picks guess / measured,
+ * the start value is marked "Default" and "That's it" stays off: a typical value is never sent as the golfer's answer
+ * (#216 comment 3, plan §3.3). Payload: `value` (block's own unit), or `{value, measured}` with the toggle; unknown = null.
  */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'slider'>) {
   const scale = useShownScale(block)
@@ -73,15 +73,13 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     setTouched(true)
   }
   const send = () => {
+    if (!touched) return // the start value is a typical one, not the golfer's
     const out = scale.converted ? round1(value) : value
     const text = `${fmt(shownValue)} ${scale.shown}`
-    if (!touched) {
-      if (block.measured_or_guessed_toggle) respond({ value: out, measured: false, defaulted: true }, `${text} (default)`)
-      else respond(out, `${text} (default)`)
-    } else if (block.measured_or_guessed_toggle) respond({ value: out, measured }, `${text} (${measured ? 'measured' : 'guess'})`)
+    if (block.measured_or_guessed_toggle) respond({ value: out, measured }, `${text} (${measured ? 'measured' : 'guess'})`)
     else respond(out, text)
   }
-  useEnterKey(send, live)
+  useEnterKey(send, live && touched)
   useArrowKeys((dir, big) => setShown(stepValue(shownValue, dir, big, scale)), live)
 
   if (isReadOnly(interactive, answer) && answer) {
@@ -169,7 +167,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
             value={measured ? 'measured' : 'guess'}
             onChange={(v) => {
               setMeasured(v === 'measured')
-              setTouched(true) // "I measured it" confirms the number on screen
+              setTouched(true) // picking guess or measured confirms the number on screen as theirs
             }}
             disabled={busy}
           />
@@ -179,7 +177,8 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
         {block.allow_unknown && (
           <Button variant="outline" disabled={busy} onClick={() => respond(null, 'Not sure')}>Not sure</Button>
         )}
-        <Button variant="dark" disabled={busy} aria-keyshortcuts="Enter" onClick={send} className="pr-3">
+        {!touched && <span className="text-[14px] text-grey-55">Set your number first</span>}
+        <Button variant="dark" disabled={busy || !touched} aria-keyshortcuts="Enter" onClick={send} className="pr-3">
           That's it
           <EnterKbd />
         </Button>
