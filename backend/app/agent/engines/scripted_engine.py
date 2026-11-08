@@ -115,6 +115,14 @@ def resolve_refs(value: Any, roots: dict[str, Any]) -> Any:
     return value
 
 
+def _results_shown(steps: list[dict[str, Any]], cursor: int) -> bool:
+    """True once a step before the cursor showed the recommendation card: the web is on results."""
+    return any(
+        isinstance(step.get("ui"), dict) and step["ui"].get("type") == "recommendation_card"
+        for step in steps[:cursor]
+    )
+
+
 async def _apply_review_answer(ctx: ToolContext, value: Any) -> None:
     """Scripts never branch, so an `outlier_review` answer (`{action, codes}`) is applied here with
     whatever the golfer tapped, through the real `resolve_flags` tool."""
@@ -143,14 +151,24 @@ class ScriptedEngine:
             and s.script_cursor > 0
             and isinstance(request.message, TextMessage)
         )
-        answer = answer_of(s, request)
+        steps = load_script(s.demo_golfer_id)
+        # A why-question typed in the results aside while script steps remain (#220): answer it,
+        # leave the cursor and any pending card alone; a later tap or other text resumes the script.
+        why_question = (
+            isinstance(request.message, TextMessage)
+            and not replay_free_text
+            and s.state.best is not None
+            and s.script_cursor < len(steps)
+            and _results_shown(steps, s.script_cursor)
+            and why_router.matches(user_text(request))
+        )
+        answer = None if why_question else answer_of(s, request)
         if answer is not None and not replay_free_text:
             await _apply_review_answer(ctx, answer[0])
             s.pending_ui_id = None
             recompute_session_state(s)
             await commit_state(ctx)
 
-        steps = load_script(s.demo_golfer_id)
         texts: list[str] = []
         n = 0
         outputs: dict[str, Any] = {}  # tool name -> JSON output, for `$<tool>` refs this turn
@@ -182,6 +200,9 @@ class ScriptedEngine:
         if replay_free_text:
             await say(REPLAY_TEXT)
             return [user, stored("assistant", "scripted", REPLAY_TEXT)]
+        if why_question:
+            await say(await why_router.answer(ctx, user_text(request)))
+            return [user, stored("assistant", "scripted", texts[0])]
         if s.notice is not None and s.script_cursor == 0:
             await say(s.notice.message)
         if s.script_cursor >= len(steps):
