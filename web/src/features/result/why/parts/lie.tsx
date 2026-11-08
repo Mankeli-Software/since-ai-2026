@@ -22,7 +22,7 @@ export function lieContent(ctx: PartCtx): PartContent {
   const { best, item, example } = ctx
   const lie = best.lie_deg
   const provenance = example ? EXAMPLE.provenance : provenanceOf(item?.sources)
-  const fromChart = provenance?.kind !== 'measured'
+  const fromChart = provenance?.kind !== 'measured' && provenance?.kind !== 'mixed'
 
   const stats: Stat[] = []
   if (!example) {

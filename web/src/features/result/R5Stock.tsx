@@ -7,7 +7,7 @@ import { convertProseUnits, distanceValue, unitLabel } from '@/lib/units'
 import { useSession } from '@/store/session'
 import { useUnitsStore } from '@/store/units'
 import { ResultsAside, ViewLink, useResultsChrome } from './chrome'
-import { shortHead } from './compare/pair'
+import { headLabel } from './compare/pair'
 import { StockCustomCards, type Purchase } from './compare/StockCustomCards'
 import { customDelta } from './specLabel'
 import type { Spec } from './types'
@@ -93,7 +93,7 @@ export function R5Stock() {
   // /stock-advice is computed for state.best only (#221): its stock spec and flight deltas apply to the
   // runner-up only as "for the {best}", so they are labelled, and the stock build comes from the selected spec.
   const forBest = selected.head === best.head
-  const forBestNote = forBest ? '' : ` (for the ${shortHead(best.head)})`
+  const forBestNote = forBest ? '' : ` (for the ${headLabel(best.head)})`
   const b = builds(selected)
   if (stockadv && advice?.stock && forBest) {
     b.stock = advice.stock as Spec
@@ -164,7 +164,7 @@ export function R5Stock() {
           </label>
           {stayStock && advice.side_delta_yd != null && (
             <p className="m-0 text-[14px] text-on-page-2">
-              {!forBest && <span className="text-on-page-3">For the {shortHead(best.head)}: </span>}
+              {!forBest && <span className="text-on-page-3">For the {headLabel(best.head)}: </span>}
               {advice.side_delta_yd === 0
                 ? 'Your start line stays on target.'
                 : `With stock lie, your start line shifts about ${Math.abs(advice.side_delta_yd).toFixed(1)} yards to the ${advice.side_delta_yd > 0 ? 'right' : 'left'}.`}

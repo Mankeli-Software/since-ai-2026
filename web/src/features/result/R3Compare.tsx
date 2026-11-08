@@ -6,7 +6,7 @@ import { useUnitsStore, type Units } from '@/store/units'
 import { FlightCompare, flightTwoHeads, type FlightCompareArc, type FlightResult, type HeadFlight } from '../flight'
 import { ResultsAside, ResultsNext, useResultsChrome } from './chrome'
 import { HeadSelector } from './compare/HeadSelector'
-import { comparePair, shortHead, type CompareRow, type HeadOption } from './compare/pair'
+import { comparePair, headLabel, shortHead, type CompareRow, type HeadOption } from './compare/pair'
 import { VideoTile } from './compare/VideoTile'
 import { PhoneNext, PhoneNote } from './PhoneBits'
 import { shaftLabel } from './specLabel'
@@ -76,7 +76,7 @@ function arcFor(o: HeadOption | null, flight: HeadFlight | null, units: Units): 
   if (!src) return null
   return {
     id: o.head,
-    label: shortHead(o.head),
+    label: headLabel(o.head),
     carry: distanceValue(src.carry, units, 1),
     apex: distanceValue(src.apex, units, 1),
     land_angle: src.land,

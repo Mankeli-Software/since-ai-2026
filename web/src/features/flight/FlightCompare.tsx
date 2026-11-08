@@ -31,7 +31,7 @@ export interface FlightCompareProps {
   className?: string
   /** Carry is a guess, not from measured shots: arcs are dashed. */
   guessed?: boolean
-  /** Unit shown in the apex label ("M" or "YD"). Carry and apex are drawn in whatever unit the caller passes. */
+  /** Unit shown in the apex label ("M" or "YD") and, lowercase, on the last axis tick. Carry and apex are drawn in whatever unit the caller passes. */
   unit?: string
 }
 
@@ -76,7 +76,7 @@ export function FlightCompare({ arcs, selected, ariaLabel, className, guessed, u
         {ticks.map((t, i) => (
           <text key={t} x={x(t) - 4} y="198">
             {t}
-            {i === ticks.length - 1 ? ' m' : ''}
+            {i === ticks.length - 1 ? ` ${unit.toLowerCase()}` : ''}
           </text>
         ))}
       </g>
