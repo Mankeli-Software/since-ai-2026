@@ -103,7 +103,7 @@ You can also run it from GitHub: Actions tab, workflow **qa**, **Run workflow**.
 ## Deliverables
 
 - **Video walkthrough:** TODO(Matti): add link to YouTube walkthrough video
-- **One-page write-up:** [docs/writeup/one-pager.md](docs/writeup/one-pager.md)
+- **One-page write-up:** [docs/writeup/mankeli-one-pager.pdf](docs/writeup/mankeli-one-pager.pdf)
 - **Test predictions:** [`mankeli_takomo_test_predictions.csv`](mankeli_takomo_test_predictions.csv)
 
 ---
