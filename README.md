@@ -6,32 +6,7 @@ Team **Mankeli** created this project for the **Since AI Hackathon 2026** (Takom
 
 > **Note on data:** All golfer profiles and shot data in this demo are synthetic.
 
-- **Hosted Application:** [https://fitteri.mankelisolutions.fi](https://fitteri.mankelisolutions.fi)
-- **Instant Scripted Walkthrough:** [studio.html?engine=scripted&demo=DEMO-01](https://fitteri.mankelisolutions.fi/studio.html?engine=scripted&demo=DEMO-01)
-
----
-
-## Try the Studio
-
-Start a new session from scratch:
-
-- [Start My Own Fitting (Scripted Intake)](https://fitteri.mankelisolutions.fi/studio.html?engine=scripted): Answer conversational intake questions with your own numbers.
-
-Or test with four simulated golfer personas:
-
-- [Mikko (DEMO-01)](https://fitteri.mankelisolutions.fi/studio.html?demo=DEMO-01): Experienced golfer. Claims 160 yd carry. Imports TrackMan CSV data. Shows candid ego-carry detection, rising fit confidence, precision follow-up, and 201T MKII recommendation.
-- [Hannu (DEMO-09)](https://fitteri.mankelisolutions.fi/studio.html?demo=DEMO-09): Submits home ball-line test data. Shows rough lie evidence fusion and an honest simulator recommendation before ordering.
-- [Lars (DEMO-04)](https://fitteri.mankelisolutions.fi/studio.html?demo=DEMO-04): Compares high-skill irons. Shows clear trade-offs between 301 CB (forgiveness) and 301 MB (workability).
-- [Anders (DEMO-13)](https://fitteri.mankelisolutions.fi/studio.html?demo=DEMO-13): Evaluates a +1° lie recommendation. Compares a stock set (30-day return policy) against a custom build (non-returnable).
-
----
-
-## 60-Second Tour
-
-Run the studio with the scripted engine for an instant walkthrough:
-[https://fitteri.mankelisolutions.fi/studio.html?engine=scripted&demo=DEMO-01](https://fitteri.mankelisolutions.fi/studio.html?engine=scripted&demo=DEMO-01)
-
-The scripted tour replays turns without API calls. It shows the conversation, data import, confidence updates, and 3D club inspection.
+- **Try Live Demo:** [https://fitteri.mankelisolutions.fi](https://fitteri.mankelisolutions.fi)
 
 ---
 
