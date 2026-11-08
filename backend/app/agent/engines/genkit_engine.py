@@ -153,11 +153,17 @@ async def _presave(
     if fields is None:
         return {}
     marks = {k: fields.pop(k) for k in list(fields) if k == flow.SIM_BRAND}
-    saved = await _run(ctx, "update_profile", fields) if fields else {"saved": []}
+    # An untouched typical value (`defaulted`, flow.answer_fields): answered, not known. Recorded
+    # first; update_profile then recomputes and commits the state (also with nothing to save).
+    typical = [k for k, v in fields.items() if v is None]
+    fields = {k: v for k, v in fields.items() if v is not None}
+    flow.leave_unknown(s, *typical)
+    saved = await _run(ctx, "update_profile", fields) if fields or typical else {"saved": []}
     if saved is None:
         return {}
     flow.mark(s, **marks)
-    return {"saved": saved, "next_question": await _next(ctx), **SPEAK}
+    extra = {"typical_not_measured": typical} if typical else {}
+    return {"saved": saved, **extra, "next_question": await _next(ctx), **SPEAK}
 
 
 def _offer(ctx: ToolContext, block: dict[str, Any]) -> dict:

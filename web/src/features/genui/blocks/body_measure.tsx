@@ -48,7 +48,10 @@ const LENGTHS = {
 const round1 = (n: number) => Math.round(n * 10) / 10
 const ftIn = (inches: number) => `${Math.floor(inches / 12)}′${Math.round(inches % 12)}″`
 const unitLabel = (u: Unit, field: Block['field']) => (u === 'cm' ? 'cm' : field === 'height' ? 'ft / in' : 'in')
-const DEFAULTED = ' (default)'
+// An untouched typical value is never the golfer's measurement (#216 comment 3, plan §3.3): Next sends
+// `{field, value: null, defaulted: true}` and the fit uses its own typical value, marked not measured.
+const TYPICAL_TEXT = 'Not measured, use a typical value'
+const typical = (block: Block, respond: Respond) => respond({ field: block.field, value: null, defaulted: true }, TYPICAL_TEXT)
 
 /** "Not sure" for any field: the fitter falls back to a chart or asks something else. */
 const unsure = (block: Block, respond: Respond) => respond({ field: block.field, value: null, unsure: true }, 'Not sure')
@@ -58,13 +61,15 @@ interface Answer {
   value_cm?: number
   value?: string | null
   unsure?: boolean
+  defaulted?: boolean
 }
 
 /**
  * C6a / C6b / C6: illustration panel + one measurement; Enter = Next. Height, wrist to floor and hand length each have
  * a slider and a typed field that stay in sync, starting at a typical value marked "Default" until the golfer touches
  * it (#216). ← / → change the value or glove size, number keys pick a glove size. Numeric fields resume with
- * `{field, value_cm, unit, raw}` (+ `defaulted: true` when sent untouched); glove resumes with
+ * `{field, value_cm, unit, raw}`; sent untouched ("Use typical") with `{field, value: null, defaulted: true}`, so the
+ * default never counts as their measurement; glove resumes with
  * `{field: "glove", value: <size id>, raw: <label>}`; "Not sure" resumes with `{field, value: null, unsure: true}`.
  * In the history (#216 comment 8) the answered card renders read-only with the golfer's value.
  */
@@ -73,7 +78,7 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
     const a = (answer.value ?? {}) as Answer
     const seedCm = typeof a.value_cm === 'number' ? a.value_cm : undefined
     const seedGlove = typeof a.value === 'string' ? a.value : undefined
-    if (a.unsure || (seedCm === undefined && seedGlove === undefined)) return <Answered prompt={block.prompt} answer={answer} />
+    if (a.unsure || a.defaulted || (seedCm === undefined && seedGlove === undefined)) return <Answered prompt={block.prompt} answer={answer} />
     return (
       <ReadOnly answer={answer}>
         <Parts block={block} busy={false} respond={respond} ro seedCm={seedCm} seedGlove={seedGlove} />
@@ -107,21 +112,22 @@ function Panel({ children }: { children: ReactNode }) {
 }
 
 /** The dark "Next" with its Enter hint; Enter runs it (the typed fields' own Enter handlers are left alone). */
-function NextButton({ busy, onNext, canNext }: { busy: boolean; onNext: () => void; canNext: boolean }) {
+function NextButton({ busy, onNext, canNext, label = 'Next' }: { busy: boolean; onNext: () => void; canNext: boolean; label?: string }) {
   useEnterKey(onNext, !busy && canNext)
   return (
     <Button variant="dark" className="min-h-[52px] pr-3 pl-6" disabled={busy || !canNext} aria-keyshortcuts="Enter" onClick={onNext}>
-      Next
+      {label}
       <EnterKbd />
     </Button>
   )
 }
 
-function Footer({ block, busy, respond, onNext, canNext }: PartProps & { onNext: () => void; canNext: boolean }) {
+/** Untouched, Next reads "Use typical": `onNext` then sends no value (see `typical`). */
+function Footer({ block, busy, respond, onNext, touched }: PartProps & { onNext: () => void; touched: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <Button variant="outline" disabled={busy} onClick={() => unsure(block, respond)}>Not sure</Button>
-      <NextButton busy={busy} onNext={onNext} canNext={canNext} />
+      <NextButton busy={busy} onNext={onNext} canNext label={touched ? 'Next' : 'Use typical'} />
     </div>
   )
 }
@@ -213,12 +219,11 @@ function Height({ block, busy, respond, ro, seedCm }: PartProps) {
     !busy && !ro,
   )
   const submit = () => {
-    const extra = touched ? {} : { defaulted: true }
-    const tail = touched ? '' : DEFAULTED
+    if (!touched) return typical(block, respond)
     if (unit === 'in') {
-      respond({ field: block.field, value_cm: round1(inches * INCHES_TO_CM), unit, raw: inches, ...extra }, `${Math.floor(inches / 12)} ft ${inches % 12} in${tail}`)
+      respond({ field: block.field, value_cm: round1(inches * INCHES_TO_CM), unit, raw: inches }, `${Math.floor(inches / 12)} ft ${inches % 12} in`)
     } else {
-      respond({ field: block.field, value_cm: round1(cm), unit, raw: round1(cm), ...extra }, `${round1(cm)} cm${tail}`)
+      respond({ field: block.field, value_cm: round1(cm), unit, raw: round1(cm) }, `${round1(cm)} cm`)
     }
   }
 
@@ -262,7 +267,8 @@ function Height({ block, busy, respond, ro, seedCm }: PartProps) {
                   />
                   <TypedNumber
                     value={inches % 12} min={0} max={11.99} label="Inches" suffix="in" disabled={busy}
-                    onValue={(i) => setInches(Math.floor(inches / 12) * 12 + Math.round(i))} onEnter={submit} className="w-[56px]"
+                    // Whole inches, at most 11: 5 ft 11.6 in stays 5 ft 11, never carries into 6 ft 0.
+                    onValue={(i) => setInches(Math.floor(inches / 12) * 12 + Math.min(11, Math.round(i)))} onEnter={submit} className="w-[56px]"
                   />
                 </>
               ) : (
@@ -277,7 +283,7 @@ function Height({ block, busy, respond, ro, seedCm }: PartProps) {
             )}
           </div>
         )}
-        {!ro && <Footer block={block} busy={busy} respond={respond} onNext={submit} canNext />}
+        {!ro && <Footer block={block} busy={busy} respond={respond} onNext={submit} touched={touched} />}
       </div>
     </>
   )
@@ -308,10 +314,7 @@ function Boxed({ block, busy, respond, ro, seedCm }: PartProps) {
   }, [ro])
   useArrowKeys((dir, big) => set(stepValue(shown, dir, big, range)), !busy && !ro)
   const submit = () =>
-    respond(
-      { field: block.field, value_cm: round1(touched ? cm : toCm(shown)), unit, raw: shown, ...(touched ? {} : { defaulted: true }) },
-      `${shown} ${unit}${touched ? '' : DEFAULTED}`,
-    )
+    touched ? respond({ field: block.field, value_cm: round1(cm), unit, raw: shown }, `${shown} ${unit}`) : typical(block, respond)
   const steps = STEPS[block.field] ?? []
   const mid = Math.round((range.min + range.max) / 2 / range.step) * range.step
 
@@ -381,7 +384,7 @@ function Boxed({ block, busy, respond, ro, seedCm }: PartProps) {
             <span className="text-[13px] text-grey-6b">coming soon</span>
           </span>
         )}
-        {!ro && <Footer block={block} busy={busy} respond={respond} onNext={submit} canNext />}
+        {!ro && <Footer block={block} busy={busy} respond={respond} onNext={submit} touched={touched} />}
       </div>
     </>
   )
