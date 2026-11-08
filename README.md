@@ -7,6 +7,7 @@ Team **Mankeli** created this project for the **Since AI Hackathon 2026** (Takom
 > **Note on data:** All golfer profiles and shot data in this demo are synthetic.
 
 - **Try Live Demo:** [https://fitteri.mankelisolutions.fi](https://fitteri.mankelisolutions.fi)
+- **Video Walkthrough:** [https://youtu.be/gg8XJoLj6BE](https://youtu.be/gg8XJoLj6BE)
 - **One-Page Write-Up:** [docs/writeup/mankeli-one-pager.pdf](docs/writeup/mankeli-one-pager.pdf)
 - **Pitch Deck:** [docs/writeup/mankeli-pitch-deck.pdf](docs/writeup/mankeli-pitch-deck.pdf)
 
@@ -19,6 +20,17 @@ Team **Mankeli** created this project for the **Since AI Hackathon 2026** (Takom
 3. **Deterministic math, LLM phrasing:** Deterministic tools compute all club specifications, ball flight physics, and confidence scores. The language model only formats conversational responses.
 4. **Generative UI:** The chat interface embeds interactive cards (sentence intake, carry slider, TrackMan import, 3D clubs, and trajectory graphs).
 5. **Zero-key offline mode:** A fully functional scripted engine runs locally and in production without API keys or token usage.
+
+---
+
+## Technologies
+
+- **ElevenLabs:** speaks the fitter's replies in voice mode (browser speech is the fallback when no key is set).
+- **Anthropic Claude (Sonnet 5.5 / Haiku 5.5) + Genkit:** conversation, tool calls, and screenshot reading.
+- **FastAPI + Pydantic (Python 3.12):** backend API, SSE streaming, and the deterministic fitting engine on top of `takomo_fit`.
+- **React 19 + Vite + Tailwind CSS v4 + zustand:** the studio web app and generative UI cards.
+- **three.js + React Three Fiber + Blender:** 3D club heads and AR models.
+- **Google Cloud Run:** hosting.
 
 ---
 
@@ -123,7 +135,7 @@ schemas      Pydantic data models and interfaces (no internal dependencies)
 
 ## Deliverables & Documentation
 
-- **Video Walkthrough:** TODO(Matti): add link to YouTube walkthrough video
+- **Video Walkthrough:** [https://youtu.be/gg8XJoLj6BE](https://youtu.be/gg8XJoLj6BE)
 - **Video Walkthrough Script:** [`docs/video_script.md`](docs/video_script.md)
 - **One-Page Write-Up:** [`docs/writeup/mankeli-one-pager.pdf`](docs/writeup/mankeli-one-pager.pdf)
 - **Pitch Deck:** [`docs/writeup/mankeli-pitch-deck.pdf`](docs/writeup/mankeli-pitch-deck.pdf)
