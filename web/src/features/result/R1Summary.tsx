@@ -10,7 +10,7 @@ import { ConfirmWithShots } from './ConfirmWithShots'
 import { PURCHASE_COPY, STATUS_TOOLTIP } from './fixtures/commerce'
 import type { HeadSlug, HeadVideoData, VideoItem } from './ProductVideo'
 import { headBlurb, headName } from './specLabel'
-import type { ResultsData } from './useResultsData'
+import { whyItems, type ResultsData } from './useResultsData'
 import type { Spec } from './types'
 
 const productVideos = rawProductVideos as unknown as Record<HeadSlug, HeadVideoData>
@@ -21,9 +21,12 @@ const R1B_CHIPS = ['What do real shots change?', "Looks good, I'll take it now"]
 
 const firstSentence = (s: string) => s.trim().split(/(?<=[.!?])\s+/)[0] ?? s
 
-/** Hero line from the why_panel (tool output): the head reason + the flex reason, first sentence each. */
+/**
+ * Hero line from tool output (the fitter's why_panel, else the fit explanation from GET /fit): the head reason
+ * + the flex reason, first sentence each.
+ */
 function whySentence(data: ResultsData): string | null {
-  const items = data.why?.items ?? []
+  const items = whyItems(data)
   const pick = (...parts: string[]) => items.find((i) => parts.includes(i.part))?.plain
   const lines = [pick('head'), pick('flex', 'shaft_model')].filter((x): x is string => !!x).map(firstSentence)
   return lines.length ? lines.join(' ') : null
@@ -58,9 +61,12 @@ function Hero({ best, data }: { best: Spec; data: ResultsData }) {
       </div>
       <div className="flex min-w-0 flex-col gap-2.5">
         <h1 className="m-0 font-display text-[104px] leading-[.84] font-extrabold uppercase max-md:text-[56px] max-md:leading-[.88]">{name}</h1>
-        <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-on-page max-md:text-[17px]">
-          {why ? <Text text={why} /> : 'No guesswork, no marketing fluff. Every single spec has a reason below.'}
-        </p>
+        {/* Hero only renders with a best spec, so no generic line: the reason shows once the fit explanation loads. */}
+        {why && (
+          <p className="m-0 max-w-[640px] text-[20px] leading-[1.45] text-on-page max-md:text-[17px]">
+            <Text text={why} />
+          </p>
+        )}
         <ul title={STATUS_TOOLTIP} className="m-0 flex list-none flex-wrap items-center gap-x-[22px] gap-y-1 p-0 pt-0.5 pb-1 max-md:gap-x-4">
           {copy.ticks.map((t) => (
             <li key={t} className="inline-flex items-center gap-2 text-[15px] text-on-page max-md:text-[14px]">
