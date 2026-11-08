@@ -11,7 +11,9 @@ import logging
 import secrets
 from collections.abc import AsyncIterator
 
-from app.agent.engines.base import Engine, load_tools
+from pydantic import TypeAdapter, ValidationError
+
+from app.agent.engines.base import Engine, answer_of, load_tools
 from app.core.errors import AppError, InvalidInputError, TurnBusyError
 from app.core.tooling import ToolContext
 from app.schemas.chat import (
@@ -25,10 +27,12 @@ from app.schemas.chat import (
     UiResponseMessage,
 )
 from app.schemas.ports import SessionStore
+from app.schemas.session import PublicBlock
 
 log = logging.getLogger(__name__)
 
 LOCK_TTL_S = 300
+BLOCKS = TypeAdapter(list[PublicBlock])
 _TASKS: set[asyncio.Task] = set()  # strong refs: a background turn must not be garbage collected
 
 
@@ -74,6 +78,7 @@ async def _drain(queue: asyncio.Queue[StreamEvent | None]) -> AsyncIterator[Stre
 async def _run(store, session, history, request, turn_id, queue) -> None:
     seq = 0
     committed = False
+    shown: list[PublicBlock] = []  # this turn's ui blocks, kept on the session for resume (#216)
 
     async def emit(ev: StreamEvent) -> None:  # stamps the monotonic seq
         nonlocal seq
@@ -98,16 +103,23 @@ async def _run(store, session, history, request, turn_id, queue) -> None:
                         )
                     }
                 )
+        if isinstance(ev, UiEvent):
+            shown.append(PublicBlock(id=ev.id, block=ev.block, interactive=ev.interactive))
         queue.put_nowait(ev.model_copy(update={"seq": seq}))
         seq += 1
 
     try:
         await emit(TurnStartEvent(seq=0, turn_id=turn_id))
         expected_version = session.state.version
+        _record_answer(session, request)
         ctx = ToolContext(session=session, emit=emit, store=store, budget=session.budget)
         new = await get_engine(session.engine).run_turn(ctx, request, history)
         session.budget.turns += 1
         messages = [m.model_copy(update={"turn_no": len(history) + i}) for i, m in enumerate(new)]
+        last = len(history) + len(new) - 1
+        if shown:
+            blocks = shown_blocks(session) + [b.model_copy(update={"turn_no": last}) for b in shown]
+            session.ui_blocks_json = BLOCKS.dump_json(blocks).decode()
         state = await store.commit_turn(session.id, turn_id, messages, session, expected_version)
         committed = True
         await emit(StateEvent(seq=0, state=state))
@@ -123,3 +135,28 @@ async def _run(store, session, history, request, turn_id, queue) -> None:
         if not committed:
             await store.release_turn(session.id, turn_id)
         queue.put_nowait(None)
+
+
+def _record_answer(session, request: TurnRequest) -> None:
+    """Put the golfer's answer on the card it answers, so a resumed chat shows the pick (#216)."""
+    ans = answer_of(session, request)
+    msg = request.message
+    target = msg.component_id if isinstance(msg, UiResponseMessage) else session.pending_ui_id
+    if ans is None or target is None:
+        return
+    value, display_text = ans
+    blocks = shown_blocks(session)
+    for b in blocks:
+        if b.id == target and b.answer is None:
+            b.answer = {"value": value, "display_text": display_text}
+            session.ui_blocks_json = BLOCKS.dump_json(blocks).decode()
+            return
+
+
+def shown_blocks(session) -> list[PublicBlock]:
+    """The cards the session has shown so far. Unreadable blocks are dropped, never fatal."""
+    try:
+        return BLOCKS.validate_json(session.ui_blocks_json or "[]")
+    except ValidationError:
+        log.warning("ui_blocks_unreadable", extra={"session": session.id})
+        return []

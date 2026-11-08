@@ -36,6 +36,19 @@ class SessionNotice(BaseModel):
     message: str
 
 
+class PublicBlock(BaseModel):
+    """A `ui` block a turn showed, with the golfer's answer once given. Kept on the session so a
+    resumed chat renders the cards that were shown (#216)."""
+
+    id: str
+    block: UIBlock
+    interactive: bool
+    answer: Any = Field(default=None, description="`{value, display_text}` once answered")
+    turn_no: int | None = Field(
+        default=None, description="Last stored message of the turn that showed it (sort order)"
+    )
+
+
 class FitSession(BaseModel):
     """The stored session document (`sessions/{id}`, < 900 KB). Mutable for one turn only."""
 
@@ -61,6 +74,9 @@ class FitSession(BaseModel):
     pending_ui_id: str | None = None  # input component the last turn is waiting on (AGENT)
     script_cursor: int = 0  # next step of the scripted engine's persona script (AGENT)
     notice: SessionNotice | None = None  # set when the guard downgraded the engine (AGENT, #18)
+    ui_blocks_json: str = (
+        "[]"  # PublicBlock list as a JSON string (blocks may nest arrays), for resume
+    )
 
 
 class StoredMessage(BaseModel):
@@ -115,13 +131,6 @@ class TranscriptEntry(BaseModel):
     turn_no: int
     role: Literal["user", "assistant"]
     text: str
-
-
-class PublicBlock(BaseModel):
-    id: str
-    block: UIBlock
-    interactive: bool
-    answer: Any = None
 
 
 class PublicSession(BaseModel):

@@ -1,8 +1,9 @@
 import { Button, Kbd, StatTile, useNumberKeys } from '@/components/studio'
-import { distanceValue, speedValue } from '@/lib/units'
+import { YARDS_TO_METERS, distanceValue, speedValue } from '@/lib/units'
 import { useUnitsStore, type Units } from '@/store/units'
 import type { BlockProps } from '../types'
-import { Answered } from './_parts/Answered'
+import { Answered, ReadOnly, isReadOnly } from './_parts/Answered'
+import { UnitSwitch } from './_parts/UnitSwitch'
 
 export const type = 'outlier_review'
 
@@ -26,6 +27,7 @@ const unitOf = (field?: string | null, units?: Units) => {
     if (field?.endsWith('_yd')) return ' m'
     if (field?.endsWith('_mph')) return ' km/h'
   }
+  if (units === 'imperial' && field?.endsWith('_m')) return ' yd'
   return UNITS.find(([s]) => field?.endsWith(s))?.[1] ?? ''
 }
 const nameOf = (field?: string | null) =>
@@ -36,6 +38,7 @@ const num = (v: Flag['value'], field?: string | null, units?: Units) => {
     if (field?.endsWith('_yd')) return String(distanceValue(v, 'metric', 1))
     if (field?.endsWith('_mph')) return String(speedValue(v, 'metric', 1))
   }
+  if (units === 'imperial' && field?.endsWith('_m')) return String(Math.round((v / YARDS_TO_METERS) * 10) / 10)
   return String(Math.round(v * 10) / 10)
 }
 
@@ -53,8 +56,14 @@ function headline(f: Flag, units?: Units) {
 }
 const detail = (f: Flag) => (f.expected ? `Expected ${f.expected}.` : "That's way outside your normal strike window.")
 
+/** True when the card shows a value the metric / imperial switch changes (yd, m, mph). */
+const convertible = (block: Block) =>
+  [...Object.keys(block.shots_summary ?? {}), ...block.flags.map((f) => f.field ?? '')].some((k) => /_(yd|m|mph)$/.test(k))
+
 /**
  * C5 / K4 odd-shot check: orange-tint callout, Keep it / Drop it (number keys 1-3), "N other shots stay in".
+ * The shared metric / imperial switch sits on top when the card shows distances or speeds (#216). In the history the
+ * answered card renders read-only with the chosen action dark.
  * Payload unchanged: `{action, codes}` with action keep | exclude | confirm_value.
  */
 export function Component({ block, interactive, answer, busy, respond }: BlockProps<'outlier_review'>) {
@@ -78,17 +87,26 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
   const choose = (a: Action) => respond({ action: a, codes }, label(a))
   // No Enter: keep and drop are equal choices, so neither is the default.
   useNumberKeys(actions.length, (i) => choose(actions[i]), live && !busy)
-  if (!live) return <Answered prompt={prompt} answer={answer} />
+
+  const ro = isReadOnly(interactive, answer)
+  const chosen = ro ? ((answer?.value as { action?: Action } | null)?.action ?? null) : null
+  if (!live && !(ro && chosen)) return <Answered prompt={prompt} answer={answer} />
 
   // Keep = outline; the "do it" action = dark (confirm_value when offered, else exclude). No orange in a callout.
-  const dark: Action = block.actions.includes('confirm_value') ? 'confirm_value' : 'exclude'
+  // Read-only: the golfer's pick is dark, the rest outline.
+  const dark: Action = chosen ?? (block.actions.includes('confirm_value') ? 'confirm_value' : 'exclude')
 
   const n = block.shots_summary?.n
   const dropped = new Set(flags.filter((f) => f.shot_index != null).map((f) => f.shot_index)).size
   const stats = Object.entries(block.shots_summary ?? {}).filter(([k]) => k !== 'n')
 
-  return (
+  const body = (
     <div className="flex flex-col gap-3.5">
+      {convertible(block) && !ro && (
+        <div className="flex justify-end">
+          <UnitSwitch labels={{ metric: 'm · km/h', imperial: 'yd · mph' }} disabled={busy} />
+        </div>
+      )}
       {stats.length > 0 && (
         <div className="grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(stats.length, 4)}, minmax(0, 1fr))` }}>
           {stats.map(([k, v]) => {
@@ -114,13 +132,14 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
             key={a}
             size="sm"
             variant={a === dark ? 'dark' : 'outline'}
-            disabled={busy}
-            aria-keyshortcuts={String(i + 1)}
+            disabled={busy && !ro}
+            aria-pressed={ro ? a === chosen : undefined}
+            aria-keyshortcuts={ro ? undefined : String(i + 1)}
             onClick={() => choose(a)}
-            className="pr-2.5"
+            className={ro ? (a === chosen ? '' : 'opacity-50') : 'pr-2.5'}
           >
             {label(a)}
-            <Kbd onDark={a === dark} className="h-[22px] min-w-[22px] text-[12px]">{i + 1}</Kbd>
+            {!ro && <Kbd onDark={a === dark} className="h-[22px] min-w-[22px] text-[12px]">{i + 1}</Kbd>}
           </Button>
         ))}
       </div>
@@ -131,4 +150,5 @@ export function Component({ block, interactive, answer, busy, respond }: BlockPr
       )}
     </div>
   )
+  return ro && answer ? <ReadOnly answer={answer}>{body}</ReadOnly> : body
 }
