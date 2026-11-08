@@ -71,7 +71,7 @@ def _length_cut(est: InputEstimates, ours: Recommendation):
     d = abs(h - edge)
     step = (
         f"You're {d:.1f} cm from the next length line ({edge:g} cm). Measuring your height "
-        "again in golf shoes would settle it."
+        "again when wearing your golf shoes would settle it."
     )
     return Cutoff(name="length chart height edge (cm)", value=edge, distance=d, sigma=sd), alt, step
 

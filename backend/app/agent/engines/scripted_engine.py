@@ -29,6 +29,7 @@ from typing import Any
 import yaml  # shortcut: transitive via uvicorn[standard], not a declared dependency
 from pydantic import BaseModel, ValidationError
 
+from app.agent import why_router
 from app.agent.engines.base import answer_of, load_tools, stored, user_text
 from app.agent.guard import REPLAY_TEXT
 from app.agent.tools._common import commit_state, recompute_session_state
@@ -184,7 +185,10 @@ class ScriptedEngine:
         if s.notice is not None and s.script_cursor == 0:
             await say(s.notice.message)
         if s.script_cursor >= len(steps):
-            await say("That is the end of this demo script.")
+            if isinstance(request.message, TextMessage):  # a question from the results aside
+                await say(await why_router.answer(ctx, user_text(request)))
+            else:
+                await say("That is the end of this demo script.")
         while s.script_cursor < len(steps):
             step = steps[s.script_cursor]
             s.script_cursor += 1

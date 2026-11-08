@@ -26,7 +26,7 @@ const GLOVES = [
 
 // Short how-to steps per boxed-input field (C6b copy). Longer copy lives in fixtures/diagrams.json.
 const STEPS: Partial<Record<Block['field'], string[]>> = {
-  wrist_to_floor: ['Shoes on, stand tall', 'Let your arms hang loose', 'Measure wrist crease to floor'],
+  wrist_to_floor: ['Wear your golf shoes, stand tall', 'Let your arms hang loose', 'Measure wrist crease to floor'],
   hand_length: ['Open your hand flat', 'Find the crease at your wrist', 'Measure to the tip of your middle finger'],
 }
 const FIELD_LABEL: Record<Block['field'], string> = {
