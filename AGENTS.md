@@ -210,10 +210,10 @@ just preds              # Generate mankeli_takomo_test_predictions.csv (5,000 ro
   2. Synthetic TrackMan CSV import (`data_import`) + v1 outlier flags (`S1, S3, S7, S8, S10, S14, G1, G2, G3, G11-carry, G15, V6`) + `outlier_review` + the precision follow-up
   3. `recommend()` + provenance-backed why (R1 summary with best and runner-up head, R2 why each part)
   4. Monte Carlo confidence + gate in the **v3 header**, with current best / missing-N and Add data (visibly rising after Mikko's TrackMan import)
-  5. 2D `FlightSvg` with carry/apex + dispersion ellipses **in R3**, from `POST /api/flight`, labelled Estimated
+  5. 2D side-view flight compare (`FlightCompare`) with carry/apex/landing **in R3**, from `POST /api/flight`, labelled Estimated
   6. `stock_vs_custom` honesty in R5 (30-day return vs non-returnable custom) with the stock-lean rule (L25) and the "What if I stay stock?" toggle + confidence-gated honest ending
   7. Save / resume fitting + `mankeli_takomo_test_predictions.csv` (beating B2 `83.58` on `dev`)
-- **No longer never-cut (plan v3.2 addendum):** the free tinker panel (narrowed to the R5 stock toggle, L24); the stage-left layout and `TopBar` (only under `?ff=legacy`); the mascot (cut, no slot in v3).
+- **No longer never-cut (plan v3.2 addendum):** the free tinker panel (narrowed to the R5 stock toggle, L24); the stage-left layout and `TopBar` (only under `?ff=legacy`); the mascot (cut, no slot in v3); the dispersion ellipses in R3 (cut Sun 8 Nov for time, #222: R3 shows the side-view head compare and a side-spread tile).
 - **CUT FIRST IF BEHIND SCHEDULE (in order):**
   1. Shopify embed + mobile layout (Final phase) → keep on slides
   2. AR (#20), Rive mascot (keep SVG), Voice (#18)
