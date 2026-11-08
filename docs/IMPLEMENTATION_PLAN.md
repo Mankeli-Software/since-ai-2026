@@ -1548,7 +1548,7 @@ Not planned: #21–#25 (stretch). The camera kit stays in the pack.
 
 **Cut first, in order:** all Shopify work and the mobile layout (the Final phase, L2/L3; slides only) → AR (#20), Rive (keep the SVG placeholder), voice (#18) → round-stats screenshot → launch-monitor screenshot (#15) → 3D flight → club row → W2 gen-UI components.
 
-**Never cut (v3.2):** the "Try as" picker with sample imports (L16), because it is how judges use the hosted link; conversational intake, with the form fallback inside ChatShell; TrackMan CSV import with v1 outlier flags; `recommend()` + why panel (R1, R2); confidence and gate in the v3 header, with Add data; SVG flight with dispersion in R3; stock vs custom with the stock toggle (R5, L25); an honest ending; Save; the predictions CSV. **No longer never-cut** (v3.2 addendum): the free lie tinker (narrowed to the stock toggle), the stage-left layout and the mascot (cut).
+**Never cut (v3.2):** the "Try as" picker with sample imports (L16), because it is how judges use the hosted link; conversational intake, with the form fallback inside ChatShell; TrackMan CSV import with v1 outlier flags; `recommend()` + why panel (R1, R2); confidence and gate in the v3 header, with Add data; SVG side-view flight compare in R3; stock vs custom with the stock toggle (R5, L25); an honest ending; Save; the predictions CSV. **No longer never-cut** (v3.2 addendum): the free lie tinker (narrowed to the stock toggle), the stage-left layout and the mascot (cut); the R3 dispersion ellipses (cut Sun 8 Nov for time, #222).
 
 ---
 
