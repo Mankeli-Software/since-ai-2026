@@ -23,13 +23,16 @@ const firstSentence = (s: string) => s.trim().split(/(?<=[.!?])\s+/)[0] ?? s
 
 /**
  * Hero line from tool output (the fitter's why_panel, else the fit explanation from GET /fit): the head reason
- * + the flex reason, first sentence each.
+ * + the flex reason, first sentence each. A head close call keeps the whole head reason, runner-up included.
  */
 function whySentence(data: ResultsData): string | null {
   const items = whyItems(data)
-  const pick = (...parts: string[]) => items.find((i) => parts.includes(i.part))?.plain
-  const lines = [pick('head'), pick('flex', 'shaft_model')].filter((x): x is string => !!x).map(firstSentence)
-  return lines.length ? lines.join(' ') : null
+  const pick = (...parts: string[]) => items.find((i) => parts.includes(i.part))
+  const head = pick('head')
+  const flex = pick('flex', 'shaft_model')
+  const lines = [head && (head.close_call ? head.plain.trim() : firstSentence(head.plain)), flex && firstSentence(flex.plain)]
+  const out = lines.filter((x): x is string => !!x)
+  return out.length ? out.join(' ') : null
 }
 
 const scoreOf = (data: ResultsData, head: string) => {
