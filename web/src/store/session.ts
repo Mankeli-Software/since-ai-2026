@@ -266,7 +266,8 @@ export const useSession = create<SessionStore>()((set, get) => {
           // Messages and the cards that were shown, in one timeline (#216): a turn's cards follow its last message.
           type Row = { turn: number; card: 0 | 1; m?: ChatMessage; u?: UiItem }
           const rows: Row[] = [
-            ...(sessData.transcript ?? []).map((t, idx): Row => ({
+            // The hidden "Hi" that opens every session is not the golfer's message.
+            ...(sessData.transcript ?? []).filter((t, idx) => !(idx === 0 && t.role === 'user' && t.text === 'Hi')).map((t, idx): Row => ({
               turn: t.turn_no,
               card: 0,
               m: { id: `t-${t.turn_no}-${idx}`, role: t.role, text: t.text, seq: 0 },
