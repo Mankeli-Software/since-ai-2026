@@ -7,9 +7,13 @@ import type { Spec } from './types'
 
 export type WhyItem = BlockOf<'why_panel'>['items'][number]
 
-/** All why items, the fitter's why_panel items first (newest block first), then the fit explanation. */
+/**
+ * All why items, for a find-by-part lookup: the fit explanation first (GET /fit, refetched for every evidence
+ * version and best spec, so it follows new evidence), then the fitter's why_panel items, newest block first, as
+ * the fallback while the fit explanation has not loaded (and in the fixture preview).
+ */
 export function whyItems(data: ResultsData): WhyItem[] {
-  return [...data.panelWhy, ...(data.fitWhy ?? [])]
+  return [...(data.fitWhy ?? []), ...data.panelWhy]
 }
 
 const panelItems = (blocks: UIBlock[]): WhyItem[] =>
@@ -28,7 +32,7 @@ export interface ResultsData {
   runnerUp: Spec | null
   recommendation: BlockOf<'recommendation_card'> | null
   why: BlockOf<'why_panel'> | null
-  /** Every why_panel item the fitter showed, newest block first (the agent's explain_part). */
+  /** Every why_panel item the fitter showed, newest block first (the agent's explain_part). Read via whyItems. */
   panelWhy: WhyItem[]
   /**
    * The deterministic fit explanation (`GET /api/sessions/{id}/fit` -> `why`, from explain_fit), so every part
@@ -138,46 +142,42 @@ function liveData(state: FittingState | null, ui: UiItem[], messages: ChatMessag
   }
 }
 
-/** Wait for the running turn to end (the fit endpoint answers 409 while a turn holds the session lock). */
-function turnEnded(): Promise<void> {
-  if (!useSession.getState().busy) return Promise.resolve()
-  return new Promise((resolve) => {
-    const off = useSession.subscribe((s) => {
-      if (!s.busy) {
-        off()
-        resolve()
-      }
-    })
-  })
-}
-
 const RETRY_MS = 1500
 
 /**
- * `GET /api/sessions/{id}/fit` once per session, evidence version and best spec. On any failure it waits for
- * the turn to end, retries once, and otherwise keeps the text it had: never an error on the page.
+ * `GET /api/sessions/{id}/fit` once per session, evidence version and best spec, and only while no turn runs.
+ * The route saves the session when its fit differs from the stored one, and that save would make the running
+ * turn's commit fail with `version_conflict` (the results screen mounts mid-turn, on the recommendation_card).
+ * So while `busy` it waits; when the turn ends it fetches once for the current key, if that key is not loaded yet.
+ * A failure is retried once after a pause (unless a turn started meanwhile); otherwise the old text stays:
+ * never an error on the page.
  */
-function useFitWhy(sessionId: string | null, evidenceVersion: number | null, best: Spec | null): WhyItem[] | null {
-  const [fit, setFit] = useState<{ sessionId: string; items: WhyItem[] } | null>(null)
-  const bestKey = best ? JSON.stringify(best) : null
+function useFitWhy(
+  sessionId: string | null,
+  evidenceVersion: number | null,
+  best: Spec | null,
+  busy: boolean,
+): WhyItem[] | null {
+  const [fit, setFit] = useState<{ sessionId: string; key: string; items: WhyItem[] } | null>(null)
+  const key = best ? `${evidenceVersion ?? ''}|${JSON.stringify(best)}` : null
+  const loaded = fit?.sessionId === sessionId && fit?.key === key
   useEffect(() => {
-    if (!sessionId || !bestKey) return
+    if (!sessionId || !key || busy || loaded) return
     let cancelled = false
     const load = async () => {
+      // A turn may have started since this effect ran: never save the session under it.
+      if (cancelled || useSession.getState().busy) throw new Error('turn running')
       const res = await api.GET('/api/sessions/{session_id}/fit', { params: { path: { session_id: sessionId } } })
       if (!res.data) throw new Error(`fit ${res.response.status}`)
       return res.data.why ?? []
     }
-    const retry = async () => {
-      await turnEnded()
-      await new Promise((r) => setTimeout(r, RETRY_MS))
-      if (cancelled) throw new Error('cancelled')
-      return load()
-    }
     load()
-      .catch(retry)
+      .catch(async () => {
+        await new Promise((r) => setTimeout(r, RETRY_MS))
+        return load()
+      })
       .then((items) => {
-        if (!cancelled) setFit({ sessionId, items })
+        if (!cancelled) setFit({ sessionId, key, items })
       })
       .catch(() => {
         // Keep the old text; the R2 parts fall back to "not explained yet" only when nothing ever loaded.
@@ -185,9 +185,10 @@ function useFitWhy(sessionId: string | null, evidenceVersion: number | null, bes
     return () => {
       cancelled = true
     }
-  }, [sessionId, evidenceVersion, bestKey])
-  // A text from another session (persona switch) is never shown.
-  return fit && fit.sessionId === sessionId ? fit.items : null
+  }, [sessionId, key, busy, loaded])
+  // Only the text for this session, evidence and best: an older one (persona switch, new evidence) is never
+  // shown, so whyItems falls back to the fitter's why_panel until the refetch lands.
+  return loaded && fit ? fit.items : null
 }
 
 /** `fixture` forces the preview (dev.html); otherwise `?ff=results-fixture` decides. */
@@ -197,8 +198,9 @@ export function useResultsData(fixture = false): ResultsData {
   const ui = useSession((s) => s.ui)
   const messages = useSession((s) => s.messages)
   const sessionId = useSession((s) => s.sessionId)
+  const busy = useSession((s) => s.busy)
   const best = useFixture ? null : (state?.best ?? null)
-  const fitWhy = useFitWhy(useFixture ? null : sessionId, state?.evidence_version ?? null, best)
+  const fitWhy = useFitWhy(useFixture ? null : sessionId, state?.evidence_version ?? null, best, busy)
   return useMemo(
     () => (useFixture ? fixtureData() : liveData(state, ui, messages, fitWhy)),
     [useFixture, state, ui, messages, fitWhy],

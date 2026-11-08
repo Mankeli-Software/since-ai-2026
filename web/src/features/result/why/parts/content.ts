@@ -4,6 +4,7 @@ import type { CameraPresetName, ClubPart } from '@/features/stage3d'
 import forgeTopics from '../../../../../../fixtures/forge_topics.json'
 import type { ResultsView, WhyPart } from '../../chrome'
 import { whyItems, type ResultsData, type WhyItem } from '../../useResultsData'
+import { headName } from '../../specLabel'
 import type { Spec } from '../../types'
 
 /**
@@ -107,8 +108,8 @@ const DATA_PARTS: Record<WhyPart, DataPart[]> = {
 }
 
 /**
- * The why item for a UI part (the data's `flex` is the UI's shaft): the fitter's latest why_panel item first,
- * else the deterministic fit explanation (GET /fit).
+ * The why item for a UI part (the data's `flex` is the UI's shaft): the deterministic fit explanation (GET /fit)
+ * first, else the fitter's latest why_panel item (see whyItems).
  */
 export function findItem(data: ResultsData, part: WhyPart): WhyItem | null {
   const items = whyItems(data)
@@ -152,6 +153,10 @@ export const signedIn = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${fmt
 
 /** "201T MkII" -> "201T"; "301 CB" stays. */
 export const shortHead = (name: string) => name.replace(/\s+MkII$/i, '')
+
+/** The runner-up's lead line, shared by R1 and the R2 head screen: "The 201 came second to the 201T, …". */
+export const cameSecond = (selected: string, best: string) =>
+  `The ${shortHead(headName(selected))} came second to the ${shortHead(headName(best))}, the recommended head.`
 
 export const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s)
 
